@@ -23,6 +23,10 @@
  */
 
 
+#ifndef PERPETUUM_MODEL_H
+#define PERPETUUM_MODEL_H
+
+
 #include <stdint.h>
 
 #include <time.h>
@@ -59,9 +63,9 @@ typedef transref_t transctr_t;
  * This is not the default convention in C, but it seems to make sense here.
  */
 typedef placeref_t placeref_list_t [1];
-eypedef transref_t transref_list_t [1];
+typedef transref_t transref_list_t [1];
 typedef placeref_t *placeref_listref_t;
-eypedef transref_t *transref_listref_t;
+typedef transref_t *transref_listref_t;
 
 
 /* Token counters are integers up to a certain value.  By analysing a model
@@ -83,7 +87,7 @@ typedef unsigned int tokenctrt_t;
  * the unlocked count.  When attempting a transition, its inputs will lower
  * the unlocked count; upon success, their available will also be lowered
  * and upon failure, their count of unlocked tokens will increase.
- * The trans_out_neg represents inhibitor output arcs.
+ * The trans_out_inh represents inhibitor output arcs.
  */
 
 typedef struct {
@@ -91,7 +95,7 @@ typedef struct {
 	//TODO// uint32_t flags;
 	//TODO// transref_listref_t trans_in;	/* never NULL */
 	transref_listref_t trans_out;		/* never NULL */
-	transref_listref_t trans_out_neg;	/* never NULL */
+	transref_listref_t trans_out_inh;	/* never NULL */
 } place_t;
 
 typedef struct {
@@ -107,14 +111,14 @@ typedef struct {
  * the references back and forth through lists of references.  These lists
  * are actively used while trying, committing or rolling back a transitions'
  * associated action, or while sending out tokens after success.
- * The place_in_neg represents inhibitor's input arcs.
+ * The place_in_inh represents inhibitor's input arcs.
  */
 
 typedef struct {
 	const char *name;
 	//TODO// uint32_t flags;
 	placeref_listref_t place_in;		/* never NULL */
-	placeref_listref_t place_in_neg;A	/* never NULL */
+	placeref_listref_t place_in_inh;	/* never NULL */
 	placeref_listref_t place_out;		/* never NULL */
 } trans_t;
 
@@ -127,7 +131,7 @@ typedef struct {
 
 /* Return codes for transitions make clear what should be done.  They can
  * be set to a number of values:
- *  - 0 for success
+ *  -  0 for success
  *  - >0 for delays of so many seconds
  *  - ~0 for "infinite delays", meaning "forget it" or "failed"
  * The type is an unsigned integer that may be scaled down as long as the
@@ -163,10 +167,10 @@ typedef unsigned int trans_retcode_t;
 
 typedef struct {
 	const char *name;
-	placenum_t place_num;
-	transnum_t trans_num;
-	struct place_t *place_ary;		// Start accessing from [1]
-	struct trans_t *trans_ary;		// Start accessing from [1]
+	placeref_t place_num;
+	transref_t trans_num;
+	place_t *place_ary;		// Start accessing from [1]
+	trans_t *trans_ary;		// Start accessing from [1]
 #	ifdef USRDEF_PETRINET_FIELDS
 	USRDEF_PETRINET_FIELDS
 #	endif
@@ -175,8 +179,8 @@ typedef struct {
 typedef struct {
 	const char *colour;
 	struct petrinet_t *topology;
-	struct place_colour_t *place_ary;	// Start accessing from [1]
-	struct trans_colour_t *trans_ary;	// Start accessing from [1]
+	place_colour_t *place_ary;	// Start accessing from [1]
+	trans_colour_t *trans_ary;	// Start accessing from [1]
 #	ifdef PLACE_HASH_CTX_FIELDS
 	PLACE_HASH_CTX_FIELDS
 #	endif
@@ -215,4 +219,6 @@ typedef struct {
 	transref_t trans;
 } trans_opaque_t;
 
+
+#endif /* PERPETUUM_MODEL_H */
 

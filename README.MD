@@ -26,12 +26,12 @@ which means that:
 
   * Graphical tools exist to overview and modify the system process design;
   * Tools exist to prove various correctness requirements of a new design;
-  * Graphical tools exist for simulationt and animation of the new design.
+  * Graphical tools exist for simulation and animation of the new design.
 
 Given that the remainder of the problem consists of relatively simple
 actions, such as "send a message over LDAP", this takes away quite a lot
 of the burden when adapting the Key Manager to new situations, be they
-driven by technical advances or operation in different contexts.
+driven by technical advances or operations in different contexts.
 
 
 ## Programming Model
@@ -94,3 +94,20 @@ assure you that it will not run into problems when you deploy them.
 
 TODO: List tests that could be useful -- xlate math lingo into deployment speak.
 
+
+### NOTES after discussion with Adriaan de Groot
+
+  * Time-consuming processes can justly be run in a place
+  * The non-determinism of Petri-nets helps to challenge/cripple formal tools (meaning, avoid that they jump to illegit conclusions) but implementations invariably add choices that may be more concrete (without breaking any formal properties)
+  * One way of being concrete in an implementation is: a place can fire when its action is done (but the transition needs to be ready for it too, so waiting may be involved)
+  * It is possible to refine one place into a sequence with intermittent transitions, *except* when the last transition responds to not having a token (through an inhibitor arc) -- in which case these inhibitors must attach to all the intermittent places too
+  * This helps to avoid a very common pattern of "trans/init, place/ready, trans/request, place/wait, trans/response, place/done" and instead we can often just write "trans/init, place/ready2response, trans/response" (or so...)
+  * Processes run in places need not always exit in the same way; they may also side-step on error or other considerd-useful distinct situations
+  * Events reamin valuable on transitions; incoming places define preconditions for them being noticed (?) or for them passing through; we should be able to express both where one can be a simple pattern around the other
+  * It is probably also nice to allow lightning-fast actions initiated on transitions; this is indeed suggested by the literature too, where places represent states (of rest); indeed, processes in places can be seen as an abbreviated form of request/wait/response (which is how Petri nets can be used to model activities in UML Activity Diagrams)
+
+With longer-running processes, colour can be endangered; writes may replace values in multiple places at the same time; this might be overcome in a number of ways
+
+  - Use locks, either in the activities or in the surrounding generated code
+  - Analyse such that colour aspects (parts of user type space) never overlaps (using k-bound analysis and a few extra places and arcs between conflicting parts?)
+  - Use analysis of such extra colour aspects to add the extra places and arcs in the Petri net that enforce 1-boundedness of the collection of places that access the same piece of information
