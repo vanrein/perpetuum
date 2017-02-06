@@ -15,6 +15,23 @@ option (BUILD_SINGLE_THREADED
 	"Build without atomic operations because Perpetuum runs in one thread"
 	ON)
 
+option (PETRINET_SINGLETONS
+	"Optimise with singular instances for each Petri net defined"
+	OFF)
+
+option (PETRINET_CODED_FOR_ONE
+	"Optimised by having code directly reference global data structures"
+	OFF)
+
+option (PETRINET_FLAT_SCHEDULING
+	"Schedule Petri net activity in a flat loop, avoid stack-based recursion"
+	ON)
+
+if (${PETRINET_CODED_FOR_ONE} AND NOT ${PETRINET_SINGLETONS})
+	message (ERROR "You cannot set PETRINET_CODED_FOR_ONE without PETRINET_SINGLETONS")
+endif ()
+
+
 
 #
 # Dependencies
@@ -24,7 +41,13 @@ if (NOT ${BUILD_SINGLE_THREADED})
 	find_package (Threads REQUIRED)
 endif()
 
-find_package (cmph REQUIRED)
+find_package (PkgConfig)
+
+#TODO# find_package (cmph REQUIRED)
+pkg_search_module (
+        cmph REQUIRED
+        cmph libcmph Cmph CMPH
+)
 
 
 
@@ -96,6 +119,12 @@ endif()
 
 if (${BUILD_SINGLE_THREADED})
 	add_definitions (-DCONFIG_SINGLE_THREADED)
+endif ()
+
+if (${PETRINET_FLAT_SCHEDULING})
+	add_definitions (-DPETRINET_FLAT_SCHEDULING)
+else ()
+	add_definitions (-DPETRINET_RECURSIVE_SCHEDULING)
 endif ()
 
 include_directories (include)

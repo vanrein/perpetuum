@@ -36,6 +36,7 @@
  * numbers are known.  The model will consistently refer to these types
  * to accommodate that.  They must be just large enough to hold the number
  * of elements of the given type.
+ * TODO: Application should define these, not this file.
  */
 typedef unsigned int placeref_t;
 typedef unsigned int transref_t;
@@ -68,6 +69,11 @@ typedef placeref_t *placeref_listref_t;
 typedef transref_t *transref_listref_t;
 
 
+#warning "TODO: FOR_xxxxxREF should not provide index, but data at that index"
+#define FOR_PLACEREF(var,ary) for ((var) = *(ary); (var) > 0; (var)--)
+#define FOR_TRANSREF(var,ary) for ((var) = *(ary); (var) > 0; (var)--)
+
+
 /* Token counters are integers up to a certain value.  By analysing a model
  * and proving properties over it, you should be able to determine the highest
  * count of tokens that can even occur -- you should never design models with
@@ -76,7 +82,7 @@ typedef transref_t *transref_listref_t;
  * that could ever acrue anywhere, this type might be persuaded to modest
  * sizes.
  */
-typedef unsigned int tokenctrt_t;
+typedef unsigned int tokenctr_t;
 
 
 /* The place type represents place internal administration, as well as the
@@ -100,33 +106,11 @@ typedef struct {
 
 typedef struct {
 	//TODO// uint32_t flags;
-	tokenctrt_t available;
+	tokenctr_t available;
 #ifndef BUILD_SINGLE_THREADED
-	tokenctrt_t unlocked;
+	tokenctr_t unlocked;
 #endif
 } place_colour_t;
-
-
-/* The trans type represents transition internal administration, as well as
- * the references back and forth through lists of references.  These lists
- * are actively used while trying, committing or rolling back a transitions'
- * associated action, or while sending out tokens after success.
- * The place_in_inh represents inhibitor's input arcs.
- */
-
-typedef struct {
-	const char *name;
-	//TODO// uint32_t flags;
-	placeref_listref_t place_in;		/* never NULL */
-	placeref_listref_t place_in_inh;	/* never NULL */
-	placeref_listref_t place_out;		/* never NULL */
-} trans_t;
-
-typedef struct {
-	//TODO// uint32_t flags;
-	time_t notbefore;
-	tokenctrt_t countdown;
-} trans_colour_t;
 
 
 /* Return codes for transitions make clear what should be done.  They can
@@ -155,6 +139,32 @@ typedef unsigned int trans_retcode_t;
 				(t)))
 
 
+/* The trans type represents transition internal administration, as well as
+ * the references back and forth through lists of references.  These lists
+ * are actively used while trying, committing or rolling back a transitions'
+ * associated action, or while sending out tokens after success.
+ * The place_in_inh represents inhibitor's input arcs.
+ */
+
+typedef struct {
+	const char *name;
+	//TODO// uint32_t flags;
+	placeref_listref_t place_in;		/* never NULL */
+	placeref_listref_t place_in_inh;	/* never NULL */
+	placeref_listref_t place_out;		/* never NULL */
+} trans_t;
+ 
+typedef struct trans_colour_t {
+	//TODO// uint32_t flags;
+	tokenctr_t countdown;
+	time_t firstfail;
+	time_t notbefore;
+	trans_retcode_t (*action) (
+			time_t *nowp,
+			struct trans_colour_t *tr);	//TODO// Parameters?
+} trans_colour_t;
+
+
 /* A Petri net is a collection of places and transitions.  Wow, that's quite
  * a revelation :)
  *
@@ -163,10 +173,14 @@ typedef unsigned int trans_retcode_t;
  * perfect hash functions that are not minimal -- since there is no need.
  * We allow for some type insertions if the right #define is present.
  * Similarly, we leave some room for user-defined references.
+ *
+ * TODO: Make a variation flag PETRINET_SINGLETONS that integrates dyn/stat.
+ * TODO: Vigarously use "const" to help compilers to optimise.
+ * TODO: Rename petrinet / petrinet_coloured to petrinet_topo / petrinet
  */
 
 typedef struct {
-	const char *name;
+	const char *name;		//TODO// Names in _SINGLETONS?!?
 	placeref_t place_num;
 	transref_t trans_num;
 	place_t *place_ary;		// Start accessing from [1]
@@ -177,8 +191,12 @@ typedef struct {
 } petrinet_t;
 
 typedef struct {
-	const char *colour;
-	struct petrinet_t *topology;
+	const char *colour;		//TODO// Names in _SINGLETONS?!?
+#ifndef PETRINET_SINGLETONS
+	const petrinet_t *topology;
+#else
+	const petrinet_t topology;
+#endif
 	place_colour_t *place_ary;	// Start accessing from [1]
 	trans_colour_t *trans_ary;	// Start accessing from [1]
 #	ifdef PLACE_HASH_CTX_FIELDS
@@ -191,6 +209,21 @@ typedef struct {
 	USRDEF_PETRINET_COLOUR_FIELDS
 #	endif
 } petrinet_colour_t;
+
+
+#ifdef PETRINET_SINGLETONS
+#  define TOPO(pcn) (&(pcn)->topology)
+#else
+#  define TOPO(pcn) ( (pcn)->topology)
+#endif
+
+//TODO// Influenced by PETRINET_CODED_FOR_ONE
+#define REF2PLACE(pnc,pr) ((pnc)->place_ary[pr])
+#define REF2TRANS(pnc,pr) ((pnc)->trans_ary[pr])
+
+//TODO// Influenced by PETRINET_CODED_FOR_ONE and PETRINET_SINGLETONS
+#define REF2PLACE_TOPO(pnc,pr) (TOPO(pnc)->place_ary[pr])
+#define REF2TRANS_TOPO(pnc,pr) (TOPO(pnc)->trans_ary[pr])
 
 
 /* Given a place or transition name, find the corresponding entry in the

@@ -2,9 +2,6 @@
 #
 # perpetuum-compile.py -- Given a Petri net, generate driver code for it.
 #
-# Yeah I know, it's lame to call it petrification if it is meant to provide
-# flexibility in process driving.  TODO: Call it perpetuum-cogen?
-#
 # This is a code generator from a set of Petri nets with suitable labels.
 # The output consists of:
 #  - tables of places and transitions, modelled after <perpetuum/model.h>
@@ -122,7 +119,7 @@ hout.write ('/* ' + neat_net_name + '''.h
  *
  * Please file issues with TODO
  *
- * With compliments from the ARPA2.net /InternetWide.org project!
+ * With compliments from the ARPA2.net / InternetWide.org project!
  */
 
 
@@ -195,7 +192,7 @@ hout.write ('extern petrinet_t ' + net_name + ';\n\n')
 cout.write ('petrinet_t ' + neat_net_name + ''' = {
 	"''' + net.name + '''",
 	''' + str (place_num) + ', ' + str (trans_num) + ''',
-	''' + neat_net_name + '''_places, ''' + neat_net_name + '''_transitions
+	&''' + neat_net_name + '''_places [-1], &''' + neat_net_name + '''_transitions [-1]
 };
 ''')
 
