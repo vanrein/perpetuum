@@ -127,14 +127,14 @@ usually not a problem.
 
 ## Reference Global Variables
 
-Configuration option: `PETRINET_CODED_FOR_ONE=yes`
+Configuration option: `PETRINET_GLOBALS=yes`
 
 When you have only one set of Petri Nets, and only one instance of it,
 you can skip passing the parameter that references the Petri Net
 instance.  Instead, the code can refer to a global variable.
 
 This setting implies `PETRINET_SINGLETON=yes`, but it is stronger.
-It is an error to specify `PETRINET_CODED_FOR_ONE=yes` but not
+It is an error to specify `PETRINET_GLOBALS=yes` but not
 `PETRINET_SINGLETONS=yes`.
 
 Where there could be multiple singletons derived from multiple sets of

@@ -36,10 +36,11 @@
  * numbers are known.  The model will consistently refer to these types
  * to accommodate that.  They must be just large enough to hold the number
  * of elements of the given type.
- * TODO: Application should define these, not this file.
+ *
+ * Note: These should be defined by applications, so they are commented out.
  */
-typedef unsigned int placeref_t;
-typedef unsigned int transref_t;
+//APPDEF// typedef unsigned int placeref_t;
+//APPDEF// typedef unsigned int transref_t;
 typedef placeref_t placectr_t;
 typedef transref_t transctr_t;
 
@@ -140,6 +141,42 @@ typedef unsigned int trans_retcode_t;
 				(t)))
 
 
+/* The following macros are used to allow for compilation variants between
+ * the most flexible and the most compact representations.  They do not make
+ * the code much more appealing, but are hoped to keep it readable by
+ * concealing the horrors caused by the variations.
+ */
+#ifdef PETRINET_GLOBAL_NAME
+#  define PARMDEF(pnc)
+#  define PARMDEF_COMMA(pnc)
+#  define COMMA_PARMDEF(pnc)
+#  define PARMARG(pnc)
+#  define PARMARG_COMMA(pnc)
+#  define COMMA_PARMARG(pnc)
+#  define PARM_USE(pnc) (&PETRINET_GLOBAL_NAME)
+#else
+#  define PARMDEF(pnc) petrinet_colour_t *pnc
+#  define PARMDEF_COMMA(pnc)  PARMDEF(pnc),
+#  define COMMA_PARMDEF(pnc) ,PARMDEF(pnc)
+#  define PARM_USE(pnc) (pnc)
+#  define PARMARG(pnc) (pnc)
+#  define PARMARG_COMMA(pnc)  PARMARG(pnc),
+#  define COMMA_PARMARG(pnc) ,PARMARG(pnc)
+#endif
+
+#ifdef PETRINET_SINGLETONS
+#  define TOPO(pnc) (&PARM_USE(pnc)->topology)
+#else
+#  define TOPO(pnc) ( PARM_USE(pnc)->topology)
+#endif
+
+#define REF2PLACE(pnc,pr) (PARM_USE(pnc)->place_ary[pr])
+#define REF2TRANS(pnc,pr) (PARM_USE(pnc)->trans_ary[pr])
+
+#define REF2PLACE_TOPO(pnc,pr) (TOPO(pnc)->place_ary[pr])
+#define REF2TRANS_TOPO(pnc,pr) (TOPO(pnc)->trans_ary[pr])
+
+
 /* The trans type represents transition internal administration, as well as
  * the references back and forth through lists of references.  These lists
  * are actively used while trying, committing or rolling back a transitions'
@@ -150,6 +187,9 @@ typedef unsigned int trans_retcode_t;
 typedef struct trans_st trans_t;
 typedef struct trans_colour_st trans_colour_t;
 
+typedef struct petrinet_st petrinet_t;
+typedef struct petrinet_colour_st petrinet_colour_t;
+
 typedef struct trans_st {
 	const char *name;
 	//TODO// uint32_t flags;
@@ -157,10 +197,9 @@ typedef struct trans_st {
 	//NONEED// placeref_listref_t place_in_inh;	/* never NULL */
 	const placeref_listref_t place_out;		/* never NULL */
 	trans_retcode_t (*const action) (		/* never NULL */
-			time_t *nowp,
+			PARMDEF_COMMA (pnc)
 			transref_t tr,
-			trans_t *tt,
-			trans_colour_t *tc);	//TODO// Parameters?
+			time_t *nowp);
 } trans_t;
  
 struct trans_colour_st {
@@ -185,7 +224,7 @@ struct trans_colour_st {
  * TODO: Rename petrinet / petrinet_coloured to petrinet_topo / petrinet
  */
 
-typedef struct {
+typedef struct petrinet_st {
 	const char *name;		//TODO// Names in _SINGLETONS?!?
 	placeref_t place_num;
 	transref_t trans_num;
@@ -196,7 +235,7 @@ typedef struct {
 #	endif
 } petrinet_t;
 
-typedef struct {
+typedef struct petrinet_colour_st {
 	const char *colour;		//TODO// Names in _SINGLETONS?!?
 #ifndef PETRINET_SINGLETONS
 	const petrinet_t *topology;
@@ -217,28 +256,6 @@ typedef struct {
 } petrinet_colour_t;
 
 
-//TODO// #ifdef PETRINET_CODED_FOR_ONE
-//TODO// #  define
-//TODO// #else
-//TODO// #  define
-//TODO// #endif
-
-//TODO// Influenced by PETRINET_CODED_FOR_ONE
-#ifdef PETRINET_SINGLETONS
-#  define TOPO(pcn) (&(pcn)->topology)
-#else
-#  define TOPO(pcn) ( (pcn)->topology)
-#endif
-
-//TODO// Influenced by PETRINET_CODED_FOR_ONE
-#define REF2PLACE(pnc,pr) ((pnc)->place_ary[pr])
-#define REF2TRANS(pnc,pr) ((pnc)->trans_ary[pr])
-
-//TODO// Influenced by PETRINET_CODED_FOR_ONE
-#define REF2PLACE_TOPO(pnc,pr) (TOPO(pnc)->place_ary[pr])
-#define REF2TRANS_TOPO(pnc,pr) (TOPO(pnc)->trans_ary[pr])
-
-
 /* Given a place or transition name, find the corresponding entry in the
  * given Petri net.  Note that a clever generator will employ minimal
  * perfect hashing to find this in O(1) time; simpler implementations
@@ -246,8 +263,8 @@ typedef struct {
  * probably choose these functions over looping yourself.
  */
 
-placeref_t find_place (const petrinet_colour_t *pnc, const char *name);
-transref_t find_trans (const petrinet_colour_t *pnc, const char *name);
+placeref_t find_place (PARMDEF_COMMA (pnc) const char *name);
+transref_t find_trans (PARMDEF_COMMA (pnc) const char *name);
 
 
 /* Callback functions often provide access to a (void *) and that should hold

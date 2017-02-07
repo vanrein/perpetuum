@@ -9,10 +9,16 @@
  */
 
 
+#include <stdint.h>
+
+
+typedef uint8_t transref_t;
+typedef uint8_t placeref_t;
+
 #include <perpetuum/model.h>
 
 
-/* Place initialisation TODO:without tokens */
+/* Place initialisation */
 #define PLACE_INIT_place00 { 0 }
 #define PLACE_INIT_place29 { 0 }
 #define PLACE_INIT_place07 { 0 }

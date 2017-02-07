@@ -339,15 +339,15 @@ static const place_t development_net_places [] = {
 
 #include <stdio.h>
 
-trans_retcode_t TODO_action_print_trans (time_t *nowp,
+trans_retcode_t TODO_action_print_trans (
+				PARMDEF_COMMA (pnc)
 				transref_t tr,
-				trans_t *tt,
-				trans_colour_t *tc) {
+				time_t *nowp) {
 	printf ("Firing %s -- now=%ld, notbefore=%ld, firstfail=%ld\n",
-			tt->name,
+			REF2TRANS_TOPO (pnc, tr).name,
 			(long) *nowp,
-			(long) tc->notbefore,
-			(long) tc->firstfail);
+			(long) REF2TRANS (pnc, tr).notbefore,
+			(long) REF2TRANS (pnc, tr).firstfail);
 	return TRANS_SUCCESS;
 }
 

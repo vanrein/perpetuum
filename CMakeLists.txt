@@ -19,16 +19,16 @@ option (PETRINET_SINGLETONS
 	"Optimise with singular instances for each Petri net defined"
 	OFF)
 
-option (PETRINET_CODED_FOR_ONE
-	"Optimised by having code directly reference global data structures"
+option (PETRINET_GLOBAL_NAME
+	"Optimise by having code directly reference this global variable name"
 	OFF)
 
 option (PETRINET_FLAT_SCHEDULING
 	"Schedule Petri net activity in a flat loop, avoid stack-based recursion"
 	ON)
 
-if (${PETRINET_CODED_FOR_ONE} AND NOT ${PETRINET_SINGLETONS})
-	message (ERROR "You cannot set PETRINET_CODED_FOR_ONE without PETRINET_SINGLETONS")
+if (${PETRINET_GLOBAL_NAME} AND NOT ${PETRINET_SINGLETONS})
+	message (ERROR "You cannot set PETRINET_GLOBAL_NAME without PETRINET_SINGLETONS")
 endif ()
 
 

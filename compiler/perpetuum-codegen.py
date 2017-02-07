@@ -18,7 +18,7 @@ import os
 import sys
 import random
 
-from snakes.nets import PetriNet, Place, Transition, StateGraph, Variable
+from snakes.nets import PetriNet, Place, Transition, StateGraph, Variable, MultiSet
 import snakes.plugins
 
 import cmph
@@ -38,6 +38,8 @@ trans_out = 'trans%02d'
 
 net = PetriNet ('development_net')
 for p in range (place_num):
+	#BROKEN# Pyton loops endlessly when tokens are set, in any way
+	#BROKEN# net.add_place (Place (place_out % p, tokens=range (XXX)))
 	net.add_place (Place (place_out % p))
 for t in range (trans_num):
 	net.add_transition (Transition (trans_out % t))
@@ -77,6 +79,30 @@ s.build ()
 places = [ p.name for p in net.place      () ]
 transs = [ t.name for t in net.transition () ]
 
+range2type = [
+	( 1<< 8, 'uint8_t'  ),
+	( 1<<16, 'uint16_t' ),
+	( 1<<32, 'uint32_t' ),
+	( 1<<64, 'uint64_t' )
+]
+
+placeref_t = None
+for (r,t) in range2type:
+	if len (places) < r:
+		placeref_t = t
+		break
+
+transref_t = None
+for (r,t) in range2type:
+	if len (transs) < r:
+		transref_t = t
+		break
+
+if placeref_t is None or transref_t is None:
+	sys.stderr.write ('FATAL: Unable to fit places and transitions into 64 bit integers\n')
+	sys.exit (1)
+
+
 place_mph = cmph.generate_hash (places, algorithm='bdz')
 trans_mph = cmph.generate_hash (transs, algorithm='bdz')
 
@@ -108,8 +134,9 @@ for t in transs:
 # Construct tables
 #
 
-cout = open ('demo/' + neat_net_name + '.c', 'w')
-hout = open ('demo/' + neat_net_name + '.h', 'w')
+outdir = os.path.dirname (sys.argv [0]) + os.sep + 'demo' + os.sep
+cout = open (outdir + neat_net_name + '.c', 'w')
+hout = open (outdir + neat_net_name + '.h', 'w')
 
 # Generate headers for the .h and .c files
 hout.write ('/* ' + neat_net_name + '''.h
@@ -122,6 +149,12 @@ hout.write ('/* ' + neat_net_name + '''.h
  * With compliments from the ARPA2.net / InternetWide.org project!
  */
 
+
+#include <stdint.h>
+
+
+typedef ''' + transref_t + ''' transref_t;
+typedef ''' + placeref_t + ''' placeref_t;
 
 #include <perpetuum/model.h>
 
@@ -144,12 +177,6 @@ cout.write ('/* ' + neat_net_name + '''.c
 
 
 ''')
-
-
-# When PETRINET_GLOBALS, define a variable with the GLOBAL_PETRINET_NAME
-hout.write ('#ifdef PETRINET_GLOBALS\n')
-hout.write ('#define GLOBAL_PETRINET_NAME \"' + neat_net_name + '\"\n')
-hout.write ('#endif\n\n')
 
 
 # Generate the lists of places and transitions from each of their neighbours
@@ -189,15 +216,15 @@ cout.write ('''/* TODO: Demo mode only, this standard action prints the transiti
 
 #include <stdio.h>
 
-trans_retcode_t TODO_action_print_trans (time_t *nowp,
+trans_retcode_t TODO_action_print_trans (
+				PARMDEF_COMMA (pnc)
 				transref_t tr,
-				trans_t *tt,
-				trans_colour_t *tc) {
+				time_t *nowp) {
 	printf ("Firing %s -- now=%ld, notbefore=%ld, firstfail=%ld\\n",
-			tt->name,
+			REF2TRANS_TOPO (pnc, tr).name,
 			(long) *nowp,
-			(long) tc->notbefore,
-			(long) tc->firstfail);
+			(long) REF2TRANS (pnc, tr).notbefore,
+			(long) REF2TRANS (pnc, tr).firstfail);
 	return TRANS_SUCCESS;
 }
 
@@ -215,9 +242,11 @@ for t in trans_list:
 cout.write ('};\n\n')
 
 # Generate init vectors for places, and optional singleton array
-hout.write ('/* Place initialisation TODO:without tokens */\n')
+hout.write ('/* Place initialisation */\n')
 for plc in place_list:
-	hout.write ('#define PLACE_INIT_' + plc + ' { 0 }\n')
+	ini_mark = len (net.place (plc).tokens)
+	assert (ini_mark == 0)
+	hout.write ('#define PLACE_INIT_' + plc + ' { ' + str (ini_mark) + ' }\n')
 hout.write ('\n')
 cout.write ('#ifdef PETRINET_SINGLETONS\n')
 cout.write ('static place_colour_t the_' + neat_net_name + '_places [] = {\n')
@@ -267,8 +296,8 @@ cout.write ('#endif\n\n')
 hout.write ('#ifndef PETRINET_SINGLETONS\n')
 hout.write ('extern const petrinet_t ' + neat_net_name + ';\n')
 hout.write ('#else\n')
-hout.write ('#ifdef PETRINET_GLOBALS\n')
-hout.write ('#define ' + neat_net_name + ' (&the_' + neat_net_name +  '.topology)\n')
+hout.write ('#ifdef PETRINET_GLOBAL_NAME\n')
+hout.write ('#define ' + neat_net_name + ' (&PETRINET_GLOBAL_NAME.topology)\n')
 hout.write ('#else\n')
 hout.write ('#define ' + neat_net_name + ' (&the_' + neat_net_name + '->topology)\n')
 hout.write ('#endif\n')
