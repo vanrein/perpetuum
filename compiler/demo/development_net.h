@@ -113,11 +113,11 @@ typedef uint8_t placeref_t;
 #define TRANS_INIT_trans37 { 2, 0, 0 }
 
 #ifdef PETRINET_SINGLETONS
-extern petrinet_colour_t the_development_net;
+extern petrinet_t the_development_net;
 #endif
 
 #ifndef PETRINET_SINGLETONS
-extern const petrinet_t development_net;
+extern const petrinet_topo_t development_net;
 #else
 #ifdef PETRINET_GLOBAL_NAME
 #define development_net (&PETRINET_GLOBAL_NAME.topology)

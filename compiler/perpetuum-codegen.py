@@ -205,8 +205,8 @@ for t in trans_list:
 	genlist ('place', place_idx, t + '_place_out',     [ p for p in place_list if (t,p) in t2p ] )
 	cout.write ('\n')
 
-# Generate the place_t[] based on the array of each place's inputs and outputs
-cout.write ('static const place_t ' + neat_net_name + '_places [] = {\n')
+# Generate the place_topo_t[] from the array of each place's inputs and outputs
+cout.write ('static const place_topo_t ' + neat_net_name + '_places [] = {\n')
 for p in place_list:
 	cout.write ('\t{ "' + p + '", ')
 	cout.write (p + '_trans_out, ')
@@ -231,8 +231,8 @@ trans_retcode_t test_action_print_trans (
 
 ''')
 
-# Generate the trans_t[] based on the array of each place's inputs and outputs
-cout.write ('static const trans_t ' + neat_net_name + '_transitions [] = {\n')
+# Generate the trans_topo_t[] from the array of each place's inputs and outputs
+cout.write ('static const trans_topo_t ' + neat_net_name + '_transitions [] = {\n')
 for t in trans_list:
 	cout.write ('\t{ "' + t + '", ')
 	cout.write (t + '_place_in, ')
@@ -249,7 +249,7 @@ for plc in place_list:
 	hout.write ('#define PLACE_INIT_' + plc + ' { ' + str (ini_mark) + ' }\n')
 hout.write ('\n')
 cout.write ('#ifdef PETRINET_SINGLETONS\n')
-cout.write ('static place_colour_t the_' + neat_net_name + '_places [] = {\n')
+cout.write ('static place_t the_' + neat_net_name + '_places [] = {\n')
 for plc in place_list:
 	cout.write ('\tPLACE_INIT_' + plc + ',\n')
 cout.write ('};\n')
@@ -262,7 +262,7 @@ for tr in trans_list:
 	hout.write ('#define TRANS_INIT_' + tr + ' { ' + str (ini_countdown) + ', 0, 0 }\n')
 hout.write ('\n')
 cout.write ('#ifdef PETRINET_SINGLETONS\n')
-cout.write ('static trans_colour_t the_' + neat_net_name + '_transitions [] = {\n')
+cout.write ('static trans_t the_' + neat_net_name + '_transitions [] = {\n')
 for tr in trans_list:
 	cout.write ('\tTRANS_INIT_' + tr + ',\n')
 cout.write ('};\n')
@@ -271,10 +271,10 @@ cout.write ('#endif\n\n')
 # Generate optional code for global variables, which simplifies embedded code
 #TODO# Gen topology, gen transitions, gen places
 hout.write ('#ifdef PETRINET_SINGLETONS\n')
-hout.write ('extern petrinet_colour_t the_' + neat_net_name + ';\n')
+hout.write ('extern petrinet_t the_' + neat_net_name + ';\n')
 hout.write ('#endif\n\n')
 cout.write ('#ifdef PETRINET_SINGLETONS\n')
-cout.write ('petrinet_colour_t the_' + neat_net_name + ' = {\n')
+cout.write ('petrinet_t the_' + neat_net_name + ' = {\n')
 cout.write ('\t\"the_' + neat_net_name + '",\n')
 cout.write ('\t{ /* PETRINET_SINGLETONS => inlined topology */\n')
 cout.write ('\t\t\"' + neat_net_name + '\",\n')
@@ -292,9 +292,9 @@ cout.write ('\t/* TODO: Support for initial USRDEF_PETRINET_COLOUR_FIELDS */\n')
 cout.write ('};\n')
 cout.write ('#endif\n\n')
 
-# Generate the petrinet_t with the static structure, based on the arrays
+# Generate the petrinet_topo_t with the static structure, based on the arrays
 hout.write ('#ifndef PETRINET_SINGLETONS\n')
-hout.write ('extern const petrinet_t ' + neat_net_name + ';\n')
+hout.write ('extern const petrinet_topo_t ' + neat_net_name + ';\n')
 hout.write ('#else\n')
 hout.write ('#ifdef PETRINET_GLOBAL_NAME\n')
 hout.write ('#define ' + neat_net_name + ' (&PETRINET_GLOBAL_NAME.topology)\n')
@@ -303,7 +303,7 @@ hout.write ('#define ' + neat_net_name + ' (&the_' + neat_net_name + '->topology
 hout.write ('#endif\n')
 hout.write ('#endif\n\n')
 cout.write ('''#ifndef PETRINET_SINGLETONS
-const petrinet_t ''' + neat_net_name + ''' = {
+const petrinet_topo_t ''' + neat_net_name + ''' = {
 	"''' + net.name + '''",
 	''' + str (place_num) + ', ' + str (trans_num) + ''',
 	&''' + neat_net_name + '''_places [-1], &''' + neat_net_name + '''_transitions [-1]

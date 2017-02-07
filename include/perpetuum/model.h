@@ -104,14 +104,14 @@ typedef struct {
 #endif
 	const transref_listref_t trans_out;		/* never NULL */
 	const transref_listref_t trans_out_inh;		/* never NULL */
-} place_t;
+} place_topo_t;
 
 typedef struct {
 	tokenctr_t available;
 #ifndef BUILD_SINGLE_THREADED
 	tokenctr_t unlocked;
 #endif
-} place_colour_t;
+} place_t;
 
 
 /* Return codes for transitions make clear what should be done.  They can
@@ -154,7 +154,7 @@ typedef unsigned int trans_retcode_t;
 #  define COMMA_PARMARG(pnc)
 #  define PARM_USE(pnc) (&PETRINET_GLOBAL_NAME)
 #else
-#  define PARMDEF(pnc) petrinet_colour_t *pnc
+#  define PARMDEF(pnc) petrinet_t *pnc
 #  define PARMDEF_COMMA(pnc)  PARMDEF(pnc),
 #  define COMMA_PARMDEF(pnc) ,PARMDEF(pnc)
 #  define PARM_USE(pnc) (pnc)
@@ -193,13 +193,13 @@ typedef unsigned int trans_retcode_t;
  * The place_in_inh represents inhibitor's input arcs.
  */
 
+typedef struct trans_topo_st trans_topo_t;
 typedef struct trans_st trans_t;
-typedef struct trans_colour_st trans_colour_t;
 
+typedef struct petrinet_topo_st petrinet_topo_t;
 typedef struct petrinet_st petrinet_t;
-typedef struct petrinet_colour_st petrinet_colour_t;
 
-typedef struct trans_st {
+typedef struct trans_topo_st {
 #ifndef PETRINET_WITHOUT_NAMES
 	const char *name;
 #endif
@@ -209,9 +209,9 @@ typedef struct trans_st {
 			PARMDEF_COMMA (pnc)
 			transref_t tr,
 			time_t *nowp);
-} trans_t;
+} trans_topo_t;
  
-struct trans_colour_st {
+struct trans_st {
 	tokenctr_t countdown;
 	time_t firstfail;
 	time_t notbefore;
@@ -226,42 +226,42 @@ struct trans_colour_st {
  * perfect hash functions that are not minimal -- since there is no need.
  * We allow for some type insertions if the right #define is present.
  * Similarly, we leave some room for user-defined references.
- *
- * TODO: Rename petrinet / petrinet_coloured to petrinet_topo / petrinet
  */
 
-typedef struct petrinet_st {
+typedef struct petrinet_topo_st {
 #ifndef PETRINET_WITHOUT_NAMES
-	const char *name;		//TODO// Names in _SINGLETONS?!?
+	const char *name;
 #endif
 	placeref_t place_num;
 	transref_t trans_num;
+	place_topo_t *place_ary;	// Start accessing from [1]
+	trans_topo_t *trans_ary;	// Start accessing from [1]
+#	ifdef USRDEF_PETRINET_TOPO_FIELDS
+	USRDEF_PETRINET_TOPO_FIELDS
+#	endif
+} petrinet_topo_t;
+
+typedef struct petrinet_st {
+	const char *colour;
+#ifndef PETRINET_SINGLETONS
+	const petrinet_topo_t *topology;
+#else
+	const petrinet_topo_t topology;
+#endif
 	place_t *place_ary;		// Start accessing from [1]
 	trans_t *trans_ary;		// Start accessing from [1]
-#	ifdef USRDEF_PETRINET_FIELDS
-	USRDEF_PETRINET_FIELDS
-#	endif
-} petrinet_t;
-
-typedef struct petrinet_colour_st {
-	const char *colour;		//TODO// Names in _SINGLETONS?!?
-#ifndef PETRINET_SINGLETONS
-	const petrinet_t *topology;
-#else
-	const petrinet_t topology;
-#endif
-	place_colour_t *place_ary;	// Start accessing from [1]
-	trans_colour_t *trans_ary;	// Start accessing from [1]
+#ifndef PETRINET_WITHOUT_NAMES
 #	ifdef PLACE_HASH_CTX_FIELDS
 	PLACE_HASH_CTX_FIELDS
 #	endif
 #	ifdef TRANS_HASH_CTX_FIELDS
 	TRANS_HASH_CTX_FIELDS
 #	endif
-#	ifdef USRDEF_PETRINET_COLOUR_FIELDS
-	USRDEF_PETRINET_COLOUR_FIELDS
+#endif
+#	ifdef USRDEF_PETRINET_FIELDS
+	USRDEF_PETRINET_FIELDS
 #	endif
-} petrinet_colour_t;
+} petrinet_t;
 
 
 /* Given a place or transition name, find the corresponding entry in the
@@ -283,12 +283,12 @@ transref_t find_trans (PARMDEF_COMMA (pnc) const char *name);
  */
 
 typedef struct {
-	petrinet_colour_t network;
+	petrinet_t network;
 	placeref_t place;
 } place_opaque_t;
 
 typedef struct {
-	petrinet_colour_t network;
+	petrinet_t network;
 	transref_t trans;
 } trans_opaque_t;
 

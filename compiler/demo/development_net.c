@@ -282,7 +282,7 @@ static const placeref_t trans33_place_out [] = { 10, 2, 9, 10, 13, 19, 23, 27, 2
 static const placeref_t trans37_place_in [] = { 2, 1, 17 };
 static const placeref_t trans37_place_out [] = { 10, 2, 3, 14, 19, 25, 37, 39, 40, 47, 50 };
 
-static const place_t development_net_places [] = {
+static const place_topo_t development_net_places [] = {
 	{ "place00", place00_trans_out, place00_trans_out_inh },
 	{ "place29", place29_trans_out, place29_trans_out_inh },
 	{ "place07", place07_trans_out, place07_trans_out_inh },
@@ -351,7 +351,7 @@ trans_retcode_t test_action_print_trans (
 	return TRANS_SUCCESS;
 }
 
-static const trans_t development_net_transitions [] = {
+static const trans_topo_t development_net_transitions [] = {
 	{ "trans24", trans24_place_in, trans24_place_out, test_action_print_trans, },
 	{ "trans15", trans15_place_in, trans15_place_out, test_action_print_trans, },
 	{ "trans13", trans13_place_in, trans13_place_out, test_action_print_trans, },
@@ -395,7 +395,7 @@ static const trans_t development_net_transitions [] = {
 };
 
 #ifdef PETRINET_SINGLETONS
-static place_colour_t the_development_net_places [] = {
+static place_t the_development_net_places [] = {
 	PLACE_INIT_place00,
 	PLACE_INIT_place29,
 	PLACE_INIT_place07,
@@ -450,7 +450,7 @@ static place_colour_t the_development_net_places [] = {
 #endif
 
 #ifdef PETRINET_SINGLETONS
-static trans_colour_t the_development_net_transitions [] = {
+static trans_t the_development_net_transitions [] = {
 	TRANS_INIT_trans24,
 	TRANS_INIT_trans15,
 	TRANS_INIT_trans13,
@@ -495,7 +495,7 @@ static trans_colour_t the_development_net_transitions [] = {
 #endif
 
 #ifdef PETRINET_SINGLETONS
-petrinet_colour_t the_development_net = {
+petrinet_t the_development_net = {
 	"the_development_net",
 	{ /* PETRINET_SINGLETONS => inlined topology */
 		"development_net",
@@ -514,7 +514,7 @@ petrinet_colour_t the_development_net = {
 #endif
 
 #ifndef PETRINET_SINGLETONS
-const petrinet_t development_net = {
+const petrinet_topo_t development_net = {
 	"development_net",
 	50, 40,
 	&development_net_places [-1], &development_net_transitions [-1]

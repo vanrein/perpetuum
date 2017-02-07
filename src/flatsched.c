@@ -51,7 +51,7 @@
  * The value returned suggest the next wakeup time.  It is ~(time_t)0 if
  * there was no timer to wait for.
  */
-time_t flat_schedule_run (petrinet_colour_t *pcn) {
+time_t flat_schedule_run (PARMDEF (pnc)) {
 	transref_t fired_last = 1;
 	transref_t tr = 0;
 	time_t wakeup = ~ (time_t) 0;
@@ -59,15 +59,15 @@ time_t flat_schedule_run (petrinet_colour_t *pcn) {
 		//
 		// The loop "infinitely" loops from last to first transition
 		if (tr == 0) {
-			tr = TOPO (pcn)->trans_num;
+			tr = TOPO (pnc)->trans_num;
 		}
 		//
 		// If the transition [tr] can fire, make it happen
-		if (REF2TRANS (pcn, tr).countdown == 0) {
+		if (REF2TRANS (pnc, tr).countdown == 0) {
 			time_t now = time (NULL);
-			time_t nbf = REF2TRANS (pcn, tr).notbefore;
+			time_t nbf = REF2TRANS (pnc, tr).notbefore;
 			if (nbf <= now) {
-				if (try_firing (pcn, tr)) {
+				if (try_firing (PARMARG_COMMA (pnc) tr)) {
 					fired_last = tr;
 					wakeup = ~ (time_t) 0;
 					// At least one full looping to come
