@@ -125,10 +125,12 @@ for t in transs:
 #TODO# rp,wp = os.pipe ()	#TODO# Limited pipe buffer
 #TODO# place_mph.save (rp)
 #TODO# place_hashtable = wp.read (65537)
+#TODO# ...generate code for insertion...
 #TODO# 
 #TODO# rp,wp = os.pipe ()	#TODO# Limited pipe buffer
 #TODO# trans_mph.save (rp)
 #TODO# trans_hashtable = wp.read (65537)
+#TODO# ...generate code for insertion...
 
 
 #
@@ -200,7 +202,6 @@ for p in place_list:
 	cout.write ('\n')
 for t in trans_list:
 	genlist ('place', place_idx, t + '_place_in',      [ p for p in place_list if (p,t) in p2t ] )
-	#NONEED# genlist ('place', place_idx, t + '_place_in_inh',  []) #TODO#
 	genlist ('place', place_idx, t + '_place_out',     [ p for p in place_list if (t,p) in t2p ] )
 	cout.write ('\n')
 
@@ -212,8 +213,7 @@ for p in place_list:
 	cout.write (p + '_trans_out_inh },\n')
 cout.write ('};\n\n')
 
-#TODO# Demo only, print transition name as a default action
-cout.write ('''/* TODO: Demo mode only, this standard action prints the transition name */
+cout.write ('''/* TODO: Demo mode only, this action prints transition name and timing */
 
 #include <stdio.h>
 
@@ -236,7 +236,6 @@ cout.write ('static const trans_t ' + neat_net_name + '_transitions [] = {\n')
 for t in trans_list:
 	cout.write ('\t{ "' + t + '", ')
 	cout.write (t + '_place_in, ')
-	cout.write ('/*NONEED* ' + t + '_place_in_inh, */ ')
 	cout.write (t + '_place_out, ')
 	cout.write ('test_action_print_trans, ')
 	cout.write ('},\n')
