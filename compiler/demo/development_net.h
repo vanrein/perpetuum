@@ -113,8 +113,8 @@ extern petrinet_colour_t the_development_net;
 #ifndef PETRINET_SINGLETONS
 extern const petrinet_t development_net;
 #else
-#ifdef PETRINET_CODED_FOR_ONE
-#define development_net (&the_development_net.topology)
+#ifdef PETRINET_GLOBAL_NAME
+#define development_net (&PETRINET_GLOBAL_NAME.topology)
 #else
 #define development_net (&the_development_net->topology)
 #endif

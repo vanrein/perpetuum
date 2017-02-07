@@ -70,7 +70,7 @@
  * including reception of a response to a previously sent request or the
  * completion of a slow I/O operation.
  */
-bool inject_tokens (petrinet_colour_t *pnc, placeref_t pr, int addend) {
+bool inject_tokens (PARMDEF_COMMA(pnc) placeref_t pr, int addend) {
 	bool done_sth = false;
 	transref_t tr, tri;
 	//
@@ -143,7 +143,7 @@ bool inject_tokens (petrinet_colour_t *pnc, placeref_t pr, int addend) {
  *
  * TODO: Consider allowing global variable referencing if there's just one.
  */
-bool try_firing (petrinet_colour_t *pnc, transref_t tr) {
+bool try_firing (PARMDEF_COMMA(pnc) transref_t tr) {
 	//
 	// The countdown must have reached 0
 	assert (REF2TRANS (pnc,tr).countdown == 0);
@@ -157,6 +157,8 @@ bool try_firing (petrinet_colour_t *pnc, transref_t tr) {
 	// The transition's action can now fire
 	trans_retcode_t rv = REF2TRANS_TOPO (pnc,tr).action (
 				&now,
+				tr,
+				&REF2TRANS_TOPO (pnc,tr),
 				&REF2TRANS (pnc,tr));
 	if (rv != TRANS_SUCCESS) {
 		if (REF2TRANS (pnc,tr).firstfail == 0) {
@@ -172,10 +174,10 @@ bool try_firing (petrinet_colour_t *pnc, transref_t tr) {
 	// Now pass around the tokens for our firing
 	placeref_t pr, pri;
 	FOR_PLACEREF (pri, pr, REF2TRANS_TOPO (pnc,tr).place_in) {
-		inject_tokens (pnc, pr, -1);
+		inject_tokens (PARMARG_COMMA (pnc) pr, -1);
 	}
 	FOR_PLACEREF (pri, pr, REF2TRANS_TOPO (pnc,tr).place_out) {
-		inject_tokens (pnc, pr, +1);
+		inject_tokens (PARMARG_COMMA (pnc) pr, +1);
 	}
 	//
 	// We succeeded...  so be all cheerful and share the fun

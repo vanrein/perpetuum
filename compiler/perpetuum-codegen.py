@@ -146,6 +146,12 @@ cout.write ('/* ' + neat_net_name + '''.c
 ''')
 
 
+# When PETRINET_GLOBALS, define a variable with the GLOBAL_PETRINET_NAME
+hout.write ('#ifdef PETRINET_GLOBALS\n')
+hout.write ('#define GLOBAL_PETRINET_NAME \"' + neat_net_name + '\"\n')
+hout.write ('#endif\n\n')
+
+
 # Generate the lists of places and transitions from each of their neighbours
 def genlist (kind, dict, name, reflist):
 	cout.write ('static const ' + kind + 'ref_t ' + name + ' [] = { ' + str (len (reflist)))
@@ -261,7 +267,7 @@ cout.write ('#endif\n\n')
 hout.write ('#ifndef PETRINET_SINGLETONS\n')
 hout.write ('extern const petrinet_t ' + neat_net_name + ';\n')
 hout.write ('#else\n')
-hout.write ('#ifdef PETRINET_CODED_FOR_ONE\n')
+hout.write ('#ifdef PETRINET_GLOBALS\n')
 hout.write ('#define ' + neat_net_name + ' (&the_' + neat_net_name +  '.topology)\n')
 hout.write ('#else\n')
 hout.write ('#define ' + neat_net_name + ' (&the_' + neat_net_name + '->topology)\n')
