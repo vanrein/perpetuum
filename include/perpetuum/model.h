@@ -69,9 +69,10 @@ typedef placeref_t *placeref_listref_t;
 typedef transref_t *transref_listref_t;
 
 
-#warning "TODO: FOR_xxxxxREF should not provide index, but data at that index"
-#define FOR_PLACEREF(var,ary) for ((var) = *(ary); (var) > 0; (var)--)
-#define FOR_TRANSREF(var,ary) for ((var) = *(ary); (var) > 0; (var)--)
+#define FOR_PLACEREF(idx,var,ary) \
+		for ((idx) = *(ary); (var) = (ary) [idx], (idx) > 0; (idx)--)
+#define FOR_TRANSREF(idx,var,ary) \
+		for ((idx) = *(ary); (var) = (ary) [idx], (idx) > 0; (idx)--)
 
 
 /* Token counters are integers up to a certain value.  By analysing a model
@@ -99,9 +100,9 @@ typedef unsigned int tokenctr_t;
 typedef struct {
 	const char *name;
 	//TODO// uint32_t flags;
-	//TODO// transref_listref_t trans_in;	/* never NULL */
-	transref_listref_t trans_out;		/* never NULL */
-	transref_listref_t trans_out_inh;	/* never NULL */
+	//NONEED// transref_listref_t trans_in;		/* never NULL */
+	const transref_listref_t trans_out;		/* never NULL */
+	const transref_listref_t trans_out_inh;		/* never NULL */
 } place_t;
 
 typedef struct {
@@ -146,23 +147,28 @@ typedef unsigned int trans_retcode_t;
  * The place_in_inh represents inhibitor's input arcs.
  */
 
-typedef struct {
+typedef struct trans_st trans_t;
+typedef struct trans_colour_st trans_colour_t;
+
+typedef struct trans_st {
 	const char *name;
 	//TODO// uint32_t flags;
-	placeref_listref_t place_in;		/* never NULL */
-	placeref_listref_t place_in_inh;	/* never NULL */
-	placeref_listref_t place_out;		/* never NULL */
+	const placeref_listref_t place_in;		/* never NULL */
+	//NONEED// placeref_listref_t place_in_inh;	/* never NULL */
+	const placeref_listref_t place_out;		/* never NULL */
+	trans_retcode_t (*const action) (		/* never NULL */
+			time_t *nowp,
+			transref_t tr,
+			trans_t *tt,
+			trans_colour_t *tc);	//TODO// Parameters?
 } trans_t;
  
-typedef struct trans_colour_t {
+struct trans_colour_st {
 	//TODO// uint32_t flags;
 	tokenctr_t countdown;
 	time_t firstfail;
 	time_t notbefore;
-	trans_retcode_t (*action) (
-			time_t *nowp,
-			struct trans_colour_t *tr);	//TODO// Parameters?
-} trans_colour_t;
+};
 
 
 /* A Petri net is a collection of places and transitions.  Wow, that's quite
@@ -211,6 +217,13 @@ typedef struct {
 } petrinet_colour_t;
 
 
+//TODO// #ifdef PETRINET_CODED_FOR_ONE
+//TODO// #  define
+//TODO// #else
+//TODO// #  define
+//TODO// #endif
+
+//TODO// Influenced by PETRINET_CODED_FOR_ONE
 #ifdef PETRINET_SINGLETONS
 #  define TOPO(pcn) (&(pcn)->topology)
 #else
@@ -221,7 +234,7 @@ typedef struct {
 #define REF2PLACE(pnc,pr) ((pnc)->place_ary[pr])
 #define REF2TRANS(pnc,pr) ((pnc)->trans_ary[pr])
 
-//TODO// Influenced by PETRINET_CODED_FOR_ONE and PETRINET_SINGLETONS
+//TODO// Influenced by PETRINET_CODED_FOR_ONE
 #define REF2PLACE_TOPO(pnc,pr) (TOPO(pnc)->place_ary[pr])
 #define REF2TRANS_TOPO(pnc,pr) (TOPO(pnc)->trans_ary[pr])
 

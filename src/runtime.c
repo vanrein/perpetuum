@@ -72,7 +72,7 @@
  */
 bool inject_tokens (petrinet_colour_t *pnc, placeref_t pr, int addend) {
 	bool done_sth = false;
-	transref_t tr = NIL_TRANS;
+	transref_t tr, tri;
 	//
 	// Get hold of the old and new counter of available tokens
 	tokenctr_t old = REF2PLACE (pnc,pr).available;
@@ -83,7 +83,7 @@ bool inject_tokens (petrinet_colour_t *pnc, placeref_t pr, int addend) {
 	//
 	// Before doing anything else, inhibit any transitions if needed
 	if ((old == 0) && (new > 0)) {
-		FOR_TRANSREF (tr, REF2PLACE_TOPO (pnc,pr).trans_out_inh) {
+		FOR_TRANSREF (tri, tr, REF2PLACE_TOPO (pnc,pr).trans_out_inh) {
 			REF2TRANS (pnc,tr).countdown++;
 		}
 	}
@@ -98,7 +98,7 @@ bool inject_tokens (petrinet_colour_t *pnc, placeref_t pr, int addend) {
 	// Assume that multiple transitions are stored in immediate succession
 	int ctr = 0;
 	transref_t prev = NIL_TRANS;
-	FOR_TRANSREF (tr, REF2PLACE_TOPO (pnc,pr).trans_out) {
+	FOR_TRANSREF (tri, tr, REF2PLACE_TOPO (pnc,pr).trans_out) {
 		if (tr == prev) {
 			ctr++;
 		} else {
@@ -113,7 +113,7 @@ bool inject_tokens (petrinet_colour_t *pnc, placeref_t pr, int addend) {
 	//
 	// We may now relax any inhibitor arcs whose inhibition was removed
 	if ((old > 0) && (new == 0)) {
-		FOR_TRANSREF (tr, REF2PLACE_TOPO (pnc,pr).trans_out_inh) {
+		FOR_TRANSREF (tri, tr, REF2PLACE_TOPO (pnc,pr).trans_out_inh) {
 			REF2TRANS (pnc,tr).countdown--;
 		}
 	}
@@ -155,7 +155,7 @@ bool try_firing (petrinet_colour_t *pnc, transref_t tr) {
 #endif
 	//
 	// The transition's action can now fire
-	trans_retcode_t rv = REF2TRANS (pnc,tr).action (
+	trans_retcode_t rv = REF2TRANS_TOPO (pnc,tr).action (
 				&now,
 				&REF2TRANS (pnc,tr));
 	if (rv != TRANS_SUCCESS) {
@@ -170,11 +170,11 @@ bool try_firing (petrinet_colour_t *pnc, transref_t tr) {
 	//
 	// Firing the transaction was successful
 	// Now pass around the tokens for our firing
-	placeref_t pr;
-	FOR_PLACEREF (pr, REF2TRANS_TOPO (pnc,tr).place_in) {
+	placeref_t pr, pri;
+	FOR_PLACEREF (pri, pr, REF2TRANS_TOPO (pnc,tr).place_in) {
 		inject_tokens (pnc, pr, -1);
 	}
-	FOR_PLACEREF (pr, REF2TRANS_TOPO (pnc,tr).place_out) {
+	FOR_PLACEREF (pri, pr, REF2TRANS_TOPO (pnc,tr).place_out) {
 		inject_tokens (pnc, pr, +1);
 	}
 	//

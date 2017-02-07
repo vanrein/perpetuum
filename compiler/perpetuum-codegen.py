@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# perpetuum-compile.py -- Given a Petri net, generate driver code for it.
+# perpetuum-codegen.py -- Given a Petri net, generate driver code for it.
 #
 # This is a code generator from a set of Petri nets with suitable labels.
 # The output consists of:
@@ -108,8 +108,8 @@ for t in transs:
 # Construct tables
 #
 
-cout = open ('/tmp/' + neat_net_name + '.c', 'w')
-hout = open ('/tmp/' + neat_net_name + '.h', 'w')
+cout = open ('demo/' + neat_net_name + '.c', 'w')
+hout = open ('demo/' + neat_net_name + '.h', 'w')
 
 # Generate headers for the .h and .c files
 hout.write ('/* ' + neat_net_name + '''.h
@@ -117,7 +117,7 @@ hout.write ('/* ' + neat_net_name + '''.h
  * This is a generated file.  Do not edit it, but rather its source and
  * run perpetuum to produce a new version of this file.
  *
- * Please file issues with TODO
+ * Please file issues with https://github.com/vanrein/perpetuum/issues
  *
  * With compliments from the ARPA2.net / InternetWide.org project!
  */
@@ -134,7 +134,7 @@ cout.write ('/* ' + neat_net_name + '''.c
  * This is a generated file.  Do not edit it, but rather its source and
  * run perpetuum to produce a new version of this file.
  *
- * Please file issues with TODO
+ * Please file issues with https://github.com/vanrein/perpetuum/issues
  *
  * With compliments from the ARPA2.net / InternetWide.org project!
  */
@@ -148,7 +148,7 @@ cout.write ('/* ' + neat_net_name + '''.c
 
 # Generate the lists of places and transitions from each of their neighbours
 def genlist (kind, dict, name, reflist):
-	cout.write ('static ' + kind + 'ref_t ' + name + ' [] = { ' + str (len (reflist)))
+	cout.write ('static const ' + kind + 'ref_t ' + name + ' [] = { ' + str (len (reflist)))
 	for ref in reflist:
 		i = 1 + dict [ref]
 		cout.write (', ' + str (i))
@@ -166,34 +166,115 @@ for p in place_list:
 	cout.write ('\n')
 for t in trans_list:
 	genlist ('place', place_idx, t + '_place_in',      [ p for p in place_list if (p,t) in p2t ] )
-	genlist ('place', place_idx, t + '_place_in_inh',  []) #TODO#
+	#NONEED# genlist ('place', place_idx, t + '_place_in_inh',  []) #TODO#
 	genlist ('place', place_idx, t + '_place_out',     [ p for p in place_list if (t,p) in t2p ] )
 	cout.write ('\n')
 
 # Generate the place_t[] based on the array of each place's inputs and outputs
-cout.write ('static place_t ' + neat_net_name + '_places [] = {\n')
+cout.write ('static const place_t ' + neat_net_name + '_places [] = {\n')
 for p in place_list:
 	cout.write ('\t{ "' + p + '", ')
 	cout.write (p + '_trans_out, ')
 	cout.write (p + '_trans_out_inh },\n')
 cout.write ('};\n\n')
 
+#TODO# Demo only, print transition name as a default action
+cout.write ('''/* TODO: Demo mode only, this standard action prints the transition name */
+
+#include <stdio.h>
+
+trans_retcode_t TODO_action_print_trans (time_t *nowp,
+				transref_t tr,
+				trans_t *tt,
+				trans_colour_t *tc) {
+	printf ("Firing %s -- now=%ld, notbefore=%ld, firstfail=%ld\\n",
+			tt->name,
+			(long) *nowp,
+			(long) tc->notbefore,
+			(long) tc->firstfail);
+	return TRANS_SUCCESS;
+}
+
+''')
+
 # Generate the trans_t[] based on the array of each place's inputs and outputs
-cout.write ('static trans_t ' + neat_net_name + '_transitions [] = {\n')
+cout.write ('static const trans_t ' + neat_net_name + '_transitions [] = {\n')
 for t in trans_list:
 	cout.write ('\t{ "' + t + '", ')
 	cout.write (t + '_place_in, ')
-	cout.write (t + '_place_in_inh, ')
-	cout.write (t + '_place_out },\n')
+	cout.write ('/*NONEED* ' + t + '_place_in_inh, */ ')
+	cout.write (t + '_place_out, ')
+	cout.write ('TODO_action_print_trans, ')
+	cout.write ('},\n')
 cout.write ('};\n\n')
 
-# Generate the petrinet_t with the static structure, based on the arrays of trans_t and place_t
-hout.write ('extern petrinet_t ' + net_name + ';\n\n')
-cout.write ('petrinet_t ' + neat_net_name + ''' = {
+# Generate init vectors for places, and optional singleton array
+hout.write ('/* Place initialisation TODO:without tokens */\n')
+for plc in place_list:
+	hout.write ('#define PLACE_INIT_' + plc + ' { 0 }\n')
+hout.write ('\n')
+cout.write ('#ifdef PETRINET_SINGLETONS\n')
+cout.write ('static place_colour_t the_' + neat_net_name + '_places [] = {\n')
+for plc in place_list:
+	cout.write ('\tPLACE_INIT_' + plc + ',\n')
+cout.write ('};\n')
+cout.write ('#endif\n\n')
+
+# Generate init vectors for transitions, and optional singleton array
+hout.write ('/* Place initialisation with countdown; set to inputs + non-empty inhibitors*/\n')
+for tr in trans_list:
+	ini_countdown = len (net.transition (tr).input ()) #TODO:INH#
+	hout.write ('#define TRANS_INIT_' + tr + ' { ' + str (ini_countdown) + ', 0, 0 }\n')
+hout.write ('\n')
+cout.write ('#ifdef PETRINET_SINGLETONS\n')
+cout.write ('static trans_colour_t the_' + neat_net_name + '_transitions [] = {\n')
+for tr in trans_list:
+	cout.write ('\tTRANS_INIT_' + tr + ',\n')
+cout.write ('};\n')
+cout.write ('#endif\n\n')
+
+# Generate optional code for global variables, which simplifies embedded code
+#TODO# Gen topology, gen transitions, gen places
+hout.write ('#ifdef PETRINET_SINGLETONS\n')
+hout.write ('extern petrinet_colour_t the_' + neat_net_name + ';\n')
+hout.write ('#endif\n\n')
+cout.write ('#ifdef PETRINET_SINGLETONS\n')
+cout.write ('petrinet_colour_t the_' + neat_net_name + ' = {\n')
+cout.write ('\t\"the_' + neat_net_name + '",\n')
+cout.write ('\t{ /* PETRINET_SINGLETONS => inlined topology */\n')
+cout.write ('\t\t\"' + neat_net_name + '\",\n')
+cout.write ('\t\t' + str (len (place_list)) + ',\n')
+cout.write ('\t\t' + str (len (trans_list)) + ',\n')
+cout.write ('\t\t&' + neat_net_name + '_places [-1],\n')
+cout.write ('\t\t&' + neat_net_name + '_transitions [-1],\n')
+cout.write ('\t\t/* TODO: Support for inital USRDEF_PETRINET_FIELDS */\n')
+cout.write ('\t},\n')
+cout.write ('\t&the_' + neat_net_name + '_places [-1],\n')
+cout.write ('\t&the_' + neat_net_name + '_transitions [-1],\n')
+cout.write ('\t/* TODO: Support for initial PLACE_HASH_CTX_FIELDS */\n')
+cout.write ('\t/* TODO: Support for initial TRANS_HASH_CTX_FIELDS */\n')
+cout.write ('\t/* TODO: Support for initial USRDEF_PETRINET_COLOUR_FIELDS */\n')
+cout.write ('};\n')
+cout.write ('#endif\n\n')
+
+# Generate the petrinet_t with the static structure, based on the arrays
+hout.write ('#ifndef PETRINET_SINGLETONS\n')
+hout.write ('extern const petrinet_t ' + neat_net_name + ';\n')
+hout.write ('#else\n')
+hout.write ('#ifdef PETRINET_CODED_FOR_ONE\n')
+hout.write ('#define ' + neat_net_name + ' (&the_' + neat_net_name +  '.topology)\n')
+hout.write ('#else\n')
+hout.write ('#define ' + neat_net_name + ' (&the_' + neat_net_name + '->topology)\n')
+hout.write ('#endif\n')
+hout.write ('#endif\n\n')
+cout.write ('''#ifndef PETRINET_SINGLETONS
+const petrinet_t ''' + neat_net_name + ''' = {
 	"''' + net.name + '''",
 	''' + str (place_num) + ', ' + str (trans_num) + ''',
 	&''' + neat_net_name + '''_places [-1], &''' + neat_net_name + '''_transitions [-1]
 };
+#endif
+
 ''')
 
 # Print an end remark
