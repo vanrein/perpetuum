@@ -63,12 +63,9 @@
  *
  * The addend supplied may be positive or negative.  Zero is meaningless.
  *
- * TODO: Consider allowing global variable referencing if there's just one.
- *
- * TODO: Token injection is_WILL_BE_TODO lock-free concurrent.  That enables
- * independent worker threads and processes to signal completion of a task,
- * including reception of a response to a previously sent request or the
- * completion of a slow I/O operation.
+ * Note: Token injection is not a common function to call for Petri net users.
+ *       The proper interface, after setting up an initial marking, is to
+ *       trigger transitions.  Look at the scheduler to learn how.
  */
 bool inject_tokens (PARMDEF_COMMA(pnc) placeref_t pr, int addend) {
 	bool done_sth = false;
@@ -79,7 +76,7 @@ bool inject_tokens (PARMDEF_COMMA(pnc) placeref_t pr, int addend) {
 	tokenctr_t new = old + addend;
 	assert (IMPLIES (addend > 0, new > old));
 	assert (IMPLIES (addend < 0, new < old));
-	REF2PLACE (pnc,pr).available = new;  //TODO:ALREADY?//
+	REF2PLACE (pnc,pr).available = new;
 	//
 	// Before doing anything else, inhibit any transitions if needed
 	if ((old == 0) && (new > 0)) {
@@ -140,8 +137,6 @@ bool inject_tokens (PARMDEF_COMMA(pnc) placeref_t pr, int addend) {
  *  - changes to incoming arcs may change the countdown (or it may stay 0)
  *
  * This operation is called from one thread; usually the flat scheduler.
- *
- * TODO: Consider allowing global variable referencing if there's just one.
  */
 bool try_firing (PARMDEF_COMMA(pnc) transref_t tr) {
 	//
@@ -156,10 +151,9 @@ bool try_firing (PARMDEF_COMMA(pnc) transref_t tr) {
 	//
 	// The transition's action can now fire
 	trans_retcode_t rv = REF2TRANS_TOPO (pnc,tr).action (
-				&now,
+				PARMARG_COMMA(pnc)
 				tr,
-				&REF2TRANS_TOPO (pnc,tr),
-				&REF2TRANS (pnc,tr));
+				&now);
 	if (rv != TRANS_SUCCESS) {
 		if (REF2TRANS (pnc,tr).firstfail == 0) {
 			REF2TRANS (pnc,tr).firstfail = now;

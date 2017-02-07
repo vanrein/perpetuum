@@ -27,6 +27,10 @@ option (PETRINET_FLAT_SCHEDULING
 	"Schedule Petri net activity in a flat loop, avoid stack-based recursion"
 	ON)
 
+option (PETRINET_WITHOUT_NAMES
+	"Save storage space by not storing name strings in the Petri Net"
+	OFF)
+
 if (${PETRINET_GLOBAL_NAME} AND NOT ${PETRINET_SINGLETONS})
 	message (ERROR "You cannot set PETRINET_GLOBAL_NAME without PETRINET_SINGLETONS")
 endif ()
@@ -125,6 +129,10 @@ if (${PETRINET_FLAT_SCHEDULING})
 	add_definitions (-DPETRINET_FLAT_SCHEDULING)
 else ()
 	add_definitions (-DPETRINET_RECURSIVE_SCHEDULING)
+endif ()
+
+if (${PETRINET_WITHOUT_NAMES})
+	add_definitions (-DPETRINET_WITHOUT_NAMES)
 endif ()
 
 include_directories (include)

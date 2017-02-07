@@ -15,8 +15,6 @@
  * embedded architectures.  Combinations are possible; for instance, recursion
  * might some day be constrained to a certain maximum depth, and then flat
  * scheduling can take over as an "outside layer" to pickup any pieces left.
- * TODO: Currently, only the flat scheduler is implemented.
- * TODO: The recursive scheduler would break with single-threaded scheduling.
  *
  * The scheduler is *always* a single-threaded system.  There is no expected
  * gain, and many expected losses, from having threads compete on a Petri net's
@@ -65,7 +63,6 @@ time_t flat_schedule_run (petrinet_colour_t *pcn) {
 		}
 		//
 		// If the transition [tr] can fire, make it happen
-		//TODO// Process
 		if (REF2TRANS (pcn, tr).countdown == 0) {
 			time_t now = time (NULL);
 			time_t nbf = REF2TRANS (pcn, tr).notbefore;

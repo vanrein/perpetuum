@@ -8,8 +8,8 @@
 #  - uses a minimum perfect hash to offer searches by key
 #  - TODO: invocations of actions as declared by transition labels
 #  - TODO: processing of events as declared by transition labels
-#  - TODO: starting/ending of activities as declared by place labels
-#  - TODO: processing of activity output as declared by place labels
+#  - TODO/DROP: starting/ending of activities as declared by place labels
+#  - TODO/DROP: processing of activity output as declared by place labels
 #
 # From: Rick van Rein <rick@openfortress.nl>
 
@@ -55,6 +55,7 @@ for p in range (place_num):
 
 
 #TODO# Combine Petri nets based on matching labels of places and transitions
+
 
 #
 # Map network name to file name and structure name
@@ -216,12 +217,12 @@ cout.write ('''/* TODO: Demo mode only, this standard action prints the transiti
 
 #include <stdio.h>
 
-trans_retcode_t TODO_action_print_trans (
+trans_retcode_t test_action_print_trans (
 				PARMDEF_COMMA (pnc)
 				transref_t tr,
 				time_t *nowp) {
 	printf ("Firing %s -- now=%ld, notbefore=%ld, firstfail=%ld\\n",
-			REF2TRANS_TOPO (pnc, tr).name,
+			TRANS_NAME (pnc, tr),
 			(long) *nowp,
 			(long) REF2TRANS (pnc, tr).notbefore,
 			(long) REF2TRANS (pnc, tr).firstfail);
@@ -237,7 +238,7 @@ for t in trans_list:
 	cout.write (t + '_place_in, ')
 	cout.write ('/*NONEED* ' + t + '_place_in_inh, */ ')
 	cout.write (t + '_place_out, ')
-	cout.write ('TODO_action_print_trans, ')
+	cout.write ('test_action_print_trans, ')
 	cout.write ('},\n')
 cout.write ('};\n\n')
 

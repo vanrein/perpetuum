@@ -99,15 +99,14 @@ typedef unsigned int tokenctr_t;
  */
 
 typedef struct {
+#ifndef PETRINET_WITHOUT_NAMES
 	const char *name;
-	//TODO// uint32_t flags;
-	//NONEED// transref_listref_t trans_in;		/* never NULL */
+#endif
 	const transref_listref_t trans_out;		/* never NULL */
 	const transref_listref_t trans_out_inh;		/* never NULL */
 } place_t;
 
 typedef struct {
-	//TODO// uint32_t flags;
 	tokenctr_t available;
 #ifndef BUILD_SINGLE_THREADED
 	tokenctr_t unlocked;
@@ -176,6 +175,16 @@ typedef unsigned int trans_retcode_t;
 #define REF2PLACE_TOPO(pnc,pr) (TOPO(pnc)->place_ary[pr])
 #define REF2TRANS_TOPO(pnc,pr) (TOPO(pnc)->trans_ary[pr])
 
+#ifdef PETRINET_WITHOUT_NAMES
+#define PLACE_NAME(pnc,pr) "Place_X"
+#define TRANS_NAME(pnc,tr) "Trans_X" 
+#define PETRI_NAME(pnc)    "Petri_X"
+#else
+#define PLACE_NAME(pnc,pr) (REF2PLACE_TOPO((pnc),(pr)).name)
+#define TRANS_NAME(pnc,tr) (REF2TRANS_TOPO((pnc),(tr)).name)
+#define PETRI_NAME(pnc)    (TOPO(pnc).name)
+#endif
+
 
 /* The trans type represents transition internal administration, as well as
  * the references back and forth through lists of references.  These lists
@@ -191,10 +200,10 @@ typedef struct petrinet_st petrinet_t;
 typedef struct petrinet_colour_st petrinet_colour_t;
 
 typedef struct trans_st {
+#ifndef PETRINET_WITHOUT_NAMES
 	const char *name;
-	//TODO// uint32_t flags;
+#endif
 	const placeref_listref_t place_in;		/* never NULL */
-	//NONEED// placeref_listref_t place_in_inh;	/* never NULL */
 	const placeref_listref_t place_out;		/* never NULL */
 	trans_retcode_t (*const action) (		/* never NULL */
 			PARMDEF_COMMA (pnc)
@@ -203,7 +212,6 @@ typedef struct trans_st {
 } trans_t;
  
 struct trans_colour_st {
-	//TODO// uint32_t flags;
 	tokenctr_t countdown;
 	time_t firstfail;
 	time_t notbefore;
@@ -219,13 +227,13 @@ struct trans_colour_st {
  * We allow for some type insertions if the right #define is present.
  * Similarly, we leave some room for user-defined references.
  *
- * TODO: Make a variation flag PETRINET_SINGLETONS that integrates dyn/stat.
- * TODO: Vigarously use "const" to help compilers to optimise.
  * TODO: Rename petrinet / petrinet_coloured to petrinet_topo / petrinet
  */
 
 typedef struct petrinet_st {
+#ifndef PETRINET_WITHOUT_NAMES
 	const char *name;		//TODO// Names in _SINGLETONS?!?
+#endif
 	placeref_t place_num;
 	transref_t trans_num;
 	place_t *place_ary;		// Start accessing from [1]
@@ -263,8 +271,10 @@ typedef struct petrinet_colour_st {
  * probably choose these functions over looping yourself.
  */
 
+#ifndef PETRINET_WITHOUT_NAMES
 placeref_t find_place (PARMDEF_COMMA (pnc) const char *name);
 transref_t find_trans (PARMDEF_COMMA (pnc) const char *name);
+#endif
 
 
 /* Callback functions often provide access to a (void *) and that should hold

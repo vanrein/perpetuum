@@ -10,6 +10,32 @@ from modern-day desktops.  But Petri Nets are useful for all interactive
 programs, and that includes microcontrollers as much as GUIs and
 network-interactive software.  So how to generate small systems?
 
+## Drop name strings
+
+Configuration option: `PETRINET_WITHOUT_NAMES=yes`
+
+When you draw a Petri net, you assign names to its places and transitions,
+or your editor does it for you.  These names can be useful in all sorts of
+debugging output, but they also require storage space; first, for the strings
+themselves, and second for pointers to them.
+
+If you don't need this information, you can get rid of it with this flag.
+
+The Petri net compiler shuffles the order or places, as well as the order
+of transitions.  This however, is not a result *pure* evil; first off, the
+ordering of labels might not go as you would expect anyway (alphabetical
+rather than numerical) but more importantly, we prepare a minimal perfect
+hash on the names.  Even if you should choose to not use that, you might
+like by-products based on it, that could help you lookup mappings in the
+build environment.  (TODO: No such tool has been made.  Who needs it?)
+
+You might wonder if you can trace back from code you are debugging to the
+original design.  Usually you can, because the static variables generated
+from the Petri net are labelled with this same name; so during source-level
+debugging you may still see these snippets of information; their storage
+is in the debugging section of the program, which is habitually removed
+by `strip` and `install` programs which should already be part of your
+control flow while getting the program loaded into your microcontroller.
 
 
 ## Use the smallest reference types
