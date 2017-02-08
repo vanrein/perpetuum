@@ -21,62 +21,35 @@ import sys
 import string
 import random
 
-from snakes.nets import *
-import snakes.plugins
-import snakes.pnml
-
+import pntools.petrinet
 import cmph
 
 
-#DEVHELP#
-#DEVHELP# Start of Petri net generation for development purposes, semi-random
-#DEVHELP#
+#
+# Load the Petri net to work on
+#
 
-#DEVHELP#NOWLOADING# prng = random.Random ()
-#DEVHELP#NOWLOADING# prng.seed (1234567890)
-#DEVHELP#NOWLOADING# one_in_ = 10
-#DEVHELP#NOWLOADING# place_num = 50
-#DEVHELP#NOWLOADING# trans_num = 40
-#DEVHELP#NOWLOADING# place_out = 'place%02d'
-#DEVHELP#NOWLOADING# trans_out = 'trans%02d'
-#DEVHELP#NOWLOADING# 
-#DEVHELP#NOWLOADING# net = PetriNet ('development_net')
-#DEVHELP#NOWLOADING# for p in range (place_num):
-#DEVHELP#NOWLOADING# 	#BROKEN# Pyton loops endlessly when tokens are set, in any way
-#DEVHELP#NOWLOADING# 	#BROKEN# net.add_place (Place (place_out % p, tokens=range (XXX)))
-#DEVHELP#NOWLOADING# 	net.add_place (Place (place_out % p))
-#DEVHELP#NOWLOADING# for t in range (trans_num):
-#DEVHELP#NOWLOADING# 	net.add_transition (Transition (trans_out % t))
-#DEVHELP#NOWLOADING# for p in range (place_num):
-#DEVHELP#NOWLOADING# 	for t in range (trans_num):
-#DEVHELP#NOWLOADING# 		if prng.uniform (0, one_in_) < 1:
-#DEVHELP#NOWLOADING# 			net.add_input  (place_out % p, trans_out % t, Variable('TODO'))
-#DEVHELP#NOWLOADING# 		if prng.uniform (0, one_in_) < 1:
-#DEVHELP#NOWLOADING# 			net.add_output (place_out % p, trans_out % t, Variable('TODO'))
-#DEVHELP#NOWLOADING# 
-#DEVHELP#NOWLOADING# 
-#DEVHELP# End of Petri net generation for development purposes, semi-random
-
-
-netin_fn = os.path.dirname (sys.argv [0]) + os.sep + 'demo' + os.sep + 'netin.pnml'
-print 'Network input file', netin_fn
-netin = open (netin_fn, 'r').read ()
-print 'Loaded PNML bytes', len (netin)
-net = snakes.pnml.loads (netin)
-place_num = len (net.place ())
-trans_num = len (net.transition ())
+netin_fn  = os.path.dirname (sys.argv [0]) + os.sep + 'demo' + os.sep + 'netin.pnml'
+netout_fn = os.path.dirname (sys.argv [0]) + os.sep + 'demo' + os.sep + 'netout.pnml'
+net = pntools.petrinet.parse_pnml_file (netin_fn) [0]  #TODO# set of nets!
+pntools.petrinet.write_pnml_file (net, netout_fn)
+place_num = len (net.places     )
+trans_num = len (net.transitions)
 print 'Number of places is', place_num
 print 'Number of transitions is', trans_num
+print 'Network name is', net.name
 
-
-#TODO# Combine Petri nets based on matching labels of places and transitions
+#TODO# Combine Petri nets [0..] with matching labels of places and transitions
 
 
 #
 # Map network name to file name and structure name; produce file names
 #
 print 'Starting from', net.name
-neat_net_name = ''.join ( [ c if c in ['_' + string.ascii_letters + string.digits ] else '' for c in net.name.replace ('-', '_').replace (' ', '_') ] )
+neat_net_name = ''.join ( [ c
+			for c in net.name.replace ('-', '_').replace (' ', '_')
+			if c in  '_' + string.ascii_letters + string.digits
+			] )
 if not neat_net_name [:1] in string.ascii_letters:
 	neat_net_name = 'x' + neat_net_name
 if neat_net_name == '':
@@ -84,39 +57,29 @@ if neat_net_name == '':
 outdir = os.path.dirname (sys.argv [0]) + os.sep + 'demo' + os.sep
 c_fn    = outdir + neat_net_name + '.c'
 h_fn    = outdir + neat_net_name + '.h'
-dot_fn  = outdir + neat_net_name + '.dot'
-png_fn  = outdir + neat_net_name + '.dot'
+# dot_fn  = outdir + neat_net_name + '.dot'
+# png_fn  = outdir + neat_net_name + '.dot'
 pnml_fn = outdir + neat_net_name + '.pnml'
 print outdir, '+', neat_net_name, '+ .pnml =', pnml_fn
-
 
 #
 # Write out the PNML file -- the composed result of the set of Petri nets
 #
-pnml = snakes.pnml.dumps (net)
-print 'Produced PNML, size', len (pnml)
-print 'Writing PNML to', pnml_fn
-pout = open (pnml_fn, 'w')
-pout.write (pnml)
-pout.close ()
-print 'Written', pnml_fn
+#TODO:COMPOSED#pnml = snakes.pnml.dumps (net)
+#TODO:COMPOSED#print 'Produced PNML, size', len (pnml)
+#TODO:COMPOSED#print 'Writing PNML to', pnml_fn
+#TODO:COMPOSED#pout = open (pnml_fn, 'w')
+#TODO:COMPOSED#pout.write (pnml)
+#TODO:COMPOSED#pout.close ()
+#TODO:COMPOSED#print 'Written', pnml_fn
 
-
-#
-# Output a GraphViz .dot file with the graph format
-#
-snakes.plugins.load ('gv', 'snakes.nets', 'nets')
-#ERROR:NOTFOUND# net.draw (',' + png_fn)
-s = StateGraph (net)
-s.build ()
-#ERROR:NOTFOUND# s.draw (',' + png_fn)
 
 #
 # Map places and transitions each to their own indices
 #
 
-places = [ p.name for p in net.place      () ]
-transs = [ t.name for t in net.transition () ]
+places = net.places     .keys ()
+transs = net.transitions.keys ()
 
 range2type = [
 	( 1<< 8, 'uint8_t'  ),
@@ -226,16 +189,12 @@ def genlist (kind, dict, name, reflist):
 		i = 1 + dict [ref]
 		cout.write (', ' + str (i))
 	cout.write (' };\n')
-p2t = [ ]
-t2p = [ ]
-for t in trans_list:
-	for p in net.transition (t).input ():
-		p2t.append ( (p[0].name,t) )
-	for p in net.transition (t).output ():
-		t2p.append ( (t,p[0].name) )
+p2t = [ (e.source,e.target) for e in net.edges if net.places.has_key (e.source) and e.type != 'inhibitor' ]
+p2i = [ (e.source,e.target) for e in net.edges if net.places.has_key (e.source) and e.type == 'inhibitor' ]
+t2p = [ (e.source,e.target) for e in net.edges if net.places.has_key (e.target) ]
 for p in place_list:
 	genlist ('trans', trans_idx, p + '_trans_out',     [ t for t in trans_list if (p,t) in p2t ] )
-	genlist ('trans', trans_idx, p + '_trans_out_inh', []) #TODO#
+	genlist ('trans', trans_idx, p + '_trans_out_inh', [ t for t in trans_list if (p,t) in p2i ] )
 	cout.write ('\n')
 for t in trans_list:
 	genlist ('place', place_idx, t + '_place_in',      [ p for p in place_list if (p,t) in p2t ] )
@@ -281,8 +240,7 @@ cout.write ('};\n\n')
 # Generate init vectors for places, and optional singleton array
 hout.write ('/* Place initialisation */\n')
 for plc in place_list:
-	ini_mark = len (net.place (plc).tokens)
-	assert (ini_mark == 0)
+	ini_mark = net.places [plc].marking
 	hout.write ('#define PLACE_INIT_' + plc + ' { ' + str (ini_mark) + ' }\n')
 hout.write ('\n')
 cout.write ('#ifdef PETRINET_SINGLETONS\n')
@@ -293,9 +251,15 @@ cout.write ('};\n')
 cout.write ('#endif\n\n')
 
 # Generate init vectors for transitions, and optional singleton array
-hout.write ('/* Place initialisation with countdown; set to inputs + non-empty inhibitors*/\n')
+hout.write ('/* Place initialisation with countdown; set to inputs + non-empty inhibitors */\n')
 for tr in trans_list:
-	ini_countdown = len (net.transition (tr).input ()) #TODO:INH#
+	# initial "countdown" is zero normal plus non-zero inhibitors trans
+	ini_countdown = ( len ( [ src for (src,tgt) in p2t
+	                          if tgt == tr
+	                          and net.places [src].marking == 0 ] )
+			+ len ( [ src for (src,tgt) in p2i
+	                          if tgt == tr
+	                          and net.places [src].marking >  0 ] ) )
 	hout.write ('#define TRANS_INIT_' + tr + ' { ' + str (ini_countdown) + ', 0, 0 }\n')
 hout.write ('\n')
 cout.write ('#ifdef PETRINET_SINGLETONS\n')
@@ -308,10 +272,18 @@ cout.write ('#endif\n\n')
 # Generate optional code for global variables, which simplifies embedded code
 #TODO# Gen topology, gen transitions, gen places
 hout.write ('#ifdef PETRINET_SINGLETONS\n')
+hout.write ('#ifdef PETRINET_GLOBAL_NAME\n')
+hout.write ('extern petrinet_t PETRINET_GLOBAL_NAME;\n')
+hout.write ('#else\n')
 hout.write ('extern petrinet_t the_' + neat_net_name + ';\n')
+hout.write ('#endif\n')
 hout.write ('#endif\n\n')
 cout.write ('#ifdef PETRINET_SINGLETONS\n')
+cout.write ('#ifdef PETRINET_GLOBAL_NAME\n')
+cout.write ('petrinet_t PETRINET_GLOBAL_NAME = {\n')
+cout.write ('#else\n')
 cout.write ('petrinet_t the_' + neat_net_name + ' = {\n')
+cout.write ('#endif\n')
 cout.write ('\t\"the_' + neat_net_name + '",\n')
 cout.write ('\t{ /* PETRINET_SINGLETONS => inlined topology */\n')
 cout.write ('\t\t\"' + neat_net_name + '\",\n')
@@ -320,7 +292,11 @@ cout.write ('\t\t' + str (len (trans_list)) + ',\n')
 cout.write ('\t\t&' + neat_net_name + '_places [-1],\n')
 cout.write ('\t\t&' + neat_net_name + '_transitions [-1],\n')
 cout.write ('\t\t/* TODO: Support for inital USRDEF_PETRINET_FIELDS */\n')
+cout.write ('#ifndef PETRINET_GLOBAL_NAME\n')
 cout.write ('\t},\n')
+cout.write ('#else\n')
+cout.write ('\t},\n')
+cout.write ('#endif\n')
 cout.write ('\t&the_' + neat_net_name + '_places [-1],\n')
 cout.write ('\t&the_' + neat_net_name + '_transitions [-1],\n')
 cout.write ('\t/* TODO: Support for initial PLACE_HASH_CTX_FIELDS */\n')

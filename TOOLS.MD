@@ -24,8 +24,9 @@ is the most usable of all.
   * [TAPAAL](http://www.tapaal.net) is the most usable tool that we found.
     It focusses strongly on timing on arcs, which we don't use, but that is
     not a problem.  It exports PNML that seems to make our conceptual model
-    happy.  **But** we have to remove the `xmlns` attribute from the `<pnml/>`
-    top element to import into `pntools`.
+    happy.  But note, for now you have to remove the `xmlns` attribute from
+    the `<pnml/>` top element to import into `pntools`.  Chances are we will
+    scratch that mild itch sometime.
   * [GreatSPN Editor](http://www.di.unito.it/~amparore/mc4cslta/editor.html)
     is really pleasant to work with, but it does not output
     [PNML](http://www.pnml.org) -- though they seemed open to adding it.

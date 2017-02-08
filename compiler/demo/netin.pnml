@@ -1,0 +1,2522 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pnml>
+ <net id="development_net">
+  <place id="place42">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place43">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place40">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place41">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place46">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place22">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place44">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place45">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place48">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place23">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place24">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place25">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place26">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place27">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place20">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place21">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place08">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place09">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place06">
+   <type domain="universal"/>
+   <initialMarking>
+    <text>1</text>
+   </initialMarking>
+  </place>
+  <place id="place07">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place04">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place05">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place02">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place03">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place00">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place01">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place47">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place28">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place29">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place49">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place31">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place11">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place10">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place13">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place12">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place15">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place14">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place17">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place16">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place19">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place18">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place39">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place38">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place37">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place30">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place36">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place35">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place34">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place33">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <place id="place32">
+   <type domain="universal"/>
+   <initialMarking>
+    <multiset/>
+   </initialMarking>
+  </place>
+  <transition id="trans24"/>
+  <transition id="trans23"/>
+  <transition id="trans22"/>
+  <transition id="trans16"/>
+  <transition id="trans17"/>
+  <transition id="trans14"/>
+  <transition id="trans15"/>
+  <transition id="trans12"/>
+  <transition id="trans13"/>
+  <transition id="trans10"/>
+  <transition id="trans11"/>
+  <transition id="trans20"/>
+  <transition id="trans18"/>
+  <transition id="trans19"/>
+  <transition id="trans38"/>
+  <transition id="trans39"/>
+  <transition id="trans34"/>
+  <transition id="trans35"/>
+  <transition id="trans36"/>
+  <transition id="trans37"/>
+  <transition id="trans30"/>
+  <transition id="trans31"/>
+  <transition id="trans32"/>
+  <transition id="trans33"/>
+  <transition id="trans21"/>
+  <transition id="trans09"/>
+  <transition id="trans08"/>
+  <transition id="trans29"/>
+  <transition id="trans28"/>
+  <transition id="trans01"/>
+  <transition id="trans00"/>
+  <transition id="trans03"/>
+  <transition id="trans02"/>
+  <transition id="trans05"/>
+  <transition id="trans04"/>
+  <transition id="trans07"/>
+  <transition id="trans06"/>
+  <transition id="trans27"/>
+  <transition id="trans26"/>
+  <transition id="trans25"/>
+  <arc id="place47:trans24" source="place47" target="trans24">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place32:trans24" source="place32" target="trans24">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place17:trans24" source="place17" target="trans24">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place11:trans24" source="place11" target="trans24">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place48:trans24" source="place48" target="trans24">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place21:trans24" source="place21" target="trans24">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place05:trans24" source="place05" target="trans24">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place38:trans24" source="place38" target="trans24">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place24:trans24" source="place24" target="trans24">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="trans24:place09" source="trans24" target="place09">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans24:place00" source="trans24" target="place00">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans24:place44" source="trans24" target="place44">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans24:place17" source="trans24" target="place17">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place03:trans23" source="place03" target="trans23">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place16:trans23" source="place16" target="trans23">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place41:trans23" source="place41" target="trans23">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place40:trans23" source="place40" target="trans23">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="trans23:place36" source="trans23" target="place36">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans23:place15" source="trans23" target="place15">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans23:place30" source="trans23" target="place30">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans23:place21" source="trans23" target="place21">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place07:trans22" source="place07" target="trans22">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place16:trans22" source="place16" target="trans22">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place47:trans22" source="place47" target="trans22">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place26:trans22" source="place26" target="trans22">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place19:trans22" source="place19" target="trans22">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place36:trans22" source="place36" target="trans22">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="trans22:place13" source="trans22" target="place13">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans22:place47" source="trans22" target="place47">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans22:place23" source="trans22" target="place23">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans22:place14" source="trans22" target="place14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans22:place15" source="trans22" target="place15">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place21:trans16" source="place21" target="trans16">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place48:trans16" source="place48" target="trans16">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place06:trans16" source="place06" target="trans16">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place42:trans16" source="place42" target="trans16">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place23:trans16" source="place23" target="trans16">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="trans16:place24" source="trans16" target="place24">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans16:place41" source="trans16" target="place41">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans16:place10" source="trans16" target="place10">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans16:place42" source="trans16" target="place42">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans16:place19" source="trans16" target="place19">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans16:place29" source="trans16" target="place29">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans16:place37" source="trans16" target="place37">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place08:trans17" source="place08" target="trans17">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place43:trans17" source="place43" target="trans17">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place01:trans17" source="place01" target="trans17">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place34:trans17" source="place34" target="trans17">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place35:trans17" source="place35" target="trans17">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place22:trans17" source="place22" target="trans17">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="trans17:place47" source="trans17" target="place47">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans17:place33" source="trans17" target="place33">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans17:place45" source="trans17" target="place45">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans17:place44" source="trans17" target="place44">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans17:place05" source="trans17" target="place05">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans17:place37" source="trans17" target="place37">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place16:trans14" source="place16" target="trans14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place43:trans14" source="place43" target="trans14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place01:trans14" source="place01" target="trans14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place44:trans14" source="place44" target="trans14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place38:trans14" source="place38" target="trans14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place11:trans14" source="place11" target="trans14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place28:trans14" source="place28" target="trans14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place22:trans14" source="place22" target="trans14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place04:trans14" source="place04" target="trans14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="trans14:place19" source="trans14" target="place19">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans14:place45" source="trans14" target="place45">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans14:place27" source="trans14" target="place27">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans14:place42" source="trans14" target="place42">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans14:place35" source="trans14" target="place35">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans14:place43" source="trans14" target="place43">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans14:place29" source="trans14" target="place29">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans14:place37" source="trans14" target="place37">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans14:place46" source="trans14" target="place46">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place31:trans15" source="place31" target="trans15">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place08:trans15" source="place08" target="trans15">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place39:trans15" source="place39" target="trans15">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place26:trans15" source="place26" target="trans15">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place27:trans15" source="place27" target="trans15">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place04:trans15" source="place04" target="trans15">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="place06:trans15" source="place06" target="trans15">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+   <type value="inhibitor"/>
+  </arc>
+  <arc id="trans15:place15" source="trans15" target="place15">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans15:place20" source="trans15" target="place20">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans15:place39" source="trans15" target="place39">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans15:place23" source="trans15" target="place23">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place29:trans12" source="place29" target="trans12">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place47:trans12" source="place47" target="trans12">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place18:trans12" source="place18" target="trans12">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place37:trans12" source="place37" target="trans12">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans12:place23" source="trans12" target="place23">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans12:place49" source="trans12" target="place49">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans12:place20" source="trans12" target="place20">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans12:place36" source="trans12" target="place36">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place00:trans13" source="place00" target="trans13">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place21:trans13" source="place21" target="trans13">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place43:trans13" source="place43" target="trans13">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place49:trans13" source="place49" target="trans13">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place34:trans13" source="place34" target="trans13">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place35:trans13" source="place35" target="trans13">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place29:trans13" source="place29" target="trans13">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place13:trans13" source="place13" target="trans13">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans13:place35" source="trans13" target="place35">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans13:place11" source="trans13" target="place11">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans13:place40" source="trans13" target="place40">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans13:place45" source="trans13" target="place45">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans13:place21" source="trans13" target="place21">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place33:trans10" source="place33" target="trans10">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place03:trans10" source="place03" target="trans10">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place17:trans10" source="place17" target="trans10">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans10:place31" source="trans10" target="place31">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans10:place14" source="trans10" target="place14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans10:place46" source="trans10" target="place46">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans10:place35" source="trans10" target="place35">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place15:trans11" source="place15" target="trans11">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place40:trans11" source="place40" target="trans11">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place01:trans11" source="place01" target="trans11">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place38:trans11" source="place38" target="trans11">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place09:trans11" source="place09" target="trans11">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place46:trans11" source="place46" target="trans11">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans11:place35" source="trans11" target="place35">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans11:place07" source="trans11" target="place07">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans11:place46" source="trans11" target="place46">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans11:place15" source="trans11" target="place15">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place09:trans20" source="place09" target="trans20">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place32:trans20" source="place32" target="trans20">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place21:trans20" source="place21" target="trans20">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place15:trans20" source="place15" target="trans20">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans20:place41" source="trans20" target="place41">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans20:place42" source="trans20" target="place42">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans20:place45" source="trans20" target="place45">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place31:trans18" source="place31" target="trans18">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans18:place31" source="trans18" target="place31">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans18:place18" source="trans18" target="place18">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans18:place43" source="trans18" target="place43">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans18:place12" source="trans18" target="place12">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans18:place29" source="trans18" target="place29">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans18:place46" source="trans18" target="place46">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place07:trans19" source="place07" target="trans19">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place02:trans19" source="place02" target="trans19">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place34:trans19" source="place34" target="trans19">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans19:place32" source="trans19" target="place32">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans19:place25" source="trans19" target="place25">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans19:place36" source="trans19" target="place36">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans19:place11" source="trans19" target="place11">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans19:place28" source="trans19" target="place28">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans19:place41" source="trans19" target="place41">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans19:place13" source="trans19" target="place13">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans19:place06" source="trans19" target="place06">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans19:place12" source="trans19" target="place12">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place31:trans38" source="place31" target="trans38">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place16:trans38" source="place16" target="trans38">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place07:trans38" source="place07" target="trans38">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place09:trans38" source="place09" target="trans38">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place42:trans38" source="place42" target="trans38">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place37:trans38" source="place37" target="trans38">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place38:trans38" source="place38" target="trans38">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans38:place01" source="trans38" target="place01">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans38:place10" source="trans38" target="place10">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans38:place39" source="trans38" target="place39">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans38:place24" source="trans38" target="place24">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place37:trans39" source="place37" target="trans39">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place49:trans39" source="place49" target="trans39">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place08:trans39" source="place08" target="trans39">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place26:trans39" source="place26" target="trans39">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans39:place47" source="trans39" target="place47">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans39:place33" source="trans39" target="place33">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans39:place02" source="trans39" target="place02">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans39:place18" source="trans39" target="place18">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans39:place12" source="trans39" target="place12">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans39:place05" source="trans39" target="place05">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans39:place14" source="trans39" target="place14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place29:trans34" source="place29" target="trans34">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place32:trans34" source="place32" target="trans34">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans34:place15" source="trans34" target="place15">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans34:place09" source="trans34" target="place09">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans34:place34" source="trans34" target="place34">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans34:place26" source="trans34" target="place26">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans34:place43" source="trans34" target="place43">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans34:place02" source="trans34" target="place02">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans34:place18" source="trans34" target="place18">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place33:trans35" source="place33" target="trans35">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place05:trans35" source="place05" target="trans35">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place13:trans35" source="place13" target="trans35">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans35:place32" source="trans35" target="place32">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans35:place05" source="trans35" target="place05">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans35:place02" source="trans35" target="place02">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans35:place44" source="trans35" target="place44">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans35:place09" source="trans35" target="place09">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place09:trans36" source="place09" target="trans36">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place28:trans36" source="place28" target="trans36">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place45:trans36" source="place45" target="trans36">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans36:place38" source="trans36" target="place38">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans36:place31" source="trans36" target="place31">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans36:place39" source="trans36" target="place39">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans36:place01" source="trans36" target="place01">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans36:place22" source="trans36" target="place22">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans36:place11" source="trans36" target="place11">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans36:place12" source="trans36" target="place12">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans36:place17" source="trans36" target="place17">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans36:place29" source="trans36" target="place29">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans36:place14" source="trans36" target="place14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place00:trans37" source="place00" target="trans37">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place42:trans37" source="place42" target="trans37">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans37:place07" source="trans37" target="place07">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans37:place31" source="trans37" target="place31">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans37:place10" source="trans37" target="place10">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans37:place06" source="trans37" target="place06">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans37:place19" source="trans37" target="place19">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans37:place04" source="trans37" target="place04">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans37:place45" source="trans37" target="place45">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans37:place29" source="trans37" target="place29">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans37:place14" source="trans37" target="place14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans37:place44" source="trans37" target="place44">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place28:trans30" source="place28" target="trans30">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans30:place41" source="trans30" target="place41">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans30:place35" source="trans30" target="place35">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans30:place01" source="trans30" target="place01">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans30:place34" source="trans30" target="place34">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans30:place38" source="trans30" target="place38">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans30:place19" source="trans30" target="place19">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans30:place20" source="trans30" target="place20">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans30:place09" source="trans30" target="place09">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans30:place14" source="trans30" target="place14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans30:place12" source="trans30" target="place12">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place37:trans31" source="place37" target="trans31">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place49:trans31" source="place49" target="trans31">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans31:place40" source="trans31" target="place40">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans31:place41" source="trans31" target="place41">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans31:place42" source="trans31" target="place42">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans31:place10" source="trans31" target="place10">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans31:place03" source="trans31" target="place03">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans31:place17" source="trans31" target="place17">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans31:place46" source="trans31" target="place46">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place47:trans32" source="place47" target="trans32">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place16:trans32" source="place16" target="trans32">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place33:trans32" source="place33" target="trans32">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place42:trans32" source="place42" target="trans32">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place28:trans32" source="place28" target="trans32">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place49:trans32" source="place49" target="trans32">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place29:trans32" source="place29" target="trans32">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans32:place11" source="trans32" target="place11">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans32:place22" source="trans32" target="place22">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place16:trans33" source="place16" target="trans33">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place25:trans33" source="place25" target="trans33">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place28:trans33" source="place28" target="trans33">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place05:trans33" source="place05" target="trans33">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place37:trans33" source="place37" target="trans33">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place44:trans33" source="place44" target="trans33">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans33:place23" source="trans33" target="place23">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans33:place24" source="trans33" target="place24">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans33:place15" source="trans33" target="place15">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans33:place33" source="trans33" target="place33">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans33:place49" source="trans33" target="place49">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans33:place20" source="trans33" target="place20">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans33:place29" source="trans33" target="place29">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans33:place05" source="trans33" target="place05">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans33:place22" source="trans33" target="place22">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans33:place44" source="trans33" target="place44">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place35:trans21" source="place35" target="trans21">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place06:trans21" source="place06" target="trans21">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place46:trans21" source="place46" target="trans21">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place34:trans21" source="place34" target="trans21">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans21:place00" source="trans21" target="place00">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans21:place09" source="trans21" target="place09">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans21:place26" source="trans21" target="place26">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans21:place36" source="trans21" target="place36">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans21:place29" source="trans21" target="place29">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans21:place46" source="trans21" target="place46">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans21:place48" source="trans21" target="place48">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place31:trans09" source="place31" target="trans09">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place24:trans09" source="place24" target="trans09">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place17:trans09" source="place17" target="trans09">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place32:trans09" source="place32" target="trans09">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place19:trans09" source="place19" target="trans09">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place13:trans09" source="place13" target="trans09">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place16:trans09" source="place16" target="trans09">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans09:place39" source="trans09" target="place39">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans09:place43" source="trans09" target="place43">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans09:place32" source="trans09" target="place32">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans09:place42" source="trans09" target="place42">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans09:place40" source="trans09" target="place40">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place00:trans08" source="place00" target="trans08">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place35:trans08" source="place35" target="trans08">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place48:trans08" source="place48" target="trans08">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place28:trans08" source="place28" target="trans08">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place29:trans08" source="place29" target="trans08">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place13:trans08" source="place13" target="trans08">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place12:trans08" source="place12" target="trans08">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans08:place34" source="trans08" target="place34">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans08:place40" source="trans08" target="place40">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans08:place02" source="trans08" target="place02">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans08:place22" source="trans08" target="place22">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place38:trans29" source="place38" target="trans29">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place07:trans29" source="place07" target="trans29">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place00:trans29" source="place00" target="trans29">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place45:trans29" source="place45" target="trans29">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place33:trans29" source="place33" target="trans29">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans29:place41" source="trans29" target="place41">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place25:trans28" source="place25" target="trans28">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place45:trans28" source="place45" target="trans28">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans28:place39" source="trans28" target="place39">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans28:place00" source="trans28" target="place00">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans28:place47" source="trans28" target="place47">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans28:place33" source="trans28" target="place33">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans28:place10" source="trans28" target="place10">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans28:place42" source="trans28" target="place42">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans28:place27" source="trans28" target="place27">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans28:place48" source="trans28" target="place48">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans28:place17" source="trans28" target="place17">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans28:place13" source="trans28" target="place13">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans28:place40" source="trans28" target="place40">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place15:trans01" source="place15" target="trans01">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place16:trans01" source="place16" target="trans01">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place11:trans01" source="place11" target="trans01">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place41:trans01" source="place41" target="trans01">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place42:trans01" source="place42" target="trans01">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place35:trans01" source="place35" target="trans01">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place39:trans01" source="place39" target="trans01">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place37:trans01" source="place37" target="trans01">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place38:trans01" source="place38" target="trans01">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans01:place07" source="trans01" target="place07">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans01:place16" source="trans01" target="place16">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans01:place39" source="trans01" target="place39">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans01:place18" source="trans01" target="place18">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans01:place04" source="trans01" target="place04">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans01:place21" source="trans01" target="place21">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place48:trans00" source="place48" target="trans00">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place22:trans00" source="place22" target="trans00">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place42:trans00" source="place42" target="trans00">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans00:place38" source="trans00" target="place38">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans00:place01" source="trans00" target="place01">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans00:place06" source="trans00" target="place06">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans00:place22" source="trans00" target="place22">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans00:place13" source="trans00" target="place13">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place27:trans03" source="place27" target="trans03">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place40:trans03" source="place40" target="trans03">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans03:place39" source="trans03" target="place39">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans03:place00" source="trans03" target="place00">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans03:place49" source="trans03" target="place49">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans03:place42" source="trans03" target="place42">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans03:place18" source="trans03" target="place18">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans03:place45" source="trans03" target="place45">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans03:place37" source="trans03" target="place37">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place34:trans02" source="place34" target="trans02">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place25:trans02" source="place25" target="trans02">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place47:trans02" source="place47" target="trans02">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place10:trans02" source="place10" target="trans02">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place30:trans02" source="place30" target="trans02">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans02:place23" source="trans02" target="place23">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans02:place10" source="trans02" target="place10">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans02:place34" source="trans02" target="place34">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place31:trans05" source="place31" target="trans05">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place01:trans05" source="place01" target="trans05">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place09:trans05" source="place09" target="trans05">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place00:trans05" source="place00" target="trans05">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place06:trans05" source="place06" target="trans05">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans05:place49" source="trans05" target="place49">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans05:place44" source="trans05" target="place44">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place13:trans04" source="place13" target="trans04">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place38:trans04" source="place38" target="trans04">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place45:trans04" source="place45" target="trans04">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place29:trans04" source="place29" target="trans04">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans04:place33" source="trans04" target="place33">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans04:place05" source="trans04" target="place05">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans04:place04" source="trans04" target="place04">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans04:place20" source="trans04" target="place20">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place31:trans07" source="place31" target="trans07">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place24:trans07" source="place24" target="trans07">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place32:trans07" source="place32" target="trans07">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place48:trans07" source="place48" target="trans07">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place28:trans07" source="place28" target="trans07">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place13:trans07" source="place13" target="trans07">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place14:trans07" source="place14" target="trans07">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place08:trans07" source="place08" target="trans07">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans07:place31" source="trans07" target="place31">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans07:place24" source="trans07" target="place24">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans07:place35" source="trans07" target="place35">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans07:place25" source="trans07" target="place25">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans07:place34" source="trans07" target="place34">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans07:place16" source="trans07" target="place16">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans07:place27" source="trans07" target="place27">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans07:place43" source="trans07" target="place43">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans07:place29" source="trans07" target="place29">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans07:place21" source="trans07" target="place21">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans07:place47" source="trans07" target="place47">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans07:place46" source="trans07" target="place46">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans07:place08" source="trans07" target="place08">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place38:trans06" source="place38" target="trans06">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place47:trans06" source="place47" target="trans06">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place26:trans06" source="place26" target="trans06">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place34:trans06" source="place34" target="trans06">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans06:place29" source="trans06" target="place29">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans06:place14" source="trans06" target="place14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans06:place04" source="trans06" target="place04">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans06:place41" source="trans06" target="place41">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans06:place10" source="trans06" target="place10">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place47:trans27" source="place47" target="trans27">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place48:trans27" source="place48" target="trans27">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place19:trans27" source="place19" target="trans27">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place41:trans27" source="place41" target="trans27">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place30:trans27" source="place30" target="trans27">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place03:trans27" source="place03" target="trans27">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place38:trans27" source="place38" target="trans27">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans27:place05" source="trans27" target="place05">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans27:place26" source="trans27" target="place26">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans27:place39" source="trans27" target="place39">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place32:trans26" source="place32" target="trans26">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place31:trans26" source="place31" target="trans26">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place24:trans26" source="place24" target="trans26">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place26:trans26" source="place26" target="trans26">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans26:place07" source="trans26" target="place07">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans26:place14" source="trans26" target="place14">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans26:place44" source="trans26" target="place44">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans26:place16" source="trans26" target="place16">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place39:trans25" source="place39" target="trans25">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place40:trans25" source="place40" target="trans25">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place49:trans25" source="place49" target="trans25">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place34:trans25" source="place34" target="trans25">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place02:trans25" source="place02" target="trans25">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place45:trans25" source="place45" target="trans25">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place37:trans25" source="place37" target="trans25" type="tapnInhibitor">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="place06:trans25" source="place06" target="trans25" type="inhibitor">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans25:place13" source="trans25" target="place13">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans25:place26" source="trans25" target="place26">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans25:place43" source="trans25" target="place43">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+  <arc id="trans25:place38" source="trans25" target="place38" type="prohibit">
+   <inscription>
+    <variable>TODO</variable>
+   </inscription>
+  </arc>
+ </net>
+</pnml>
