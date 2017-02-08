@@ -4,8 +4,10 @@
 #
 # This is a code generator from a set of Petri nets with suitable labels.
 # The output consists of:
-#  - tables of places and transitions, modelled after <perpetuum/model.h>
-#  - uses a minimum perfect hash to offer searches by key
+#  - gen tables of places and transitions, modelled after <perpetuum/model.h>
+#  - use a minimum perfect hash to offer searches by key
+#  - gen initialisation and, for singletons, instance information w/ marking
+#  - setup initial countdown for places (TODO: incorporate inhibiting arcs)
 #  - TODO: invocations of actions as declared by transition labels
 #  - TODO: processing of events as declared by transition labels
 #  - TODO/DROP: starting/ending of activities as declared by place labels
@@ -16,62 +18,98 @@
 
 import os
 import sys
+import string
 import random
 
-from snakes.nets import PetriNet, Place, Transition, StateGraph, Variable, MultiSet
+from snakes.nets import *
 import snakes.plugins
+import snakes.pnml
 
 import cmph
 
 
-#TODO#
-#TODO# Start of Petri net generation for development purposes, semi-random
-#TODO#
+#DEVHELP#
+#DEVHELP# Start of Petri net generation for development purposes, semi-random
+#DEVHELP#
 
-prng = random.Random ()
-prng.seed (1234567890)
-one_in_ = 10
-place_num = 50
-trans_num = 40
-place_out = 'place%02d'
-trans_out = 'trans%02d'
+#DEVHELP#NOWLOADING# prng = random.Random ()
+#DEVHELP#NOWLOADING# prng.seed (1234567890)
+#DEVHELP#NOWLOADING# one_in_ = 10
+#DEVHELP#NOWLOADING# place_num = 50
+#DEVHELP#NOWLOADING# trans_num = 40
+#DEVHELP#NOWLOADING# place_out = 'place%02d'
+#DEVHELP#NOWLOADING# trans_out = 'trans%02d'
+#DEVHELP#NOWLOADING# 
+#DEVHELP#NOWLOADING# net = PetriNet ('development_net')
+#DEVHELP#NOWLOADING# for p in range (place_num):
+#DEVHELP#NOWLOADING# 	#BROKEN# Pyton loops endlessly when tokens are set, in any way
+#DEVHELP#NOWLOADING# 	#BROKEN# net.add_place (Place (place_out % p, tokens=range (XXX)))
+#DEVHELP#NOWLOADING# 	net.add_place (Place (place_out % p))
+#DEVHELP#NOWLOADING# for t in range (trans_num):
+#DEVHELP#NOWLOADING# 	net.add_transition (Transition (trans_out % t))
+#DEVHELP#NOWLOADING# for p in range (place_num):
+#DEVHELP#NOWLOADING# 	for t in range (trans_num):
+#DEVHELP#NOWLOADING# 		if prng.uniform (0, one_in_) < 1:
+#DEVHELP#NOWLOADING# 			net.add_input  (place_out % p, trans_out % t, Variable('TODO'))
+#DEVHELP#NOWLOADING# 		if prng.uniform (0, one_in_) < 1:
+#DEVHELP#NOWLOADING# 			net.add_output (place_out % p, trans_out % t, Variable('TODO'))
+#DEVHELP#NOWLOADING# 
+#DEVHELP#NOWLOADING# 
+#DEVHELP# End of Petri net generation for development purposes, semi-random
 
-net = PetriNet ('development_net')
-for p in range (place_num):
-	#BROKEN# Pyton loops endlessly when tokens are set, in any way
-	#BROKEN# net.add_place (Place (place_out % p, tokens=range (XXX)))
-	net.add_place (Place (place_out % p))
-for t in range (trans_num):
-	net.add_transition (Transition (trans_out % t))
-for p in range (place_num):
-	for t in range (trans_num):
-		if prng.uniform (0, one_in_) < 1:
-			net.add_input  (place_out % p, trans_out % t, Variable('TODO'))
-		if prng.uniform (0, one_in_) < 1:
-			net.add_output (place_out % p, trans_out % t, Variable('TODO'))
 
-
-#TODO# End of Petri net generation for development purposes, semi-random
+netin_fn = os.path.dirname (sys.argv [0]) + os.sep + 'demo' + os.sep + 'netin.pnml'
+print 'Network input file', netin_fn
+netin = open (netin_fn, 'r').read ()
+print 'Loaded PNML bytes', len (netin)
+net = snakes.pnml.loads (netin)
+place_num = len (net.place ())
+trans_num = len (net.transition ())
+print 'Number of places is', place_num
+print 'Number of transitions is', trans_num
 
 
 #TODO# Combine Petri nets based on matching labels of places and transitions
 
 
 #
-# Map network name to file name and structure name
+# Map network name to file name and structure name; produce file names
 #
-neat_net_name = net.name.replace (' ', '_').replace ('-', '_')  #TODO#  Escape/subst etc
-net_name = 'petrinet_' + neat_net_name
+print 'Starting from', net.name
+neat_net_name = ''.join ( [ c if c in ['_' + string.ascii_letters + string.digits ] else '' for c in net.name.replace ('-', '_').replace (' ', '_') ] )
+if not neat_net_name [:1] in string.ascii_letters:
+	neat_net_name = 'x' + neat_net_name
+if neat_net_name == '':
+	neat_net_name = 'perpetuum'
+outdir = os.path.dirname (sys.argv [0]) + os.sep + 'demo' + os.sep
+c_fn    = outdir + neat_net_name + '.c'
+h_fn    = outdir + neat_net_name + '.h'
+dot_fn  = outdir + neat_net_name + '.dot'
+png_fn  = outdir + neat_net_name + '.dot'
+pnml_fn = outdir + neat_net_name + '.pnml'
+print outdir, '+', neat_net_name, '+ .pnml =', pnml_fn
+
+
+#
+# Write out the PNML file -- the composed result of the set of Petri nets
+#
+pnml = snakes.pnml.dumps (net)
+print 'Produced PNML, size', len (pnml)
+print 'Writing PNML to', pnml_fn
+pout = open (pnml_fn, 'w')
+pout.write (pnml)
+pout.close ()
+print 'Written', pnml_fn
 
 
 #
 # Output a GraphViz .dot file with the graph format
 #
 snakes.plugins.load ('gv', 'snakes.nets', 'nets')
-#TODO:NOTFOUND# net.draw (',' + neat_net_name + '.png')
+#ERROR:NOTFOUND# net.draw (',' + png_fn)
 s = StateGraph (net)
 s.build ()
-#TODO:NOTFOUND# s.draw (',' + neat_net_name + '.png')
+#ERROR:NOTFOUND# s.draw (',' + png_fn)
 
 #
 # Map places and transitions each to their own indices
@@ -122,24 +160,23 @@ for t in transs:
 #DEBUG# print 'Places:', place_idx
 #DEBUG# print 'Transitions:', trans_idx
 
-#TODO# rp,wp = os.pipe ()	#TODO# Limited pipe buffer
-#TODO# place_mph.save (rp)
-#TODO# place_hashtable = wp.read (65537)
-#TODO# ...generate code for insertion...
-#TODO# 
-#TODO# rp,wp = os.pipe ()	#TODO# Limited pipe buffer
-#TODO# trans_mph.save (rp)
-#TODO# trans_hashtable = wp.read (65537)
-#TODO# ...generate code for insertion...
+#UNUSED# rp,wp = os.pipe ()	#PROBLEM# Limited pipe buffer
+#UNUSED# place_mph.save (rp)
+#UNUSED# place_hashtable = wp.read (65537)
+#UNUSED# ...generate code for insertion...
+#UNUSED# 
+#UNUSED# rp,wp = os.pipe ()	#PROBLEM# Limited pipe buffer
+#UNUSED# trans_mph.save (rp)
+#UNUSED# trans_hashtable = wp.read (65537)
+#UNUSED# ...generate code for insertion...
 
 
 #
 # Construct tables
 #
 
-outdir = os.path.dirname (sys.argv [0]) + os.sep + 'demo' + os.sep
-cout = open (outdir + neat_net_name + '.c', 'w')
-hout = open (outdir + neat_net_name + '.h', 'w')
+cout = open (c_fn, 'w')
+hout = open (h_fn, 'w')
 
 # Generate headers for the .h and .c files
 hout.write ('/* ' + neat_net_name + '''.h
@@ -316,8 +353,6 @@ const petrinet_topo_t ''' + neat_net_name + ''' = {
 hout.write ('\n\n/* End of generated file ' + neat_net_name + '.h */\n')
 cout.write ('\n\n/* End of generated file ' + neat_net_name + '.c */\n')
 
-#TODO-TMP# print 'Net ::', dir (net)
-#TODO-TMP# print 'Transition ::', dir (net.transition (trans_list [0]))
-#TODO-TMP# print 'Transition Input::', net.transition (trans_list [0]).input ()
-#TODO-TMP# print 'Transition Output::', net.transition (trans_list [0]).output ()
-#TODO-TMP# print 'Place ::', dir (net.place (place_list [0]))
+# Close output files
+hout.close ()
+cout.close ()

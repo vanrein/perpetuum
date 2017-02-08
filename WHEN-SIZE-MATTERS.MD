@@ -21,13 +21,13 @@ themselves, and second for pointers to them.
 
 If you don't need this information, you can get rid of it with this flag.
 
-The Petri net compiler shuffles the order or places, as well as the order
+The Petri net compiler shuffles the order of places, as well as the order
 of transitions.  This however, is not a result *pure* evil; first off, the
 ordering of labels might not go as you would expect anyway (alphabetical
 rather than numerical) but more importantly, we prepare a minimal perfect
 hash on the names.  Even if you should choose to not use that, you might
 like by-products based on it, that could help you lookup mappings in the
-build environment.  (TODO: No such tool has been made.  Who needs it?)
+build environment.  (FWIW, no such tool has been made.  Who needs it?)
 
 You might wonder if you can trace back from code you are debugging to the
 original design.  Usually you can, because the static variables generated
@@ -179,12 +179,19 @@ keyword.  This should save a lot of memory lookups, resulting in (much)
 faster code.
 
 
-## TODO: Static Initialisation
+## Static Initialisation
 
 Somewhat dependent on your embedded environment, it may or may not be
 advantageous to create an initial marking through C's `static` variable
-initialisation.  TODO: We offer that option... right?  By default, all
-places are initially empty.
+initialisation.  To do this, you should set the tokens in your Petri net
+Editor, though perhaps not in simulation mode but in editing mode.
+
+When you save your Petri net as PNML, the initial marking would normally
+be written out as part of it.  Perpetuum recognises this, and when it
+generates places it will add the tokens to the diagram.  Although a
+function `inject_tokens()` exists, this should not be considered a user
+function to call; it is only for internal use.  Interaction with users
+is limited to actions and events.
 
 
 ## Measurements
