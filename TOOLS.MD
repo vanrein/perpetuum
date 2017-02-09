@@ -12,7 +12,7 @@ The feature set required for Perpetuum is quite modest:
   * We read Petri nets in the standard
     [PNML notation](http://pnml.org)
   * We process Petri nets with
-    [SNAKES](https://www.ibisc.univ-evry.fr/~fpommereau/SNAKES/API/index.html)
+    [pntools](https://github.com/vanrein/pntools)
 
 
 ## Editors

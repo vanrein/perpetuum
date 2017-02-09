@@ -105,6 +105,9 @@ bool inject_tokens (PARMDEF_COMMA(pnc) placeref_t pr, int addend) {
 		if ((old < ctr) && (ctr <= new)) {
 			REF2TRANS (pnc,tr).countdown--;
 			done_sth = true;
+		} else if ((old >= ctr) && (ctr > new)) {
+			REF2TRANS (pnc,tr).countdown++;
+			done_sth = true;
 		}
 	}
 	//

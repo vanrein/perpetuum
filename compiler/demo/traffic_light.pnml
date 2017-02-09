@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<pnml>
+<net id="traffic-light" type="http://www.pnml.org/version-2009/grammar/ptnet">
+<page id="page0">
+<place id="red">
+<graphics>
+<position x="195" y="135"/>
+</graphics>
+<name>
+<graphics>
+<offset x="-5" y="35"/>
+</graphics>
+<text>red</text>
+</name>
+<initialMarking>
+<graphics>
+<offset x="0" y="0"/>
+</graphics>
+<text>1</text>
+</initialMarking>
+</place>
+<place id="green">
+<graphics>
+<position x="345" y="135"/>
+</graphics>
+<name>
+<graphics>
+<offset x="-5" y="35"/>
+</graphics>
+<text>green</text>
+</name>
+<initialMarking>
+<graphics>
+<offset x="0" y="0"/>
+</graphics>
+<text>0</text>
+</initialMarking>
+</place>
+<place id="yellow">
+<graphics>
+<position x="495" y="135"/>
+</graphics>
+<name>
+<graphics>
+<offset x="-5" y="35"/>
+</graphics>
+<text>yellow</text>
+</name>
+<initialMarking>
+<graphics>
+<offset x="0" y="0"/>
+</graphics>
+<text>0</text>
+</initialMarking>
+</place>
+<transition id="go">
+<name>
+<graphics>
+<offset x="-5" y="35"/>
+</graphics>
+<text>go</text>
+</name>
+<graphics>
+<position x="270" y="135"/>
+</graphics>
+</transition>
+<transition id="caution">
+<name>
+<graphics>
+<offset x="-5" y="35"/>
+</graphics>
+<text>caution</text>
+</name>
+<graphics>
+<position x="420" y="135"/>
+</graphics>
+</transition>
+<transition id="stop">
+<name>
+<graphics>
+<offset x="-5" y="35"/>
+</graphics>
+<text>stop</text>
+</name>
+<graphics>
+<position x="570" y="135"/>
+</graphics>
+</transition>
+<arc id="red_to_go" source="red" target="go" type="normal"/>
+<arc id="green_to_caution" source="green" target="caution" type="normal"/>
+<arc id="yellow_to_stop" source="yellow" target="stop" type="normal"/>
+<arc id="go_to_green" source="go" target="green" type="normal"/>
+<arc id="caution_to_yellow" source="caution" target="yellow" type="normal"/>
+<arc id="stop_to_red" source="stop" target="red" type="normal">
+<graphics>
+<position x="582" y="207"/>
+<position x="207" y="207"/>
+</graphics>
+</arc>
+</page>
+<name>
+<text>traffic-light</text>
+</name>
+</net>
+</pnml>

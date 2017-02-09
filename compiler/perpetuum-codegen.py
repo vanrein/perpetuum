@@ -29,15 +29,24 @@ import cmph
 # Load the Petri net to work on
 #
 
-netin_fn  = os.path.dirname (sys.argv [0]) + os.sep + 'demo' + os.sep + 'netin.pnml'
-netout_fn = os.path.dirname (sys.argv [0]) + os.sep + 'demo' + os.sep + 'netout.pnml'
-net = pntools.petrinet.parse_pnml_file (netin_fn) [0]  #TODO# set of nets!
+if len (sys.argv) != 2:
+	sys.stderr.write ('Usage: %s infile.pnml...\n' % sys.argv [0])
+	sys.stderr.write ('TODO: We currently process only one PNML file at a time\n')
+	sys.exit (1)
+
+netin_fn  = os.path.splitext (sys.argv [1]) [0] + os.extsep + 'pnml'
+netout_fn = os.path.splitext (sys.argv [1]) [0] + os.extsep + 'out'
+net = pntools.petrinet.parse_pnml_file (netin_fn)
+if len (net) != 1:
+	sys.stderr.write ('Parsing failed, found %d Petri nets instead of 1\n' % len (net))
+	sys.exit (1)
+net = net [0]  #TODO# Some day, support multiple Petri nets
 pntools.petrinet.write_pnml_file (net, netout_fn)
 place_num = len (net.places     )
 trans_num = len (net.transitions)
+print 'Network name is', net.name
 print 'Number of places is', place_num
 print 'Number of transitions is', trans_num
-print 'Network name is', net.name
 
 #TODO# Combine Petri nets [0..] with matching labels of places and transitions
 
@@ -45,7 +54,6 @@ print 'Network name is', net.name
 #
 # Map network name to file name and structure name; produce file names
 #
-print 'Starting from', net.name
 neat_net_name = ''.join ( [ c
 			for c in net.name.replace ('-', '_').replace (' ', '_')
 			if c in  '_' + string.ascii_letters + string.digits
@@ -57,10 +65,14 @@ if neat_net_name == '':
 outdir = os.path.dirname (sys.argv [0]) + os.sep + 'demo' + os.sep
 c_fn    = outdir + neat_net_name + '.c'
 h_fn    = outdir + neat_net_name + '.h'
+pkey_fn = outdir + neat_net_name + '.pkey'
+tkey_fn = outdir + neat_net_name + '.tkey'
+pidx_fn = outdir + neat_net_name + '.pidx'
+tidx_fn = outdir + neat_net_name + '.tidx'
+ptyp_fn = outdir + 'petritypes.h'
 # dot_fn  = outdir + neat_net_name + '.dot'
 # png_fn  = outdir + neat_net_name + '.dot'
 pnml_fn = outdir + neat_net_name + '.pnml'
-print outdir, '+', neat_net_name, '+ .pnml =', pnml_fn
 
 #
 # Write out the PNML file -- the composed result of the set of Petri nets
@@ -80,6 +92,9 @@ print outdir, '+', neat_net_name, '+ .pnml =', pnml_fn
 
 places = net.places     .keys ()
 transs = net.transitions.keys ()
+
+open (pkey_fn, 'w').write ('\n'.join (places) + '\n')
+open (tkey_fn, 'w').write ('\n'.join (transs) + '\n')
 
 range2type = [
 	( 1<< 8, 'uint8_t'  ),
@@ -107,6 +122,9 @@ if placeref_t is None or transref_t is None:
 
 place_mph = cmph.generate_hash (places, algorithm='bdz')
 trans_mph = cmph.generate_hash (transs, algorithm='bdz')
+
+place_mph.save (pidx_fn)
+trans_mph.save (tidx_fn)
 
 place_idx = { }
 trans_idx = { }
@@ -138,10 +156,19 @@ for t in transs:
 # Construct tables
 #
 
-cout = open (c_fn, 'w')
-hout = open (h_fn, 'w')
+# Generate typedefs for transref_t and placeref_t
+tout = open (ptyp_fn, 'w')
+tout.write ('''/* Petri Net storage types for ''' + neat_net_name + ''' */
+
+typedef ''' + transref_t + ''' transref_t;
+typedef ''' + placeref_t + ''' placeref_t;
+
+''')
+tout.close ()
 
 # Generate headers for the .h and .c files
+cout = open (c_fn, 'w')
+hout = open (h_fn, 'w')
 hout.write ('/* ' + neat_net_name + '''.h
  *
  * This is a generated file.  Do not edit it, but rather its source and
@@ -154,10 +181,6 @@ hout.write ('/* ' + neat_net_name + '''.h
 
 
 #include <stdint.h>
-
-
-typedef ''' + transref_t + ''' transref_t;
-typedef ''' + placeref_t + ''' placeref_t;
 
 #include <perpetuum/model.h>
 
@@ -251,15 +274,16 @@ cout.write ('};\n')
 cout.write ('#endif\n\n')
 
 # Generate init vectors for transitions, and optional singleton array
-hout.write ('/* Place initialisation with countdown; set to inputs + non-empty inhibitors */\n')
+hout.write ('/* Place initialisation; countdown is set to inputs + non-empty inhibitors */\n')
 for tr in trans_list:
 	# initial "countdown" is zero normal plus non-zero inhibitors trans
-	ini_countdown = ( len ( [ src for (src,tgt) in p2t
-	                          if tgt == tr
-	                          and net.places [src].marking == 0 ] )
-			+ len ( [ src for (src,tgt) in p2i
-	                          if tgt == tr
-	                          and net.places [src].marking >  0 ] ) )
+	ini_countdown = ( str (len ( [ src for (src,tgt) in p2t
+	                               if tgt == tr
+	                               and net.places [src].marking == 0 ] ) )
+	                + ' + '
+			+ str (len ( [ src for (src,tgt) in p2i
+	                               if tgt == tr
+	                               and net.places [src].marking >  0 ] ) ) )
 	hout.write ('#define TRANS_INIT_' + tr + ' { ' + str (ini_countdown) + ', 0, 0 }\n')
 hout.write ('\n')
 cout.write ('#ifdef PETRINET_SINGLETONS\n')
@@ -278,48 +302,60 @@ hout.write ('#else\n')
 hout.write ('extern petrinet_t the_' + neat_net_name + ';\n')
 hout.write ('#endif\n')
 hout.write ('#endif\n\n')
-cout.write ('#ifdef PETRINET_SINGLETONS\n')
-cout.write ('#ifdef PETRINET_GLOBAL_NAME\n')
-cout.write ('petrinet_t PETRINET_GLOBAL_NAME = {\n')
-cout.write ('#else\n')
-cout.write ('petrinet_t the_' + neat_net_name + ' = {\n')
-cout.write ('#endif\n')
-cout.write ('\t\"the_' + neat_net_name + '",\n')
-cout.write ('\t{ /* PETRINET_SINGLETONS => inlined topology */\n')
-cout.write ('\t\t\"' + neat_net_name + '\",\n')
-cout.write ('\t\t' + str (len (place_list)) + ',\n')
-cout.write ('\t\t' + str (len (trans_list)) + ',\n')
-cout.write ('\t\t&' + neat_net_name + '_places [-1],\n')
-cout.write ('\t\t&' + neat_net_name + '_transitions [-1],\n')
-cout.write ('\t\t/* TODO: Support for inital USRDEF_PETRINET_FIELDS */\n')
-cout.write ('#ifndef PETRINET_GLOBAL_NAME\n')
-cout.write ('\t},\n')
-cout.write ('#else\n')
-cout.write ('\t},\n')
-cout.write ('#endif\n')
-cout.write ('\t&the_' + neat_net_name + '_places [-1],\n')
-cout.write ('\t&the_' + neat_net_name + '_transitions [-1],\n')
-cout.write ('\t/* TODO: Support for initial PLACE_HASH_CTX_FIELDS */\n')
-cout.write ('\t/* TODO: Support for initial TRANS_HASH_CTX_FIELDS */\n')
-cout.write ('\t/* TODO: Support for initial USRDEF_PETRINET_COLOUR_FIELDS */\n')
-cout.write ('};\n')
-cout.write ('#endif\n\n')
+cout.write ('''#ifdef PETRINET_SINGLETONS
+#ifdef PETRINET_GLOBAL_NAME
+petrinet_t PETRINET_GLOBAL_NAME = {
+#else
+petrinet_t the_''' + neat_net_name + ''' = {
+#endif
+#ifndef PETRINET_WITHOUT_NAMES
+	.colour = "the_''' + neat_net_name + '''",
+#endif
+	.topology = {
+		/* Topology is inlined due to PETRINET_SINGLETONS */
+		.name = "''' + neat_net_name + '''",
+		.place_num = ''' + str (place_num) + ''',
+		.trans_num = ''' + str (trans_num) + ''',
+		.place_ary = &''' + neat_net_name + '''_places [-1],
+		.trans_ary = &''' + neat_net_name + '''_transitions [-1],
+		/* TODO: Support for inital USRDEF_PETRINET_FIELDS */
+#ifndef PETRINET_GLOBAL_NAME
+	},
+#else
+	},
+#endif
+	.place_ary = &the_''' + neat_net_name + '''_places [-1],
+	.trans_ary = &the_''' + neat_net_name + '''_transitions [-1],
+	/* TODO: Support for initial PLACE_HASH_CTX_FIELDS */
+	/* TODO: Support for initial TRANS_HASH_CTX_FIELDS */
+	/* TODO: Support for initial USRDEF_PETRINET_COLOUR_FIELDS */
+};
+#endif
+
+''')
 
 # Generate the petrinet_topo_t with the static structure, based on the arrays
-hout.write ('#ifndef PETRINET_SINGLETONS\n')
-hout.write ('extern const petrinet_topo_t ' + neat_net_name + ';\n')
-hout.write ('#else\n')
-hout.write ('#ifdef PETRINET_GLOBAL_NAME\n')
-hout.write ('#define ' + neat_net_name + ' (&PETRINET_GLOBAL_NAME.topology)\n')
-hout.write ('#else\n')
-hout.write ('#define ' + neat_net_name + ' (&the_' + neat_net_name + '->topology)\n')
-hout.write ('#endif\n')
-hout.write ('#endif\n\n')
+hout.write ('''#ifndef PETRINET_SINGLETONS
+extern const petrinet_topo_t ''' + neat_net_name + ''';
+#else
+#ifdef PETRINET_GLOBAL_NAME
+#define ''' + neat_net_name + ''' (&PETRINET_GLOBAL_NAME.topology)
+#else
+#define ''' + neat_net_name + ''' (&the_''' + neat_net_name + '''->topology)
+#endif
+#endif
+
+''')
+
 cout.write ('''#ifndef PETRINET_SINGLETONS
 const petrinet_topo_t ''' + neat_net_name + ''' = {
-	"''' + net.name + '''",
-	''' + str (place_num) + ', ' + str (trans_num) + ''',
-	&''' + neat_net_name + '''_places [-1], &''' + neat_net_name + '''_transitions [-1]
+#ifndef PETRINET_WITHOUT_NAMES
+	.name = "''' + net.name + '''",
+#endif
+	.place_num = ''' + str (place_num) + '''
+	.trans_num = ''' + str (trans_num) + ''',
+	.place_ary = &''' + neat_net_name + '''_places [-1],
+	.trans_ary = &''' + neat_net_name + '''_transitions [-1],
 };
 #endif
 

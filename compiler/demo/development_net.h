@@ -70,47 +70,47 @@ typedef uint8_t placeref_t;
 #define PLACE_INIT_place10 { 0 }
 #define PLACE_INIT_place05 { 0 }
 
-/* Place initialisation with countdown; set to inputs + non-empty inhibitors */
-#define TRANS_INIT_trans12 { 4, 0, 0 }
-#define TRANS_INIT_trans24 { 9, 0, 0 }
-#define TRANS_INIT_trans00 { 3, 0, 0 }
-#define TRANS_INIT_trans10 { 3, 0, 0 }
-#define TRANS_INIT_trans23 { 4, 0, 0 }
-#define TRANS_INIT_trans26 { 4, 0, 0 }
-#define TRANS_INIT_trans19 { 3, 0, 0 }
-#define TRANS_INIT_trans07 { 8, 0, 0 }
-#define TRANS_INIT_trans33 { 6, 0, 0 }
-#define TRANS_INIT_trans31 { 2, 0, 0 }
-#define TRANS_INIT_trans34 { 2, 0, 0 }
-#define TRANS_INIT_trans35 { 3, 0, 0 }
-#define TRANS_INIT_trans11 { 6, 0, 0 }
-#define TRANS_INIT_trans13 { 8, 0, 0 }
-#define TRANS_INIT_trans03 { 2, 0, 0 }
-#define TRANS_INIT_trans27 { 7, 0, 0 }
-#define TRANS_INIT_trans36 { 3, 0, 0 }
-#define TRANS_INIT_trans32 { 7, 0, 0 }
-#define TRANS_INIT_trans18 { 1, 0, 0 }
-#define TRANS_INIT_trans22 { 6, 0, 0 }
-#define TRANS_INIT_trans01 { 9, 0, 0 }
-#define TRANS_INIT_trans37 { 2, 0, 0 }
-#define TRANS_INIT_trans39 { 4, 0, 0 }
-#define TRANS_INIT_trans04 { 4, 0, 0 }
-#define TRANS_INIT_trans20 { 4, 0, 0 }
-#define TRANS_INIT_trans30 { 1, 0, 0 }
-#define TRANS_INIT_trans21 { 3, 0, 0 }
-#define TRANS_INIT_trans28 { 2, 0, 0 }
-#define TRANS_INIT_trans08 { 7, 0, 0 }
-#define TRANS_INIT_trans05 { 4, 0, 0 }
-#define TRANS_INIT_trans09 { 7, 0, 0 }
-#define TRANS_INIT_trans06 { 4, 0, 0 }
-#define TRANS_INIT_trans16 { 4, 0, 0 }
-#define TRANS_INIT_trans25 { 8, 0, 0 }
-#define TRANS_INIT_trans14 { 9, 0, 0 }
-#define TRANS_INIT_trans38 { 7, 0, 0 }
-#define TRANS_INIT_trans17 { 6, 0, 0 }
-#define TRANS_INIT_trans02 { 5, 0, 0 }
-#define TRANS_INIT_trans29 { 5, 0, 0 }
-#define TRANS_INIT_trans15 { 6, 0, 0 }
+/* Place initialisation; countdown is set to inputs + non-empty inhibitors */
+#define TRANS_INIT_trans31 { 2 + 0, 0, 0 }
+#define TRANS_INIT_trans17 { 6 + 0, 0, 0 }
+#define TRANS_INIT_trans05 { 4 + 0, 0, 0 }
+#define TRANS_INIT_trans15 { 6 + 0, 0, 0 }
+#define TRANS_INIT_trans29 { 5 + 0, 0, 0 }
+#define TRANS_INIT_trans34 { 2 + 0, 0, 0 }
+#define TRANS_INIT_trans11 { 6 + 0, 0, 0 }
+#define TRANS_INIT_trans36 { 3 + 0, 0, 0 }
+#define TRANS_INIT_trans10 { 3 + 0, 0, 0 }
+#define TRANS_INIT_trans21 { 3 + 0, 0, 0 }
+#define TRANS_INIT_trans06 { 4 + 0, 0, 0 }
+#define TRANS_INIT_trans38 { 7 + 0, 0, 0 }
+#define TRANS_INIT_trans08 { 7 + 0, 0, 0 }
+#define TRANS_INIT_trans01 { 9 + 0, 0, 0 }
+#define TRANS_INIT_trans03 { 2 + 0, 0, 0 }
+#define TRANS_INIT_trans13 { 8 + 0, 0, 0 }
+#define TRANS_INIT_trans09 { 7 + 0, 0, 0 }
+#define TRANS_INIT_trans14 { 9 + 0, 0, 0 }
+#define TRANS_INIT_trans25 { 7 + 1, 0, 0 }
+#define TRANS_INIT_trans39 { 4 + 0, 0, 0 }
+#define TRANS_INIT_trans26 { 4 + 0, 0, 0 }
+#define TRANS_INIT_trans33 { 6 + 0, 0, 0 }
+#define TRANS_INIT_trans18 { 1 + 0, 0, 0 }
+#define TRANS_INIT_trans16 { 4 + 0, 0, 0 }
+#define TRANS_INIT_trans12 { 4 + 0, 0, 0 }
+#define TRANS_INIT_trans02 { 5 + 0, 0, 0 }
+#define TRANS_INIT_trans27 { 7 + 0, 0, 0 }
+#define TRANS_INIT_trans07 { 8 + 0, 0, 0 }
+#define TRANS_INIT_trans00 { 3 + 0, 0, 0 }
+#define TRANS_INIT_trans20 { 4 + 0, 0, 0 }
+#define TRANS_INIT_trans22 { 6 + 0, 0, 0 }
+#define TRANS_INIT_trans30 { 1 + 0, 0, 0 }
+#define TRANS_INIT_trans32 { 7 + 0, 0, 0 }
+#define TRANS_INIT_trans04 { 4 + 0, 0, 0 }
+#define TRANS_INIT_trans19 { 3 + 0, 0, 0 }
+#define TRANS_INIT_trans24 { 9 + 0, 0, 0 }
+#define TRANS_INIT_trans37 { 2 + 0, 0, 0 }
+#define TRANS_INIT_trans23 { 4 + 0, 0, 0 }
+#define TRANS_INIT_trans28 { 2 + 0, 0, 0 }
+#define TRANS_INIT_trans35 { 3 + 0, 0, 0 }
 
 #ifdef PETRINET_SINGLETONS
 #ifdef PETRINET_GLOBAL_NAME

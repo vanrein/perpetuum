@@ -213,3 +213,14 @@ TODO: Set the options, see what happens.
 
 TODO: Also measure data size, it *does* matter &mdash; a lot!
 
+
+## There may be more...
+
+We have not done it yet, but:
+
+  * We could make one large array with all the `placeref_t` and `transref_t` and point in there with an index, assuming this would be smaller than an address, and work just as fast
+  * We might look for overlap in the `placeref_t` and `transref_t` arrays
+
+For now, we are open to patches of this kind, but have no serious plans
+of doing this work within this project.  Reason being, we want to be supportive
+of embedded applications, but lack the time/energy to go that far.

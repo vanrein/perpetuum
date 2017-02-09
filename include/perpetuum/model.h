@@ -41,6 +41,7 @@
  */
 //APPDEF// typedef unsigned int placeref_t;
 //APPDEF// typedef unsigned int transref_t;
+#include "petritypes.h"
 typedef placeref_t placectr_t;
 typedef transref_t transctr_t;
 
