@@ -2,4 +2,6 @@
 
 <img alt="Perpetuum Mobile" src="image/240px-PerpetuumMobile.gif" style="float: right;"/>
 
-We only just got started &mdash; so everything is a TODO `:-S`
+  * Welcome the `xmlns` in the `<pnml/>` top-level elements of input files
+  * Allow for events from the environment
+  * Cause actions to be called in the environment

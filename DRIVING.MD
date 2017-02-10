@@ -1,6 +1,8 @@
 Driving Workers from Petri nets
 ===============================
 
+<img alt="Perpetuum Mobile" src="image/240px-PerpetuumMobile.gif" style="float: right;"/>
+
 >   *When we define a Petri-net, we describe synchronisation. When we describe
 >   events, actions and activities, we describe work to be synchronised. What
 >   remains to be done is to link the two.*

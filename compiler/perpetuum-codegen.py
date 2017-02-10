@@ -202,6 +202,13 @@ cout.write ('/* ' + neat_net_name + '''.c
 #include "''' + neat_net_name + '''.h"
 
 
+#ifdef PETRINET_WITHOUT_NAMES
+#define NAME_COMMA(x)
+#else
+#define NAME_COMMA(x) x,
+#endif
+
+
 ''')
 
 
@@ -227,7 +234,7 @@ for t in trans_list:
 # Generate the place_topo_t[] from the array of each place's inputs and outputs
 cout.write ('static const place_topo_t ' + neat_net_name + '_places [] = {\n')
 for p in place_list:
-	cout.write ('\t{ "' + p + '", ')
+	cout.write ('\t{ NAME_COMMA ("' + p + '") ')
 	cout.write (p + '_trans_out, ')
 	cout.write (p + '_trans_out_inh },\n')
 cout.write ('};\n\n')
@@ -253,7 +260,7 @@ trans_retcode_t test_action_print_trans (
 # Generate the trans_topo_t[] from the array of each place's inputs and outputs
 cout.write ('static const trans_topo_t ' + neat_net_name + '_transitions [] = {\n')
 for t in trans_list:
-	cout.write ('\t{ "' + t + '", ')
+	cout.write ('\t{ NAME_COMMA ("' + t + '") ')
 	cout.write (t + '_place_in, ')
 	cout.write (t + '_place_out, ')
 	cout.write ('test_action_print_trans, ')
@@ -274,7 +281,7 @@ cout.write ('};\n')
 cout.write ('#endif\n\n')
 
 # Generate init vectors for transitions, and optional singleton array
-hout.write ('/* Place initialisation; countdown is set to inputs + non-empty inhibitors */\n')
+hout.write ('/* Place initialisation; countdown := empty inputs + non-empty inhibitors */\n')
 for tr in trans_list:
 	# initial "countdown" is zero normal plus non-zero inhibitors trans
 	ini_countdown = ( str (len ( [ src for (src,tgt) in p2t
@@ -308,12 +315,10 @@ petrinet_t PETRINET_GLOBAL_NAME = {
 #else
 petrinet_t the_''' + neat_net_name + ''' = {
 #endif
-#ifndef PETRINET_WITHOUT_NAMES
-	.colour = "the_''' + neat_net_name + '''",
-#endif
+	NAME_COMMA (.colour = "the_''' + neat_net_name + '''")
 	.topology = {
 		/* Topology is inlined due to PETRINET_SINGLETONS */
-		.name = "''' + neat_net_name + '''",
+		NAME_COMMA (.name = "''' + neat_net_name + '''")
 		.place_num = ''' + str (place_num) + ''',
 		.trans_num = ''' + str (trans_num) + ''',
 		.place_ary = &''' + neat_net_name + '''_places [-1],
@@ -349,10 +354,8 @@ extern const petrinet_topo_t ''' + neat_net_name + ''';
 
 cout.write ('''#ifndef PETRINET_SINGLETONS
 const petrinet_topo_t ''' + neat_net_name + ''' = {
-#ifndef PETRINET_WITHOUT_NAMES
-	.name = "''' + net.name + '''",
-#endif
-	.place_num = ''' + str (place_num) + '''
+	NAME_COMMA (.name = "''' + net.name + '''")
+	.place_num = ''' + str (place_num) + ''',
 	.trans_num = ''' + str (trans_num) + ''',
 	.place_ary = &''' + neat_net_name + '''_places [-1],
 	.trans_ary = &''' + neat_net_name + '''_transitions [-1],

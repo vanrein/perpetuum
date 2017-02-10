@@ -1,5 +1,7 @@
 # Minimal Code from Petri Nets
 
+<img alt="Perpetuum Mobile" src="image/240px-PerpetuumMobile.gif" style="float: right;"/>
+
 > *In embedded environments, every byte counts.  Though Perpetuum can easily
 > build a capable and scalable environment that can handle tens of thousands
 > of instances and possibly many different sets of Petri Nets, it is also

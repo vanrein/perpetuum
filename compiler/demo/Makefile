@@ -1,6 +1,6 @@
 # all: compilable development_net
 # all: development_net
-all: traffic_light
+all: traffic_light traffic_light_nightly
 
 CFLAGS=-I . -I ../../include/ -ggdb3
 
@@ -15,8 +15,11 @@ DEFINES=-DBUILD_SINGLE_THREADED -DPETRINET_SINGLETONS
 SOURCES=testmain.c development_net.c ../../src/runtime.c ../../src/flatsched.c
 HEADERS=development_net.h
 
-TFICSRC=lightmain.c traffic_light.c ../../src/runtime.c ../../src/flatsched.c
-TFICHDR=traffic_light.h
+TFL1SRC=lightmain1.c traffic_light.c ../../src/runtime.c ../../src/flatsched.c
+TFL1HDR=traffic_light.h
+
+TFL2SRC=lightmain2.c traffic_light_nightly.c ../../src/runtime.c ../../src/flatsched.c
+TFL2HDR=traffic_light.h
 
 development_net.c: netin.pnml ../perpetuum-codegen.py
 	../perpetuum-codegen.py ./netin.pnml
@@ -33,6 +36,12 @@ development_net: $(SOURCES) $(HEADERS) netin.pnml ../perpetuum-codegen.py
 traffic_light.c: traffic_light.pnml ../perpetuum-codegen.py
 	../perpetuum-codegen.py traffic_light.pnml
 
-traffic_light: $(TFICSRC) $(TFICHDR)
-	gcc -Dconst= $(CFLAGS) $(DEFINES) -o "$@" $(TFICSRC)
+traffic_light_nightly.c: traffic_light_nightly.pnml ../perpetuum-codegen.py
+	../perpetuum-codegen.py traffic_light_nightly.pnml
+
+traffic_light: $(TFL1SRC) $(TFL1HDR)
+	gcc -Dconst= $(CFLAGS) $(DEFINES) -o "$@" $(TFL1SRC)
+
+traffic_light_nightly: $(TFL2SRC) $(TFL2HDR)
+	gcc -Dconst= $(CFLAGS) $(DEFINES) -o "$@" $(TFL2SRC)
 

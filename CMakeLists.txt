@@ -19,9 +19,12 @@ option (PETRINET_SINGLETONS
 	"Optimise with singular instances for each Petri net defined"
 	OFF)
 
-option (PETRINET_GLOBAL_NAME
-	"Optimise by having code directly reference this global variable name"
-	OFF)
+if (${PETRINET_SINGLETONS})
+	set (PETRINET_GLOBAL_NAME "" CACHE STRING
+	     "Efficiently reference the Petri Net via a global variable name")
+else ()
+	unset (PETRINET_GLOBAL_NAME CACHE)
+endif ()
 
 option (PETRINET_FLAT_SCHEDULING
 	"Schedule Petri net activity in a flat loop, avoid stack-based recursion"
@@ -31,8 +34,10 @@ option (PETRINET_WITHOUT_NAMES
 	"Save storage space by not storing name strings in the Petri Net"
 	OFF)
 
-if (${PETRINET_GLOBAL_NAME} AND NOT ${PETRINET_SINGLETONS})
-	message (ERROR "You cannot set PETRINET_GLOBAL_NAME without PETRINET_SINGLETONS")
+if (${PETRINET_SINGLETOONS})
+	if (${PETRINET_GLOBAL_NAME STREQUAL "")
+		unset (PETRINET_GLOBAL_NAME)
+	endif ()
 endif ()
 
 
@@ -135,31 +140,18 @@ if (${PETRINET_WITHOUT_NAMES})
 	add_definitions (-DPETRINET_WITHOUT_NAMES)
 endif ()
 
+if (${PETRINET_SINGLETONS})
+	add_definitions (-DPETRINET_SINGLETONS)
+	if (NOT ${PETRINET_GLOBAL_NAME} STREQUAL "")
+		add_definitions (-DPETRINET_GLOBAL_NAME=${PETRINET_GLOBAL_NAME})
+	endif ()
+endif ()
+
 include_directories (include)
-include_directories (import/openpa-1.0.4/src)
-
-add_custom_target (
-	openpa-dir
-	COMMAND tar -xzvf openpa-1.0.4.tar.gz
-	COMMENT "Unpack OpenPA to make its include files avaliable"
-	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/import
-	VERBATIM
-)
-add_custom_target (
-	openpa
-	COMMAND ./configure
-	COMMENT "Configure OpenPA to unleash its include files"
-	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/import/openpa-1.0.4
-	VERBATIM
-	SOURCES import/openpa-1.0.4.tar.gz
-)
-add_dependencies (openpa openpa-dir)
-
-#TODO# add_dependencies (tralala openpa)
 
 #TODO# configure_file (
 #TODO# 	contrib/pkgconfig/perpetuum.pc.in
-#TODO# 	${PROJECT_BINARY_DIR}/lillydap.pc
+#TODO# 	${PROJECT_BINARY_DIR}/perpetuum.pc
 #TODO# 	@ONLY
 #TODO# )
 

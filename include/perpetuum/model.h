@@ -281,6 +281,10 @@ transref_t find_trans (PARMDEF_COMMA (pnc) const char *name);
 /* Callback functions often provide access to a (void *) and that should hold
  * just the information to be usable.  We define a type that can be voided as
  * a representation of a transition or a place.
+ *
+ * The list versions incorporate a list of place/trans references with one
+ * entry; just enough to store an empty list, but you can allocate more data
+ * to add more references, as you please.
  */
 
 typedef struct {
@@ -292,6 +296,16 @@ typedef struct {
 	petrinet_t network;
 	transref_t trans;
 } trans_opaque_t;
+
+typedef struct {
+	petrinet_t network;
+	placeref_list_t placelist;
+} placelist_opaque_t;
+
+typedef struct {
+	petrinet_t network;
+	transref_list_t translist;
+} translist_opaque_t;
 
 
 #endif /* PERPETUUM_MODEL_H */

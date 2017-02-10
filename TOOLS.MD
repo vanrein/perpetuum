@@ -1,5 +1,7 @@
 # Tools to use with Perpetuum
 
+<img alt="Perpetuum Mobile" src="image/240px-PerpetuumMobile.gif" style="float: right;"/>
+
 > *A plethora of Petri-net tools is available, at least in theory.  In
 > practice, not all work well.  Usually, the subset of features implemented
 > is a less-than-perfect match.*
@@ -18,20 +20,20 @@ The feature set required for Perpetuum is quite modest:
 ## Editors
 
 We tried several, and found most missed certain featuers, which surpised us
-in light of our modest requirements.  Currently, it seems that TAPAAL
+in light of our modest requirements.  Currently, it seems that GreatSPN
 is the most usable of all.
 
-  * [TAPAAL](http://www.tapaal.net) is the most usable tool that we found.
+  * [GreatSPN Editor](http://www.di.unito.it/~amparore/mc4cslta/editor.html)
+    is really pleasant to work with, and it can export files in
+    [PNML](http://www.pnml.org) -- they actually added it to our request!
+    GreatSPN is free for research purposes, and paid for commercial use.
+    Its API delivers the best images, mostly thanks to snap-to-grid.
+  * [TAPAAL](http://www.tapaal.net) is another tool we found to be useful.
     It focusses strongly on timing on arcs, which we don't use, but that is
     not a problem.  It exports PNML that seems to make our conceptual model
     happy.  But note, for now you have to remove the `xmlns` attribute from
     the `<pnml/>` top element to import into `pntools`.  Chances are we will
     scratch that mild itch sometime.
-  * [GreatSPN Editor](http://www.di.unito.it/~amparore/mc4cslta/editor.html)
-    is really pleasant to work with, but it does not output
-    [PNML](http://www.pnml.org) -- though they seemed open to adding it.
-    GreatSPN is free for research purposes, and paid for commercial use.
-    Its API delivers the best images, mostly thanks to snap-to-grid.
   * [PNeditor](http://www.pneditor.org) does not actually enable the use of
     inhibitor arcs, but this is on the road map so we hope it will be usable
     for Perpetuum soonish; its output is encoded in a non-standard manner,
