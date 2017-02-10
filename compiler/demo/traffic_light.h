@@ -15,9 +15,9 @@
 
 
 /* Place initialisation */
-#define PLACE_INIT_green { 0 }
-#define PLACE_INIT_red { 1 }
 #define PLACE_INIT_yellow { 0 }
+#define PLACE_INIT_red { 1 }
+#define PLACE_INIT_green { 0 }
 
 /* Place initialisation; countdown := empty inputs + non-empty inhibitors */
 #define TRANS_INIT_stop { 1 + 0, 0, 0 }

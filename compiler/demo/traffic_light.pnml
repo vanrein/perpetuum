@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<pnml>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
 <net id="traffic-light" type="http://www.pnml.org/version-2009/grammar/ptnet">
 <page id="page0">
 <place id="red">

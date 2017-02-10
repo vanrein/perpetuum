@@ -31,13 +31,12 @@ is the most usable of all.
   * [TAPAAL](http://www.tapaal.net) is another tool we found to be useful.
     It focusses strongly on timing on arcs, which we don't use, but that is
     not a problem.  It exports PNML that seems to make our conceptual model
-    happy.  But note, for now you have to remove the `xmlns` attribute from
-    the `<pnml/>` top element to import into `pntools`.  Chances are we will
-    scratch that mild itch sometime.
+    happy.
   * [PNeditor](http://www.pneditor.org) does not actually enable the use of
     inhibitor arcs, but this is on the road map so we hope it will be usable
     for Perpetuum soonish; its output is encoded in a non-standard manner,
-    and it is not clear yet if it will work.
+    and it is not clear yet if it will work.  **Note:** You may need to add
+    the customary `xmlns` attribute to the `<pnml/>` root element.
   * [WOLFGANG](https://sourceforge.net/projects/wolfgang-editor/)
     works quite nicely, but lacks inhibitor arcs.  This means that only
     very trivial Petri nets for Perpetuum can be edited with it.

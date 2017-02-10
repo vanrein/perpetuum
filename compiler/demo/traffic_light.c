@@ -19,28 +19,28 @@
 #endif
 
 
-static const transref_t green_trans_out [] = { 1, 2 };
-static const transref_t green_trans_out_inh [] = { 0 };
+static const transref_t yellow_trans_out [] = { 1, 1 };
+static const transref_t yellow_trans_out_inh [] = { 0 };
 
 static const transref_t red_trans_out [] = { 1, 3 };
 static const transref_t red_trans_out_inh [] = { 0 };
 
-static const transref_t yellow_trans_out [] = { 1, 1 };
-static const transref_t yellow_trans_out_inh [] = { 0 };
+static const transref_t green_trans_out [] = { 1, 2 };
+static const transref_t green_trans_out_inh [] = { 0 };
 
-static const placeref_t stop_place_in [] = { 1, 3 };
+static const placeref_t stop_place_in [] = { 1, 1 };
 static const placeref_t stop_place_out [] = { 1, 2 };
 
-static const placeref_t caution_place_in [] = { 1, 1 };
-static const placeref_t caution_place_out [] = { 1, 3 };
+static const placeref_t caution_place_in [] = { 1, 3 };
+static const placeref_t caution_place_out [] = { 1, 1 };
 
 static const placeref_t go_place_in [] = { 1, 2 };
-static const placeref_t go_place_out [] = { 1, 1 };
+static const placeref_t go_place_out [] = { 1, 3 };
 
 static const place_topo_t traffic_light_places [] = {
-	{ NAME_COMMA ("green") green_trans_out, green_trans_out_inh },
-	{ NAME_COMMA ("red") red_trans_out, red_trans_out_inh },
 	{ NAME_COMMA ("yellow") yellow_trans_out, yellow_trans_out_inh },
+	{ NAME_COMMA ("red") red_trans_out, red_trans_out_inh },
+	{ NAME_COMMA ("green") green_trans_out, green_trans_out_inh },
 };
 
 /* TODO: Demo mode only, this action prints transition name and timing */
@@ -67,9 +67,9 @@ static const trans_topo_t traffic_light_transitions [] = {
 
 #ifdef PETRINET_SINGLETONS
 static place_t the_traffic_light_places [] = {
-	PLACE_INIT_green,
-	PLACE_INIT_red,
 	PLACE_INIT_yellow,
+	PLACE_INIT_red,
+	PLACE_INIT_green,
 };
 #endif
 
@@ -96,17 +96,17 @@ petrinet_t the_traffic_light = {
 		.place_ary = &traffic_light_places [-1],
 		.trans_ary = &traffic_light_transitions [-1],
 		/* TODO: Support for inital USRDEF_PETRINET_FIELDS */
-#ifndef PETRINET_GLOBAL_NAME
 	},
-#else
-	},
-#endif
 	.place_ary = &the_traffic_light_places [-1],
 	.trans_ary = &the_traffic_light_transitions [-1],
 	/* TODO: Support for initial PLACE_HASH_CTX_FIELDS */
 	/* TODO: Support for initial TRANS_HASH_CTX_FIELDS */
 	/* TODO: Support for initial USRDEF_PETRINET_COLOUR_FIELDS */
+#ifndef PETRINET_GLOBAL_NAME
 };
+#else
+};
+#endif
 #endif
 
 #ifndef PETRINET_SINGLETONS

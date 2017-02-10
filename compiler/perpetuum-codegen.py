@@ -93,9 +93,6 @@ pnml_fn = outdir + neat_net_name + '.pnml'
 places = net.places     .keys ()
 transs = net.transitions.keys ()
 
-open (pkey_fn, 'w').write ('\n'.join (places) + '\n')
-open (tkey_fn, 'w').write ('\n'.join (transs) + '\n')
-
 range2type = [
 	( 1<< 8, 'uint8_t'  ),
 	( 1<<16, 'uint16_t' ),
@@ -137,6 +134,9 @@ for p in places:
 for t in transs:
 	trans_idx [t] = trans_mph.lookup (t)
 	trans_list [trans_idx [t]] = t
+
+open (pkey_fn, 'w').write ('\n'.join (place_list) + '\n')
+open (tkey_fn, 'w').write ('\n'.join (trans_list) + '\n')
 
 #DEBUG# print 'Places:', place_idx
 #DEBUG# print 'Transitions:', trans_idx
@@ -324,17 +324,17 @@ petrinet_t the_''' + neat_net_name + ''' = {
 		.place_ary = &''' + neat_net_name + '''_places [-1],
 		.trans_ary = &''' + neat_net_name + '''_transitions [-1],
 		/* TODO: Support for inital USRDEF_PETRINET_FIELDS */
-#ifndef PETRINET_GLOBAL_NAME
 	},
-#else
-	},
-#endif
 	.place_ary = &the_''' + neat_net_name + '''_places [-1],
 	.trans_ary = &the_''' + neat_net_name + '''_transitions [-1],
 	/* TODO: Support for initial PLACE_HASH_CTX_FIELDS */
 	/* TODO: Support for initial TRANS_HASH_CTX_FIELDS */
 	/* TODO: Support for initial USRDEF_PETRINET_COLOUR_FIELDS */
+#ifndef PETRINET_GLOBAL_NAME
 };
+#else
+};
+#endif
 #endif
 
 ''')
