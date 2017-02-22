@@ -4,8 +4,8 @@
 
   * DONE: Welcome the `xmlns` in the `<pnml/>` top-level elements of input files
   * DONE: .pkey and .tkey are now printed in order, but note: count from 1
+  * DONE: Process multiplicity on arcs, through the arc/inscription/text form
   * Allow for events from the environment
   * Cause actions to be called in the environment
-  * Process multiplicity on arcs, such as GreatSPN's arc/inscription/text form
   * Build a Perpetuum library holding the generic code
   * Support more individual generation with the compiler; not just demos

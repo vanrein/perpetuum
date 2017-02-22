@@ -8,10 +8,11 @@
 #  - use a minimum perfect hash to offer searches by key
 #  - gen initialisation and, for singletons, instance information w/ marking
 #  - setup initial countdown for places (TODO: incorporate inhibiting arcs)
+#  - process multiplicity inscriptions on arcs by generating sequences of arcs
 #  - TODO: invocations of actions as declared by transition labels
 #  - TODO: processing of events as declared by transition labels
-#  - TODO/DROP: starting/ending of activities as declared by place labels
-#  - TODO/DROP: processing of activity output as declared by place labels
+#  - dropped: starting/ending of activities as declared by place labels
+#  - dropped: processing of activity output as declared by place labels
 #
 # From: Rick van Rein <rick@openfortress.nl>
 
@@ -219,16 +220,16 @@ def genlist (kind, dict, name, reflist):
 		i = 1 + dict [ref]
 		cout.write (', ' + str (i))
 	cout.write (' };\n')
-p2t = [ (e.source,e.target) for e in net.edges if net.places.has_key (e.source) and e.type != 'inhibitor' ]
+p2t = [ (e.source,e.target) for e in net.edges if net.places.has_key (e.source) and e.type != 'inhibitor' for multi in range (int (e.inscription)) ]
 p2i = [ (e.source,e.target) for e in net.edges if net.places.has_key (e.source) and e.type == 'inhibitor' ]
-t2p = [ (e.source,e.target) for e in net.edges if net.places.has_key (e.target) ]
+t2p = [ (e.source,e.target) for e in net.edges if net.places.has_key (e.target) for multi in range (int (e.inscription)) ]
 for p in place_list:
-	genlist ('trans', trans_idx, p + '_trans_out',     [ t for t in trans_list if (p,t) in p2t ] )
+	genlist ('trans', trans_idx, p + '_trans_out',     [ t for (p2,t) in p2t if p==p2 ] )
 	genlist ('trans', trans_idx, p + '_trans_out_inh', [ t for t in trans_list if (p,t) in p2i ] )
 	cout.write ('\n')
 for t in trans_list:
-	genlist ('place', place_idx, t + '_place_in',      [ p for p in place_list if (p,t) in p2t ] )
-	genlist ('place', place_idx, t + '_place_out',     [ p for p in place_list if (t,p) in t2p ] )
+	genlist ('place', place_idx, t + '_place_in',      [ p for (p,t2) in p2t if t==t2 ] )
+	genlist ('place', place_idx, t + '_place_out',     [ p for (t2,p) in t2p if t==t2 ] )
 	cout.write ('\n')
 
 # Generate the place_topo_t[] from the array of each place's inputs and outputs
