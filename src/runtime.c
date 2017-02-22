@@ -38,6 +38,7 @@
 #include <time.h>
 
 #include <perpetuum/model.h>
+#include <perpetuum/api.h>
 
 
 /* The following code is single-threaded, and probably should remain like that.
@@ -139,9 +140,16 @@ bool inject_tokens (PARMDEF_COMMA(pnc) placeref_t pr, int addend) {
  *  - tokens are consumed over input arcs and produces over output arcs
  *  - changes to incoming arcs may change the countdown (or it may stay 0)
  *
+ * The opt_evdata parameter is set to NULL outside of an event, or otherwise
+ * it can be set to a non-NULL value of use in event processing.  The latter
+ * use is intended for invocation from event handler functions that desire to
+ * be distinguished from regular, not-event-driven invocations by the flat
+ * scheduler.  Such regular calls return "please wait" whereas the event
+ * could lead to an actual confirmed transition firing.
+ *
  * This operation is called from one thread; usually the flat scheduler.
  */
-bool try_firing (PARMDEF_COMMA(pnc) transref_t tr) {
+bool try_firing (PARMDEF_COMMA(pnc) transref_t tr, void *opt_evdata) {
 	//
 	// The countdown must have reached 0
 	assert (REF2TRANS (pnc,tr).countdown == 0);
@@ -156,7 +164,8 @@ bool try_firing (PARMDEF_COMMA(pnc) transref_t tr) {
 	trans_retcode_t rv = REF2TRANS_TOPO (pnc,tr).action (
 				PARMARG_COMMA(pnc)
 				tr,
-				&now);
+				&now,
+				opt_evdata);
 	if (rv != TRANS_SUCCESS) {
 		if (REF2TRANS (pnc,tr).firstfail == 0) {
 			REF2TRANS (pnc,tr).firstfail = now;

@@ -3,6 +3,36 @@
 
 #include "traffic_light_nightly.h"
 
+#include <perpetuum/api.h>
+
+
+trans_retcode_t trans_action_stop (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata) {
+	printf ("Stop\n");
+	return TRANS_SUCCESS;
+}
+
+trans_retcode_t trans_action_go (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata) {
+	printf ("Go\n");
+	return TRANS_SUCCESS;
+}
+
+trans_retcode_t trans_action_caution (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata) {
+	printf ("Caution\n");
+	return TRANS_SUCCESS;
+}
+
+trans_retcode_t trans_action_dawn (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata) {
+	printf ("Dawn\n");
+	return TRANS_SUCCESS;
+}
+
+trans_retcode_t trans_action_sunset (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata) {
+	printf ("Sunset\n");
+	return TRANS_SUCCESS;
+}
+
+
+
 int main (int argc, char *argv []) {
 	// flat_schedule_run (PARMARG (&the_traffic_light_nightly));
 	int pr;

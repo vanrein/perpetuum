@@ -37,6 +37,7 @@
 #include <time.h>
 
 #include <perpetuum/model.h>
+#include <perpetuum/api.h>
 
 
 /* Run through the given Petri Net, only stopping when nothing is left to
@@ -67,7 +68,8 @@ time_t flat_schedule_run (PARMDEF (pnc)) {
 			time_t now = time (NULL);
 			time_t nbf = REF2TRANS (pnc, tr).notbefore;
 			if (nbf <= now) {
-				if (try_firing (PARMARG_COMMA (pnc) tr)) {
+				/* Supply NULL to request non-event firing */
+				if (try_firing (PARMARG_COMMA (pnc) tr, NULL)) {
 					fired_last = tr;
 					wakeup = ~ (time_t) 0;
 					// At least one full looping to come

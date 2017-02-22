@@ -12,13 +12,13 @@ TESTSRC=development_net.c
 TESTHDR=development_net.h
 
 DEFINES=-DBUILD_SINGLE_THREADED -DPETRINET_SINGLETONS
-SOURCES=testmain.c development_net.c ../../src/runtime.c ../../src/flatsched.c
+SOURCES=testmain.c development_net.c ../../src/runtime.c ../../src/flatsched.c ../../src/evfire.c
 HEADERS=development_net.h
 
-TFL1SRC=lightmain1.c traffic_light.c ../../src/runtime.c ../../src/flatsched.c
+TFL1SRC=lightmain1.c traffic_light.c ../../src/runtime.c ../../src/flatsched.c ../../src/evfire.c
 TFL1HDR=traffic_light.h
 
-TFL2SRC=lightmain2.c traffic_light_nightly.c ../../src/runtime.c ../../src/flatsched.c
+TFL2SRC=lightmain2.c traffic_light_nightly.c ../../src/runtime.c ../../src/flatsched.c ../../src/evfire.c
 TFL2HDR=traffic_light.h
 
 development_net.c: netin.pnml ../perpetuum-codegen.py

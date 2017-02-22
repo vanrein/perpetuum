@@ -9,8 +9,8 @@
 #  - gen initialisation and, for singletons, instance information w/ marking
 #  - setup initial countdown for places (TODO: incorporate inhibiting arcs)
 #  - process multiplicity inscriptions on arcs by generating sequences of arcs
-#  - TODO: invocations of actions as declared by transition labels
-#  - TODO: processing of events as declared by transition labels
+#  - invocations of actions as declared by transition labels
+#  - processing of events as declared by transition labels
 #  - dropped: starting/ending of activities as declared by place labels
 #  - dropped: processing of activity output as declared by place labels
 #
@@ -240,23 +240,13 @@ for p in place_list:
 	cout.write (p + '_trans_out_inh },\n')
 cout.write ('};\n\n')
 
-cout.write ('''/* TODO: Demo mode only, this action prints transition name and timing */
 
-#include <stdio.h>
+# Generate function prototypes for all the transitions' actions
 
-trans_retcode_t test_action_print_trans (
-				PARMDEF_COMMA (pnc)
-				transref_t tr,
-				time_t *nowp) {
-	printf ("Firing %s -- now=%ld, notbefore=%ld, firstfail=%ld\\n",
-			TRANS_NAME (pnc, tr),
-			(long) *nowp,
-			(long) REF2TRANS (pnc, tr).notbefore,
-			(long) REF2TRANS (pnc, tr).firstfail);
-	return TRANS_SUCCESS;
-}
-
-''')
+hout.write ('/* Function prototypes for transition actions */\n')
+for t in trans_list:
+	hout.write ('trans_retcode_t trans_action_' + t + ' (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata);\n')
+hout.write ('\n')
 
 # Generate the trans_topo_t[] from the array of each place's inputs and outputs
 cout.write ('static const trans_topo_t ' + neat_net_name + '_transitions [] = {\n')
@@ -264,7 +254,7 @@ for t in trans_list:
 	cout.write ('\t{ NAME_COMMA ("' + t + '") ')
 	cout.write (t + '_place_in, ')
 	cout.write (t + '_place_out, ')
-	cout.write ('test_action_print_trans, ')
+	cout.write ('trans_action_' + t + ' ')
 	cout.write ('},\n')
 cout.write ('};\n\n')
 

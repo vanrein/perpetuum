@@ -209,7 +209,8 @@ typedef struct trans_topo_st {
 	trans_retcode_t (*const action) (		/* never NULL */
 			PARMDEF_COMMA (pnc)
 			transref_t tr,
-			time_t *nowp);
+			time_t *nowp,
+			void *opt_evdata);		/* event data or NULL */
 } trans_topo_t;
  
 struct trans_st {
