@@ -89,8 +89,8 @@ watch for are that you have the right kind of Petri nets, because
 there are as many as the mathematicians working on them; but we are
 quite mainstream in processing only:
 
-  * Coloured Petri nets
-  * Singular arcs (but you could draw multiple if you like)
+  * Simple P/T Petri nets
+  * Arcs may define multiplicity in numeric inscriptions
   * Inhibitor arcs
 
 
@@ -132,12 +132,13 @@ Your code should always
 Your actions have the following function signature:
 ```
 trans_retcode_t (*my_action) (
-			const petrinet_colour_t *pnc,
+			PARMDEF_COMMA (pnc),
 			transref_t transition,
-			your_structure_t *my_data);
+			time_t *nowp,
+			void *opt_evdata);
 ```
-Note the mention of `your_structure_t`; this is a data structure that you
-registered as your application's "token colour" or data structure.
+Note the mention of `opt_data`; this is a data structure that can
+pass in data from an event.
 
 These functions should do a snappy bit of work, without blocking or waiting,
 and return one of the values
@@ -176,7 +177,41 @@ Any communication should be done over the token colours / instance data.
 
 ## Implement your Events
 
-TODO: Linkups
+Events are the subject of
+[semantic navel staring](https://github.com/vanrein/perpetuum/issues/1)
+`;-)` though we are taking a practical angle initially.
+
+Usually, a transition that wants to respond to an event will return
+`TRANS_FAILURE` when it is triggered by the scheduler.  It can detect
+such situations by looking at the `opt_evdata` parameter, which is always
+`NULL` when invoked from the scheduler, and usually non-`NULL` when called
+from an event handler.
+
+A typical transition action following this line would look like
+```
+trans_retcode_t my_action (PARMDEF_COMMA(pnc)
+						transref_t tr,
+						time_t *nowp,
+						void *opt_evdata) {
+	if (opt_evdata == NULL) {
+		/* Called from the scheduler, refuse to make the transition */
+		return TRANS_FAILURE;
+	} else {
+		/* Called from event, process data and try to return success */
+		... = ((my_data_t *) opt->evdata)->...;
+		return TRANS_SUCCESS;
+	}
+}
+```
+
+The event callback should be directed to one particular Petri net instance.
+the reference in `pnc` indicates which.
+
+When the event is the result of a response to a request that was sent before
+in an action on a transition, then it may be prudent to also have a timeout
+transition starting from the same place as the transition holding this action.
+This way, the wait for a response can be kept limited and any token that
+indicates work should be going on can always be consumed after due delay.
 
 
 ## Connect Actions and Events with your Process Model

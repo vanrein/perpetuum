@@ -127,24 +127,12 @@ Firing sunset -- now=1486732226, notbefore=0, firstfail=0
 
 *Sigh.*  Yes, this is correct.  As one of the possible implementations of the
 Petri net's non-determinism, you can indeed always fire the same transitions
-first.  Besides correct, this is also boring and non-representative.  So now
-the ball is with you &mdash; go and "fix" the Petri net with GreatSPN and get
-a more interesting result, perhaps like:
+first.  Besides correct, this is also boring and non-representative.
 
-```
-Prior to scheduler with green=0, red=0, yellow=1
-Entering scheduler with green=0, red=0, yellow=1
-Firing stop -- now=1486732340, notbefore=0, firstfail=0
-Firing go -- now=1486732340, notbefore=0, firstfail=0
-Firing caution -- now=1486732340, notbefore=0, firstfail=0
-Firing stop -- now=1486732340, notbefore=0, firstfail=0
-Firing go -- now=1486732340, notbefore=0, firstfail=0
-Firing caution -- now=1486732340, notbefore=0, firstfail=0
-Firing stop -- now=1486732340, notbefore=0, firstfail=0
-```
-
-We should not fail to mention that this is already done by the simpler demo
-in `traffic_light`, but it would be cheating to steal from that...
+Recent changes to the demo have made this more interesting by incorporating
+event handling; we get to press `d` to initiate the `dawn` transition and
+`s` for `sunset`; when done, we can press `q` to quit the simulation.
+The interaction is rudimentary, and calls for pressing Enter after such keys.
 
 If you feel you would like more control then you would be perfectly
 reasonable.  This is a demo of just our Petri net compiler; we want to
