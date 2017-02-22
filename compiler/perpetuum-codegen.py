@@ -192,6 +192,13 @@ hout.write ('/* ' + neat_net_name + '''.h
 ''')
 
 
+# Generate #defines for each of the transition names (referenced in events)
+hout.write ('/* Index numbers for transitions, by TRANS_INDEX_name */\n')
+for tr in range (len (trans_list)):
+	hout.write ('#define TRANS_INDEX_' + trans_list [tr] + ' ' + str (tr+1) + '\n')
+hout.write ('\n')
+
+
 cout.write ('/* ' + neat_net_name + '''.c
  *
  * This is a generated file.  Do not edit it, but rather its source and

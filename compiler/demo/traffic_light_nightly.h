@@ -14,6 +14,13 @@
 #include <perpetuum/model.h>
 
 
+/* Index numbers for transitions, by TRANS_INDEX_name */
+#define TRANS_INDEX_dawn 1
+#define TRANS_INDEX_go 2
+#define TRANS_INDEX_sunset 3
+#define TRANS_INDEX_caution 4
+#define TRANS_INDEX_stop 5
+
 /* Function prototypes for transition actions */
 trans_retcode_t trans_action_dawn (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata);
 trans_retcode_t trans_action_go (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata);
@@ -22,9 +29,9 @@ trans_retcode_t trans_action_caution (PARMDEF_COMMA (pnc) transref_t tr, time_t 
 trans_retcode_t trans_action_stop (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata);
 
 /* Place initialisation */
-#define PLACE_INIT_yellow { 1 }
 #define PLACE_INIT_red { 0 }
 #define PLACE_INIT_night_service { 0 }
+#define PLACE_INIT_yellow { 1 }
 #define PLACE_INIT_green { 0 }
 
 /* Place initialisation; countdown := empty inputs + non-empty inhibitors */

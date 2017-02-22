@@ -19,37 +19,37 @@
 #endif
 
 
-static const transref_t yellow_trans_out [] = { 1, 5 };
-static const transref_t yellow_trans_out_inh [] = { 0 };
-
 static const transref_t red_trans_out [] = { 1, 2 };
 static const transref_t red_trans_out_inh [] = { 0 };
 
 static const transref_t night_service_trans_out [] = { 1, 3 };
 static const transref_t night_service_trans_out_inh [] = { 2, 1, 5 };
 
+static const transref_t yellow_trans_out [] = { 1, 5 };
+static const transref_t yellow_trans_out_inh [] = { 0 };
+
 static const transref_t green_trans_out [] = { 1, 4 };
 static const transref_t green_trans_out_inh [] = { 0 };
 
 static const placeref_t dawn_place_in [] = { 0 };
-static const placeref_t dawn_place_out [] = { 1, 3 };
+static const placeref_t dawn_place_out [] = { 1, 2 };
 
-static const placeref_t go_place_in [] = { 1, 2 };
+static const placeref_t go_place_in [] = { 1, 1 };
 static const placeref_t go_place_out [] = { 1, 4 };
 
-static const placeref_t sunset_place_in [] = { 1, 3 };
+static const placeref_t sunset_place_in [] = { 1, 2 };
 static const placeref_t sunset_place_out [] = { 0 };
 
 static const placeref_t caution_place_in [] = { 1, 4 };
-static const placeref_t caution_place_out [] = { 1, 1 };
+static const placeref_t caution_place_out [] = { 1, 3 };
 
-static const placeref_t stop_place_in [] = { 1, 1 };
-static const placeref_t stop_place_out [] = { 1, 2 };
+static const placeref_t stop_place_in [] = { 1, 3 };
+static const placeref_t stop_place_out [] = { 1, 1 };
 
 static const place_topo_t traffic_light_nightly_places [] = {
-	{ NAME_COMMA ("yellow") yellow_trans_out, yellow_trans_out_inh },
 	{ NAME_COMMA ("red") red_trans_out, red_trans_out_inh },
 	{ NAME_COMMA ("night_service") night_service_trans_out, night_service_trans_out_inh },
+	{ NAME_COMMA ("yellow") yellow_trans_out, yellow_trans_out_inh },
 	{ NAME_COMMA ("green") green_trans_out, green_trans_out_inh },
 };
 
@@ -63,9 +63,9 @@ static const trans_topo_t traffic_light_nightly_transitions [] = {
 
 #ifdef PETRINET_SINGLETONS
 static place_t the_traffic_light_nightly_places [] = {
-	PLACE_INIT_yellow,
 	PLACE_INIT_red,
 	PLACE_INIT_night_service,
+	PLACE_INIT_yellow,
 	PLACE_INIT_green,
 };
 #endif

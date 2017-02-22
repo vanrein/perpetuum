@@ -50,8 +50,9 @@
  * transition fired in response to the event occurring.
  */
 bool process_event (PARMDEF_COMMA(pnc) transref_list_t tra, void *evdata) {
-	transref_t tr;
-	for (tr = tra [0]; tr > 0; tr--) {
+	transref_t tri;
+	for (tri = tra [0]; tri > 0; tri--) {
+		transref_t tr = tra [tri];
 		if (REF2TRANS (pnc,tr).countdown == 0) {
 			if (try_firing (PARMARG_COMMA(pnc) tr, evdata)) {
 				return 1;

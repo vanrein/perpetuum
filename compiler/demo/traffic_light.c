@@ -19,49 +19,49 @@
 #endif
 
 
-static const transref_t red_trans_out [] = { 1, 2 };
-static const transref_t red_trans_out_inh [] = { 0 };
-
-static const transref_t green_trans_out [] = { 1, 1 };
+static const transref_t green_trans_out [] = { 1, 3 };
 static const transref_t green_trans_out_inh [] = { 0 };
 
-static const transref_t yellow_trans_out [] = { 1, 3 };
+static const transref_t red_trans_out [] = { 1, 1 };
+static const transref_t red_trans_out_inh [] = { 0 };
+
+static const transref_t yellow_trans_out [] = { 1, 2 };
 static const transref_t yellow_trans_out_inh [] = { 0 };
 
-static const placeref_t caution_place_in [] = { 1, 2 };
-static const placeref_t caution_place_out [] = { 1, 3 };
-
-static const placeref_t go_place_in [] = { 1, 1 };
-static const placeref_t go_place_out [] = { 1, 2 };
+static const placeref_t go_place_in [] = { 1, 2 };
+static const placeref_t go_place_out [] = { 1, 1 };
 
 static const placeref_t stop_place_in [] = { 1, 3 };
-static const placeref_t stop_place_out [] = { 1, 1 };
+static const placeref_t stop_place_out [] = { 1, 2 };
+
+static const placeref_t caution_place_in [] = { 1, 1 };
+static const placeref_t caution_place_out [] = { 1, 3 };
 
 static const place_topo_t traffic_light_places [] = {
-	{ NAME_COMMA ("red") red_trans_out, red_trans_out_inh },
 	{ NAME_COMMA ("green") green_trans_out, green_trans_out_inh },
+	{ NAME_COMMA ("red") red_trans_out, red_trans_out_inh },
 	{ NAME_COMMA ("yellow") yellow_trans_out, yellow_trans_out_inh },
 };
 
 static const trans_topo_t traffic_light_transitions [] = {
-	{ NAME_COMMA ("caution") caution_place_in, caution_place_out, trans_action_caution },
 	{ NAME_COMMA ("go") go_place_in, go_place_out, trans_action_go },
 	{ NAME_COMMA ("stop") stop_place_in, stop_place_out, trans_action_stop },
+	{ NAME_COMMA ("caution") caution_place_in, caution_place_out, trans_action_caution },
 };
 
 #ifdef PETRINET_SINGLETONS
 static place_t the_traffic_light_places [] = {
-	PLACE_INIT_red,
 	PLACE_INIT_green,
+	PLACE_INIT_red,
 	PLACE_INIT_yellow,
 };
 #endif
 
 #ifdef PETRINET_SINGLETONS
 static trans_t the_traffic_light_transitions [] = {
-	TRANS_INIT_caution,
 	TRANS_INIT_go,
 	TRANS_INIT_stop,
+	TRANS_INIT_caution,
 };
 #endif
 
