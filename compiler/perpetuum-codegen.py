@@ -22,6 +22,9 @@ import sys
 import string
 import random
 
+# Try to make demo code generation (notably cmph) as stable as possible
+random.seed (65537)
+
 import pntools.petrinet
 import cmph
 

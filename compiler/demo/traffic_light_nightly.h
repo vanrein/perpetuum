@@ -15,24 +15,24 @@
 
 
 /* Function prototypes for transition actions */
-trans_retcode_t trans_action_stop (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata);
-trans_retcode_t trans_action_go (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata);
-trans_retcode_t trans_action_caution (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata);
 trans_retcode_t trans_action_dawn (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata);
+trans_retcode_t trans_action_go (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata);
 trans_retcode_t trans_action_sunset (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata);
+trans_retcode_t trans_action_caution (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata);
+trans_retcode_t trans_action_stop (PARMDEF_COMMA (pnc) transref_t tr, time_t *nowp, void *opt_evdata);
 
 /* Place initialisation */
+#define PLACE_INIT_yellow { 1 }
 #define PLACE_INIT_red { 0 }
 #define PLACE_INIT_night_service { 0 }
-#define PLACE_INIT_yellow { 1 }
 #define PLACE_INIT_green { 0 }
 
 /* Place initialisation; countdown := empty inputs + non-empty inhibitors */
-#define TRANS_INIT_stop { 0 + 0, 0, 0 }
-#define TRANS_INIT_go { 1 + 0, 0, 0 }
-#define TRANS_INIT_caution { 1 + 0, 0, 0 }
 #define TRANS_INIT_dawn { 0 + 0, 0, 0 }
+#define TRANS_INIT_go { 1 + 0, 0, 0 }
 #define TRANS_INIT_sunset { 1 + 0, 0, 0 }
+#define TRANS_INIT_caution { 1 + 0, 0, 0 }
+#define TRANS_INIT_stop { 0 + 0, 0, 0 }
 
 #ifdef PETRINET_SINGLETONS
 #ifdef PETRINET_GLOBAL_NAME
