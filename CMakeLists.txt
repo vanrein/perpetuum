@@ -2,8 +2,15 @@
 # CMakeLists.txt for Perpetuum
 #
 
-cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required (VERSION 3.1 FATAL_ERROR)
 project ("Perpetuum")
+
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+
+include (MacroEnsureOutOfSourceBuild)
+include (MacroAddUninstallTarget)
+include (MacroGitVersionInfo)
+include (MacroCreateConfigFiles)
 
 set (CMAKE_MACOSX_RPATH 0)
 
@@ -34,7 +41,7 @@ option (PETRINET_WITHOUT_NAMES
 	"Save storage space by not storing name strings in the Petri Net"
 	OFF)
 
-if (${PETRINET_SINGLETOONS})
+if (${PETRINET_SINGLETONS})
 	if (${PETRINET_GLOBAL_NAME STREQUAL "")
 		unset (PETRINET_GLOBAL_NAME)
 	endif ()
@@ -64,63 +71,7 @@ pkg_search_module (
 # Version Information
 #
 
-find_package (Git)
-
-exec_program (
-                ${GIT_EXECUTABLE}
-                ARGS diff --quiet
-                RETURN_VALUE GIT_HAVE_CHANGES
-)
-
-exec_program (
-                ${GIT_EXECUTABLE}
-                ARGS describe --tags --match 'version-*.*-*'
-                OUTPUT_VARIABLE GIT_VERSION_INFO
-)
-
-string (
-        REGEX REPLACE "^version-([1-9][0-9]*|0)[.]([1-9][0-9]*|0)-(.*)$"
-        "\\1"
-        GIT_VERSION_MAJOR
-        ${GIT_VERSION_INFO}
-)
-
-string (
-        REGEX REPLACE "^version-([1-9][0-9]*|0)[.]([1-9][0-9]*|0)-(.*)$"
-        "\\2"
-        GIT_VERSION_MINOR
-        ${GIT_VERSION_INFO}
-)
-
-if (GIT_HAVE_CHANGES EQUAL 0)
-
-        string (
-                REGEX REPLACE "^version-([1-9][0-9]*|0)[.]([1-9][0-9]*|0)-(.*)$"
-                "\\3"
-                GIT_VERSION_PATCHLEVEL
-                ${GIT_VERSION_INFO}
-        )
-
-        set (
-                USER_SUPPLIED_PATCHLEVEL
-                "${GIT_VERSION_PATCHLEVEL}"
-                CACHE STRING "User-override for patch level under ${GIT_VERSION_MAJOR}.${GIT_VERSION_MINOR}"
-        )
-
-else()
-
-        exec_program (
-                date
-                ARGS '+%Y%m%d-%H%M%S'
-                OUTPUT_VARIABLE GIT_CHANGES_TIMESTAMP
-        )
-        set (GIT_VERSION_PATCHLEVEL "local-${GIT_CHANGES_TIMESTAMP}")
-        message (WARNING "Git reports local changes, fixing patch level to local-${GIT_CHANGES_TIMESTAMP}")
-
-        unset (USER_SUPPLIED_PATCHLEVEL CACHE)
-
-endif()
-
+get_version_from_git (Perpetuum 0.0.0)
 
 #
 # Building
@@ -155,6 +106,13 @@ include_directories (include)
 #TODO# 	@ONLY
 #TODO# )
 
+add_custom_target (perpetuum-codegen ALL
+		COMMAND ${CMAKE_COMMAND} -E copy
+			${CMAKE_SOURCE_DIR}/compiler/perpetuum-codegen.py
+			${CMAKE_BINARY_DIR}/perpetuum-codegen)
+
+create_config_files (Perpetuum)
+
 
 #
 # TESTS
@@ -168,26 +126,32 @@ enable_testing ()
 # INSTALLATION
 #
 
+install (FILES ${CMAKE_SOURCE_DIR}/src/runtime.c
+	       ${CMAKE_SOURCE_DIR}/src/flatsched.c
+	       ${CMAKE_SOURCE_DIR}/src/evfire.c
+	DESTINATION share/perpetuum)
+
+install (FILES ${CMAKE_SOURCE_DIR}/include/perpetuum/model.h
+	       ${CMAKE_SOURCE_DIR}/include/perpetuum/api.h
+	DESTINATION include/perpetuum)
+
+install (FILES ${CMAKE_BINARY_DIR}/perpetuum-codegen
+	PERMISSIONS WORLD_EXECUTE
+	DESTINATION bin)
+
+add_uninstall_target ()
 
 
 #
 # PACKAGING
 #
 
-set (CPACK_PACKAGE_VERSION_MAJOR ${GIT_VERSION_MAJOR})
-set (CPACK_PACKAGE_VERSION_MINOR ${GIT_VERSION_MINOR})
-if (GIT_HAVE_CHANGES EQUAL 0)
-        set (CPACK_PACKAGE_VERSION_PATCH ${USER_SUPPLIED_PATCHLEVEL})
-else()
-        set (CPACK_PACKAGE_VERSION_PATCH "local-${GIT_CHANGES_TIMESTAMP}")
-endif()
-
 set (CPACK_BUNDLE_NAME "perpetuum")
 set (CPACK_PACKAGE_CONTACT "Rick van Rein <rick@openfortress.nl>")
 set (CPACK_PACKAGE_VENDOR "ARPA2.net")
 set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "Perpetuum generates asynchronous schedulers from Petri nets")
-set (CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/README.MD)
-set (CPACK_GENERATOR DEB RPM)
+set (CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_SOURCE_DIR}/README.MD)
 set (CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 
+include (PackAllPossible)
 include (CPack)

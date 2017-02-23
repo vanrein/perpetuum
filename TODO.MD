@@ -7,5 +7,5 @@
   * DONE: Process multiplicity on arcs, through the arc/inscription/text form
   * DONE: Allow for events from the environment
   * DONE: Cause actions to be called in the environment
-  * Build a Perpetuum library holding the generic code
-  * Support more individual generation with the compiler; not just demos
+  * HACK: Build a Perpetuum library holding the generic code
+  * HACK: Support more individual generation with the compiler; not just demos
