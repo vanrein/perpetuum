@@ -12,10 +12,12 @@ include (MacroAddUninstallTarget)
 include (MacroGitVersionInfo)
 include (MacroCreateConfigFiles)
 
+macro_ensure_out_of_source_build("Do not build Perpetuum in the source directory.")
+
 set (CMAKE_MACOSX_RPATH 0)
 
 option (DEBUG
-	"Produce verbose about Petri net processing"
+	"Produce verbose output about Petri net processing"
 	OFF)
 
 option (BUILD_SINGLE_THREADED
@@ -72,6 +74,7 @@ pkg_search_module (
 #
 
 get_version_from_git (Perpetuum 0.0.0)
+
 
 #
 # Building

@@ -62,3 +62,18 @@ bool process_event (PARMDEF_COMMA(pnc) transref_list_t tra, void *evdata) {
 	// When we end here, nothing has been done with the event
 	return 0;
 }
+
+
+/* Send a try-again hint to a transition, by resetting its not-before timer.
+ * This can be used for error-handling transitions, that may initially wait
+ * for a timeout but that can be hinted by another transition (presumably the
+ * positive transition) if it detects a failure.  Another use of this facility
+ * is to trigger the release of information over an extra channel.  In general,
+ * this is nothing but a reset of the not-before timer so the flat scheduler
+ * is likely to pass by the transition once more, trying to fire it when the
+ * countdown is zero.  And what is then done depends on the transition code.
+ */
+void reset_transition_timer (PARMDEF_COMMA(pnc) transref_t tr) {
+	REF2TRANS (pnc,tr).notbefore = 0;
+}
+

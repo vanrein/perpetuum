@@ -15,6 +15,7 @@
  */
 time_t flat_schedule_run (PARMDEF (pnc));
 bool process_event (PARMDEF_COMMA(pnc) transref_list_t tra, void *evdata);
+void reset_transition_timer (PARMDEF_COMMA(pnc) transref_t tr);
 
 
 /* Internal API calls for the scheduling of Petri nets and events.

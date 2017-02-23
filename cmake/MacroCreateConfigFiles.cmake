@@ -43,7 +43,7 @@ macro (create_config_files _packagename)
 	set (CONF_INCLUDE_DIRS "\${${_packagename}_CMAKE_DIR}/${REL_INCLUDE_DIR}")
 	# Substitute in real values for the placeholders in the .in files,
 	# create the files in the build tree, and install them.
-	configure_file (${PROJECT_SOURCE_DIR}/${_packagename}Config.cmake.in
+	configure_file (${PROJECT_SOURCE_DIR}/contrib/${_packagename}Config.cmake.in
 		"${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${_packagename}Config.cmake" @ONLY)
 	set (_conf_version_filename ${PROJECT_SOURCE_DIR}/${_packagename}ConfigVersion.cmake.in)
 	if (NOT EXISTS ${_conf_version_filename})
@@ -55,7 +55,7 @@ macro (create_config_files _packagename)
 	endif ()
 	configure_file (${_conf_version_filename}
 		"${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${_packagename}ConfigVersion.cmake" @ONLY)
-	configure_file (${PROJECT_SOURCE_DIR}/${_packagename}.pc.in
+	configure_file (${PROJECT_SOURCE_DIR}/contrib/${_packagename}.pc.in
 		"${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${_packagename}.pc" @ONLY)
 
 	install (FILES
