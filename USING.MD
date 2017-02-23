@@ -146,6 +146,7 @@ and return one of the values
 #define TRANS_SUCCESS 0
 #define TRANS_FAILURE (~(trans_retcode_t)0)
 #define TRANS_DELAY(t) ((trans_retcode)(t))
+#define TRANS_MAXDELAY ((TRANS_FAILURE)-1)
 ```
 
 Note how there could be misinterpretations for `TRANS_DELAY(0)` as well as
@@ -182,7 +183,7 @@ Events are the subject of
 `;-)` though we are taking a practical angle initially.
 
 Usually, a transition that wants to respond to an event will return
-`TRANS_FAILURE` when it is triggered by the scheduler.  It can detect
+`TRANS_MAXDELAY` when it is triggered by the scheduler.  It can detect
 such situations by looking at the `opt_evdata` parameter, which is always
 `NULL` when invoked from the scheduler, and usually non-`NULL` when called
 from an event handler.
@@ -195,7 +196,7 @@ trans_retcode_t my_action (PARMDEF_COMMA(pnc)
 						void *opt_evdata) {
 	if (opt_evdata == NULL) {
 		/* Called from the scheduler, refuse to make the transition */
-		return TRANS_FAILURE;
+		return TRANS_MAXDELAY;
 	} else {
 		/* Called from event, process data and try to return success */
 		... = ((my_data_t *) opt->evdata)->...;

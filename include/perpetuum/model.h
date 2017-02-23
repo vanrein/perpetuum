@@ -126,7 +126,9 @@ typedef struct {
  * The macros help to symbolically return these values.  Note how the
  * TRANS_DELAY_SECURE(t) macro can be used to avoid external tools to
  * smuggle failure or success into the system by way of a delay.  You
- * should also be caustious about signed/unsigned mixup warnings.
+ * should also be caustious about signed/unsigned mixup warnings.  Use
+ * TRANS_MAXDELAY to avoid retries anytime soon; this is helpful when
+ * a transition is waiting for an outside event to cause it to happen.
  */
 
 typedef unsigned int trans_retcode_t;
@@ -139,6 +141,7 @@ typedef unsigned int trans_retcode_t;
 			(((t)>=TRANS_FAILURE)? \
 				(TRANS_FAILURE-1): \
 				(t)))
+#define TRANS_MAXDELAY ((TRANS_FAILURE)-1)
 
 
 /* The following macros are used to allow for compilation variants between

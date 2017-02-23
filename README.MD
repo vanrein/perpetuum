@@ -54,7 +54,8 @@ completion.
 Transitions fire up such snappy actions, but do not necessarily assume
 that they will succeed.  In fact, the adagio is to try a transition and
 see if it worked.  The return value can be one of `TRANS_SUCCESS`,
-`TRANS_FAILURE` or `TRANS_DEFER(numsec)` where the latter means to delay
+`TRANS_FAILURE`, `TRANS_MAXDELAY`
+or `TRANS_DELAY(numsec)` where the latter means to delay
 the work for `numsec` seconds, perhaps because a resource is locked or
 because a timer should expire before we may continue.  Only when the
 returned value is `TRANS_SUCCESS` is it possible to have a lasting
