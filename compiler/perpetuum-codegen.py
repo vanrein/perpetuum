@@ -33,13 +33,21 @@ import cmph
 # Load the Petri net to work on
 #
 
-if len (sys.argv) != 2:
-	sys.stderr.write ('Usage: %s infile.pnml...\n' % sys.argv [0])
+if len (sys.argv) not in [2,3]:
+	sys.stderr.write ('Usage: %s infile.pnml [outdir]\n' % sys.argv [0])
 	sys.stderr.write ('TODO: We currently process only one PNML file at a time\n')
 	sys.exit (1)
 
-netin_fn  = os.path.splitext (sys.argv [1]) [0] + os.extsep + 'pnml'
-netout_fn = os.path.splitext (sys.argv [1]) [0] + os.extsep + 'out'
+progname = sys.argv [1]
+progbase = os.path.splitext (progname) [0]
+
+if len (sys.argv) >= 3:
+	outdir = sys.argv [2] + os.sep
+else:
+	outdir = (os.path.dirname (progname) or os.curdir) + os.sep
+
+netin_fn  = progbase + os.extsep + 'pnml'
+netout_fn = outdir + os.path.splitext (os.path.basename (progname)) [0] + os.extsep + 'out'
 net = pntools.petrinet.parse_pnml_file (netin_fn)
 if len (net) != 1:
 	sys.stderr.write ('Parsing failed, found %d Petri nets instead of 1\n' % len (net))
@@ -66,7 +74,6 @@ if not neat_net_name [:1] in string.ascii_letters:
 	neat_net_name = 'x' + neat_net_name
 if neat_net_name == '':
 	neat_net_name = 'perpetuum'
-outdir = os.path.dirname (sys.argv [0]) + os.sep + 'demo' + os.sep
 c_fn    = outdir + neat_net_name + '.c'
 h_fn    = outdir + neat_net_name + '.h'
 pkey_fn = outdir + neat_net_name + '.pkey'
