@@ -11,8 +11,19 @@
 #  - process multiplicity inscriptions on arcs by generating sequences of arcs
 #  - invocations of actions as declared by transition labels
 #  - processing of events as declared by transition labels
+#  - an implementation in an Erlang module based on behaviour(gen_perpetuum)
 #  - dropped: starting/ending of activities as declared by place labels
 #  - dropped: processing of activity output as declared by place labels
+#
+# Next to the C generator, there now also is one for Erlang.  The reason
+# being that the match between Erlang and Petri nets is almost magical:
+# Unbounded integers allow us to efficiently check the constraints of
+# transitions, and message-passing with pattern matching makes it really
+# simple to pickup external events that (attempt to) drive transitions.
+# The output is a .erl module file that loads a behaviour(gen_perpetuum)
+# for its generics, much like a gen_server, except that its backcalls
+# are handle_transition -- whose return values are used to update the
+# markings of the Petri net in self().
 #
 # From: Rick van Rein <rick@openfortress.nl>
 
@@ -76,6 +87,8 @@ if neat_net_name == '':
 	neat_net_name = 'perpetuum'
 c_fn    = outdir + neat_net_name + '.c'
 h_fn    = outdir + neat_net_name + '.h'
+erl_fn  = outdir + neat_net_name + '.erl'
+# hrl_fn  = outdir + neat_net_name + '.hrl'
 pkey_fn = outdir + neat_net_name + '.pkey'
 tkey_fn = outdir + neat_net_name + '.tkey'
 pidx_fn = outdir + neat_net_name + '.pidx'
@@ -198,6 +211,24 @@ hout.write ('/* ' + neat_net_name + '''.h
 
 ''')
 
+# Generate the header for the .erl file
+eout = open (e_fn, 'w')
+eout.write ('% ' + neat_net_name + '''.erl
+%
+% This is a generated file.  Do not edit it, but rather its source and
+% run perpetuum to produce a new version of this file.
+%
+% Please file issues with https://github.com/vanrein/perpetuum/issues
+%
+% With compliments from the ARPA2.net / InternetWide.org project!
+%
+
+-module( "''' + neat_net_name + '''" ).
+-behaviour( gen_perpetuum ).
+
+
+''')
+
 
 # Generate #defines for each of the transition names (referenced in events)
 hout.write ('/* Index numbers for transitions, by TRANS_INDEX_name */\n')
@@ -229,6 +260,8 @@ cout.write ('/* ' + neat_net_name + '''.c
 
 ''')
 
+# Transition names are atoms in Erlang, so we do not need to generate them
+
 
 # Generate the lists of places and transitions from each of their neighbours
 def genlist (kind, dict, name, reflist):
@@ -258,6 +291,52 @@ for p in place_list:
 cout.write ('};\n\n')
 
 
+# For Erlang, determine the maximum delta to a place.
+# This is important, as it defines the range for detecting under/overflow.
+# This explains why we take incoming arcs as well as outgoing into account.
+# Inhibitor arcs are excluded because they are generated in a different way.
+# Timer are shown in the top bit (sign bit) but do not change the max delta.
+#
+#TODO# Differentiate bits per place; for now one-size-fits-all.
+t_inct = {}
+for (p,t) in p2t:
+	t_inct [p] = t_inct.get (p, 0) + 1
+t2p_ct = {}
+for (t,p) in t2p:
+	t_otct [p] = t_otct.get (p, 0) + 1
+t_ct = {}
+t_maxdelta_all = 0
+for t in trans_list:
+	t_maxdelta [t] = max (t_inct.get (t, 0), t_otct.get (t, 0))
+	if t_maxdelta [t] > t_maxdelta_all:
+		t_maxdelta_all = t_maxdelta [t]
+# Simplification: all fields in the intvector have the same size
+# As a result: only care about the overall t_maxdelta outcome
+place_bits = 0
+while (1 << place_bits) < t_maxdelta:
+	place_bits = place_bits + 1
+# Now determine the number of bits we really-really need
+bigint_bits = (place_bits + 1) * place_num + 1
+if bigint_bits < 60:
+	bigint_bits = 60
+elif bigint_bits < 3 * 64:
+	bigint_bits = 3 * 64
+else:
+	bigint_bits = (bigint_bits + 63) & 0xfffffc0
+# From this, determine a good spread of the equally-sized places
+place_bits = (bigint_bits - 1) / place_num
+eout.write ('% Integer size is ' + str (bigint_bits) + ' bits, with\n')
+eout.write ('% ' + str (place_bits) + ' bits for each of the ' + str (place_num) + ' places,\n')
+eout.write ('% and the sign bit to spare to indicate timer activity.\n')
+eout.write ('%\n')
+eout.write ('bits() -> ' + str (bigint_bits) + '.\n')
+if bigint_bits < 3 * 64:
+	eout.write ('bits( ' + str (bigint_bits) + ' ) -> ' + str (3 * 64) + '.\n')
+eout.write ('bits( N ) where N rem 64 == 0 -> N + 64.\n\n\n')
+
+
+
+
 # Generate function prototypes for all the transitions' actions
 
 hout.write ('/* Function prototypes for transition actions */\n')
@@ -276,10 +355,16 @@ for t in trans_list:
 cout.write ('};\n\n')
 
 # Generate init vectors for places, and optional singleton array
+# For Erlang, the initial marking is a bigint representing a vector
 hout.write ('/* Place initialisation */\n')
+eout.write ('% Initial marking\n%\n')
+sentinel_imark = -1 << (bigint_bits - 1)
+sentinel_shift = 0
 for plc in place_list:
-	ini_mark = net.places [plc].marking
+	ini_imark = net.places [plc].marking
 	hout.write ('#define PLACE_INIT_' + plc + ' { ' + str (ini_mark) + ' }\n')
+	sentinel_imark = sentinel_imark + (int (ini_mark) << place_bits)
+	sentinel_shift = sentinel_shift + (place_bits + 1)
 hout.write ('\n')
 cout.write ('#ifdef PETRINET_SINGLETONS\n')
 cout.write ('static place_t the_' + neat_net_name + '_places [] = {\n')
@@ -287,9 +372,14 @@ for plc in place_list:
 	cout.write ('\tPLACE_INIT_' + plc + ',\n')
 cout.write ('};\n')
 cout.write ('#endif\n\n')
+eout.write ('% The initial marking for this Petri net (with sentinel bits)\n%\n')
+eout.write ('initial_marking() -> ' + str (sentinel_imark) + '.\n\n\n')
 
 # Generate init vectors for transitions, and optional singleton array
+#TODO:FROMHERE#
+# For Erlang, generate the dynamic transition-indexed record
 hout.write ('/* Place initialisation; countdown := empty inputs + non-empty inhibitors */\n')
+eout.write ('% Transition records; describing the initial offsets of in/out transitions\n')
 for tr in trans_list:
 	# initial "countdown" is zero normal plus non-zero inhibitors trans
 	ini_countdown = ( str (len ( [ src for (src,tgt) in p2t
@@ -307,6 +397,7 @@ for tr in trans_list:
 	cout.write ('\tTRANS_INIT_' + tr + ',\n')
 cout.write ('};\n')
 cout.write ('#endif\n\n')
+eout.write ('\n\n')
 
 # Generate optional code for global variables, which simplifies embedded code
 #TODO# Gen topology, gen transitions, gen places
@@ -375,7 +466,9 @@ const petrinet_topo_t ''' + neat_net_name + ''' = {
 # Print an end remark
 hout.write ('\n\n/* End of generated file ' + neat_net_name + '.h */\n')
 cout.write ('\n\n/* End of generated file ' + neat_net_name + '.c */\n')
+eout.write ('\n\n% End of generated file ' + neat_net_name + '.elm\n')
 
 # Close output files
 hout.close ()
 cout.close ()
+eout.close ()
