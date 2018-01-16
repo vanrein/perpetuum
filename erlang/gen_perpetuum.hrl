@@ -45,3 +45,55 @@
 		} )
 } ).
 
+
+% transreply() is the type for transition replies.
+% Successes are reported as {noreply,...} and {reply,...}
+% and the rest is some form of failure.  Depending on the
+% function at hand, these failures may be processed further,
+% or considered complete rejections.
+%
+% The forms are:
+%  - {noreply,PerpetuumState,ApplicationState}
+%  - {reply,ReplyCode,PerpetuumState,ApplicationState}
+%  - {error,Reason}
+%  -  retry
+%  - {retry,ApplicationEventInfo}
+%  - {delay,FiniteNonNegativeMilliSecondDelay}
+%
+-type transreply() :: {noreply,colour,term()} |
+                      {reply,term(),colour,term()} |
+                      {error,term()} |
+                      retry |
+                      {retry,term()} |
+                      {delay,integer()}.
+
+
+% Perform a transition and return any findings.  This routine
+% will not schedule timer-related issues, but rather reply
+% accordingly.
+%
+% The basic transition applies a Subber to the current
+% Marking, and checks if  the TransSentinel approves.  This check
+% will take both underflow and inhibitor arcs into account in one
+% comparison!  See ERLANG.MD for details.
+%
+% When not agreeable, the transition receives {error,badstate} as
+% a failure indication.  When agreeable, callbacks are tried and
+% their result is decisive.  Callbacks may use EventData and
+% InternalState to construct new InternalState.  It is however not
+% advisable to take this data into account when deciding about the
+% acceptability of the transition, as that would extend the
+% synchronisation semantics beyond those of the Petri Net, in a way
+% not perceived by static analysis.
+%
+% A successful transition ends by adding Addend to the
+% current Marking, whereas a failed transition does not return a
+% new state for the caller to store.
+%
+-spec handle_trans(
+	Prior::colour,
+	TransName::atom(),
+	_EventData::term(),
+	InternalState::term() ).
+
+

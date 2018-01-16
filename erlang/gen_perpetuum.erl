@@ -11,7 +11,58 @@
 
 -include( "gen_perpetuum.hrl" ).
 
--export([ reflow/1 ]).
+-export([
+	handle_trans/4,
+	reflow/1
+]).
+
+
+% Perform a transition and return any findings.  This routine
+% will not schedule timer-related issues, but rather reply
+% accordingly.
+%
+% The basic transition applies a Subber to the current
+% Marking, and checks if  the TransSentinel approves.  This check
+% will take both underflow and inhibitor arcs into account in one
+% comparison!  See ERLANG.MD for details.
+%
+% When not agreeable, the transition receives {error,badstate} as
+% a failure indication.  When agreeable, callbacks are tried and
+% their result is decisive.  Callbacks may use EventData and
+% InternalState to construct new InternalState.  It is however not
+% advisable to take this data into account when deciding about the
+% acceptability of the transition, as that would extend the
+% synchronisation semantics beyond those of the Petri Net, in a way
+% not perceived by static analysis.
+%
+% A successful transition ends by adding Addend to the
+% current Marking, whereas a failed transition does not return a
+% new state for the caller to store.
+%
+handle_trans( #colour{marking=Marking,transdict=TransDict}=Colour, TransName, _EventData, InternalState ) ->
+		{ Addend,Subber,TransSentinel } = dict:fetch ( TransName,TransDict ),
+		PreMarking = Marking - Subber,
+		RetVal = if
+		( PreMarking band TransSentinel ) /= 0 ->
+			{error,badstate};
+		true ->
+			%TODO% invoke callback_trans()
+			{noreply,Colour,InternalState}
+		end,
+		case RetVal of
+		{ noreply,_,NewInternalState } ->
+			NewColour = reflow( Colour#colour{
+				marking=( PreMarking+Addend )
+				} ),
+			{noreply,NewColour,NewInternalState};
+		{ reply,Reply,_,NewInternalState } ->
+			NewColour = reflow( Colour#colour{
+				marking=( PreMarking+Addend )
+				} ),
+			{reply,Reply,NewColour,NewInternalState};
+		_ ->
+			RetVal
+		end.
 
 
 % The reflow procedure inserts extra place bits to make an
@@ -74,7 +125,7 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transdic
 			%UNDEFINED% assert:assert( NewIntLen    > IntLen    ),
 			%UNDEFINED% assert:assert( NewPlaceBits > PlaceBits ),
 			%
-			% Update Sentinels and MarkingAddends in the petrinet and colour
+			% Update Sentinels and Addend in the petrinet and colour
 			% by inserting the extra NewPlaceBits-PlaceBits everywhere
 			%
 			%TODO% Would be good to retrieve reflown structures from a cache
@@ -122,10 +173,10 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transdic
 				ReguardBitfields_rec( ReguardBitfields_rec,Vec,0,NumPlaces )
 				, io:fwrite( "Reguarded Bitfields ~p to ~p~n", [Vec,RETVAL] ), RETVAL
 			end,
-			ExpandTransDictKV = fun( _TransName,{ MarkingAddend,MarkingSubber,TransSentinel } ) ->
+			ExpandTransDictKV = fun( _TransName,{ Addend,Subber,TransSentinel } ) ->
 				{
-					ExtendBitfields( MarkingAddend ),
-					ExtendBitfields( MarkingSubber ),
+					ExtendBitfields( Addend ),
+					ExtendBitfields( Subber ),
 					ReguardBitfields( TransSentinel )
 				}
 			end,
