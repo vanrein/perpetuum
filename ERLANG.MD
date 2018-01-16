@@ -68,13 +68,13 @@ To trigger a transition from outside the Petri Net's own process, so from a proc
 -spec trigger( pid(), transition(), evdata() ) -> trans_reply().
 -spec trigger( pid(), transition(), evdata(),Timeout ) -> trans_reply().
 
--spec tickle( pid(), transition(), evdata() ) -> none().
--spec tickle( pid(), transition(), evdata(), Timeout ) -> none().
+-spec tickle( transition(), evdata() ) -> none().
+-spec tickle( transition(), evdata(), Timeout ) -> none().
 ```
 
 The first is like `call`, in that it ensures delivery and handling.  When it is not handled, it will have a bad hair day &mdash; and make sure you do, too.  The second is like `cast`, in that it ships an attempted transition but merely shrugs when it fails.  The choice between these depends on the application at hand.  Note that `tickle` is asynchronous and does not guarantee any order of transition handling; that is left to the sequence in the program invoking it.  Note that both functions invoke `handle_trans` but differ in their handling of the values returned.
 
-The `Timeout` parameter is the number of milliseconds that the transition may be held up.  If it would be held up longer, it will return the timeout instruction immediately.  A `Timeout` of 0 indicates that no timeout at all is acceptable and is assumed as a default in `trigger/3`; a `Timeout` value of `infinity` indicates that any timeout should be accepted and awaited and is assumed as a default in `tickle/3`.
+The `Timeout` parameter is the number of milliseconds that the transition may be held up.  If it would be held up longer, it will return the timeout instruction immediately.  A `Timeout` of 0 indicates that no timeout at all is acceptable and is assumed as a default in `trigger/3`; a `Timeout` value of `infinity` indicates that any timeout should be accepted and awaited and is assumed as a default in `tickle/2`.
 
 ## Internal Representation
 

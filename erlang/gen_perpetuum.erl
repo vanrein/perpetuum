@@ -13,8 +13,16 @@
 
 -export([
 	handle_trans/4,
-	reflow/1
+	reflow/1,
+	loop/2
 ]).
+
+-spec handle_trans(
+		Prior::colour,
+		TransName::atom(),
+		_EventData::term(),
+		InternalState::term()
+	) -> transreply() .
 
 
 % Perform a transition and return any findings.  This routine
@@ -46,7 +54,7 @@ handle_trans( #colour{marking=Marking,transdict=TransDict}=Colour, TransName, _E
 		( PreMarking band TransSentinel ) /= 0 ->
 			{error,badstate};
 		true ->
-			%TODO% invoke callback_trans()
+			%TODO% invoke callback_trans/5
 			{noreply,Colour,InternalState}
 		end,
 		case RetVal of
@@ -191,5 +199,29 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transdic
 				transdict = dict:map( ExpandTransDictKV, TransDict )
 			}
 		end
+	end.
+
+
+% A main loop that may be used if Perpetuum is meant as a service
+% to many processes, rather than as a process-internal structuring
+% agent.
+%
+%TODO% Incorporate Timeout and resend through timer:after/2.
+%
+loop( Colour,State )  ->
+	receive
+	{ trigger,Pid,TransName,EventData,_Timeout } ->
+		Response = handle_trans( Colour,TransName,EventData,State ),
+		Pid ! Response;
+	{ tickle,TransName,EventData,_Timeout } ->
+		Response = handle_trans( Colour,TransName,EventData,State )
+	end,
+	case Response of
+		{noreply,NewColour,NewState} ->
+			loop( NewColour,NewState );
+		{reply,_,NewColour,NewState} ->
+			loop( NewColour,NewState );
+		_ ->
+			loop( Colour,State )
 	end.
 
