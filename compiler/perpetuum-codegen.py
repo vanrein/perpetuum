@@ -33,6 +33,8 @@ import sys
 import string
 import random
 
+from math import log, ceil
+
 # Try to make demo code generation (notably cmph) as stable as possible
 random.seed (65537)
 
@@ -224,7 +226,7 @@ eout.write ('% ' + neat_net_name + '''.erl
 %
 
 -module( "''' + neat_net_name + '''" ).
--behaviour( gen_perpetuum ).
+%TODO% -behaviour( gen_perpetuum ).
 
 
 ''')
@@ -270,6 +272,8 @@ def genlist (kind, dict, name, reflist):
 		i = 1 + dict [ref]
 		cout.write (', ' + str (i))
 	cout.write (' };\n')
+p2tm = [ (e.source,e.target,int(e.inscription)) for e in net.edges if net.places.has_key (e.source) and e.type != 'inhibitor' ]
+t2pm = [ (e.source,e.target,int(e.inscription)) for e in net.edges if net.places.has_key (e.target) ]
 p2t = [ (e.source,e.target) for e in net.edges if net.places.has_key (e.source) and e.type != 'inhibitor' for multi in range (int (e.inscription)) ]
 p2i = [ (e.source,e.target) for e in net.edges if net.places.has_key (e.source) and e.type == 'inhibitor' ]
 t2p = [ (e.source,e.target) for e in net.edges if net.places.has_key (e.target) for multi in range (int (e.inscription)) ]
@@ -292,48 +296,52 @@ cout.write ('};\n\n')
 
 
 # For Erlang, determine the maximum delta to a place.
+#
 # This is important, as it defines the range for detecting under/overflow.
 # This explains why we take incoming arcs as well as outgoing into account.
-# Inhibitor arcs are excluded because they are generated in a different way.
-# Timer are shown in the top bit (sign bit) but do not change the max delta.
+# Furthermore, the initial marking should be supported for each place.
 #
-#TODO# Differentiate bits per place; for now one-size-fits-all.
-t_inct = {}
-for (p,t) in p2t:
-	t_inct [p] = t_inct.get (p, 0) + 1
-t2p_ct = {}
-for (t,p) in t2p:
-	t_otct [p] = t_otct.get (p, 0) + 1
-t_ct = {}
-t_maxdelta_all = 0
-for t in trans_list:
-	t_maxdelta [t] = max (t_inct.get (t, 0), t_otct.get (t, 0))
-	if t_maxdelta [t] > t_maxdelta_all:
-		t_maxdelta_all = t_maxdelta [t]
-# Simplification: all fields in the intvector have the same size
-# As a result: only care about the overall t_maxdelta outcome
-place_bits = 0
-while (1 << place_bits) < t_maxdelta:
-	place_bits = place_bits + 1
-# Now determine the number of bits we really-really need
-bigint_bits = (place_bits + 1) * place_num + 1
+# Inhibitor arcs are excluded because they are generated in a different way.
+#
+for p in places:
+	place2range [p] = max (1,net.places [plc].marking)
+for (p,t,m) in p2tm:
+	if m > place2range [p]:
+		place2range [p] = m
+for (t,p,m) in t2pm:
+	if m > place2range [p]:
+		place2range [p] = m
+vector_bits = 0
+for p in places:
+	# Store as a pair: (range-bits, left-shift)
+	place2bits [p] = (int (ceil (log (place2range [p], 2))), vector_bits)
+	# One sentinel bit and enough bits to hold this place's range
+	vector_bits += 1 + place2bits [p][0]
+# Now determine the number of bits used in the Erlang virtual machine
+bigint_bits = vector_bits + 1
 if bigint_bits < 60:
 	bigint_bits = 60
 elif bigint_bits < 3 * 64:
 	bigint_bits = 3 * 64
 else:
 	bigint_bits = (bigint_bits + 63) & 0xfffffc0
-# From this, determine a good spread of the equally-sized places
-place_bits = (bigint_bits - 1) / place_num
-eout.write ('% Integer size is ' + str (bigint_bits) + ' bits, with\n')
-eout.write ('% ' + str (place_bits) + ' bits for each of the ' + str (place_num) + ' places,\n')
-eout.write ('% and the sign bit to spare to indicate timer activity.\n')
+#UNWISE# # Now try to add spare bits to the places, to suppress some claims
+#UNWISE# # Note: This is a time-over-space optimisation
+#UNWISE# # Note: This is a coarse optimisation; network analysis would improve it
+#UNWISE# spare_bits = ((bigint_bits-1) - vector_bits) / place_num
+#UNWISE# if spare_bits > 0:
+#UNWISE# 	vector_bits = 0
+#UNWISE# 	for p in places:
+#UNWISE# 		place2bits [p] = (place2bits [p][0] + spare_bits, vector_bits)
+#UNWISE# 		vector_bits += 1 + place2bits [p][0] + spare_bits
+eout.write ('% Bit field vector is ' + str (bigint_bits) + ' bits long, with\n')
+eout.write ('% ' + str (vector_bits) + ' bits for all of the ' + str (place_num) + ' places,\n')
+eout.write ('% and the sign bit to spare for future use.\n')
 eout.write ('%\n')
-eout.write ('bits() -> ' + str (bigint_bits) + '.\n')
-if bigint_bits < 3 * 64:
-	eout.write ('bits( ' + str (bigint_bits) + ' ) -> ' + str (3 * 64) + '.\n')
-eout.write ('bits( N ) where N rem 64 == 0 -> N + 64.\n\n\n')
-
+#TODO#MAKE_CLEVERER# eout.write ('bits() -> ' + str (bigint_bits) + '.\n')
+#TODO#MAKE_CLEVERER# if bigint_bits < 3 * 64:
+#TODO#MAKE_CLEVERER# 	eout.write ('bits( ' + str (bigint_bits) + ' ) -> ' + str (3 * 64 - 1) + '.\n')
+#TODO#MAKE_CLEVERER# eout.write ('bits( N ) where N rem 64 == 63 -> N + 64.\n\n\n')
 
 
 
@@ -361,7 +369,7 @@ eout.write ('% Initial marking\n%\n')
 sentinel_imark = -1 << (bigint_bits - 1)
 sentinel_shift = 0
 for plc in place_list:
-	ini_imark = net.places [plc].marking
+	ini_mark = net.places [plc].marking
 	hout.write ('#define PLACE_INIT_' + plc + ' { ' + str (ini_mark) + ' }\n')
 	sentinel_imark = sentinel_imark + (int (ini_mark) << place_bits)
 	sentinel_shift = sentinel_shift + (place_bits + 1)
@@ -466,9 +474,10 @@ const petrinet_topo_t ''' + neat_net_name + ''' = {
 # Print an end remark
 hout.write ('\n\n/* End of generated file ' + neat_net_name + '.h */\n')
 cout.write ('\n\n/* End of generated file ' + neat_net_name + '.c */\n')
-eout.write ('\n\n% End of generated file ' + neat_net_name + '.elm\n')
+eout.write ('\n\n% End of generated file ' + neat_net_name + '.erl\n')
 
 # Close output files
 hout.close ()
 cout.close ()
 eout.close ()
+
