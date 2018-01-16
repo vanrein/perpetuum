@@ -29,7 +29,7 @@
 % low bit because it might be set to cover the entire
 % place for the implementation of inhibitor arcs.
 %
-% To reflow a Marking or Addend or Subtor, we will extend
+% To reflow a Marking or Addend or Subber, we will extend
 % all bitfields by inserting a zero bit on top as the new
 % Carry or Sentinel bit; the previous Sentinel bit may be
 % set to hold a Carry from a preceding addition, which
@@ -122,8 +122,12 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transdic
 				ReguardBitfields_rec( ReguardBitfields_rec,Vec,0,NumPlaces )
 				, io:fwrite( "Reguarded Bitfields ~p to ~p~n", [Vec,RETVAL] ), RETVAL
 			end,
-			ExpandTransDictKV = fun( _TransName,{ MarkingAddend,TransSentinel } ) ->
-				{ ExtendBitfields( MarkingAddend ), ReguardBitfields( TransSentinel ) }
+			ExpandTransDictKV = fun( _TransName,{ MarkingAddend,MarkingSubber,TransSentinel } ) ->
+				{
+					ExtendBitfields( MarkingAddend ),
+					ExtendBitfields( MarkingSubber ),
+					ReguardBitfields( TransSentinel )
+				}
 			end,
 			#colour {
 				petrinet  = #petrinet {
