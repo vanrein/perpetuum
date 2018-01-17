@@ -215,7 +215,7 @@ hout.write ('/* ' + neat_net_name + '''.h
 
 # Generate the header for the .erl file
 eout = open (erl_fn, 'w')
-eout.write ('%% ' + neat_net_name + '''.erl
+eout.write ('% ' + neat_net_name + '''.erl
 %
 % This is a generated file.  Do not edit it, but rather its source and
 % run perpetuum to produce a new version of this file.
@@ -343,10 +343,10 @@ def erlang_next_placebits (cur_placebits, intsz=None):
 	assert (next_placebits > cur_placebits)
 	return next_placebits
 needed_placebits = erlang_next_placebits (max_placebits-1)
-eout.write ('%% Initial bitfield vector is 60 or N*64 bits long, N>=3, with\n')
-eout.write ('%% ' + str (vector_bits) + ' bits for all of the ' + str (place_num) + ' places,\n')
-eout.write ('%% and the sign bit to spare for possible future use with timeouts.\n')
-eout.write ('%%\n')
+eout.write ('% Initial bitfield vector is 60 or N*64 bits long, N>=3, with\n')
+eout.write ('% ' + str (vector_bits) + ' bits for all of the ' + str (place_num) + ' places,\n')
+eout.write ('% and the sign bit to spare for possible future use with timeouts.\n')
+eout.write ('%\n')
 
 # Given a place number and the number of placebits, set a place's count
 def erlang_place_value (place_idx, placebits, value):
@@ -369,10 +369,10 @@ def erlang_sentinel (placebits):
 # Code to produce the smallest transmap outputs as literals,
 # with endless expansion in a dynamic last clause.
 #
-eout.write ('%% Return a transmap beyond N bit integers; initially, N=%d.\n')
-eout.write ('%% The transmap is only read and usually remains literal;\n')
-eout.write ('%% Only very large Petri Nets need to scale up dynamically.\n')
-eout.write ('%%\n')
+eout.write ('% Return a transmap beyond N bit integers; initially, N=%d.\n')
+eout.write ('% The transmap is only read and usually remains literal;\n')
+eout.write ('% Only very large Petri Nets need to scale up dynamically.\n')
+eout.write ('%\n')
 curbits = needed_placebits
 for i in range (5):
 	eout.write ('transmap(%5d ) -> #{\n' % (curbits))
@@ -400,32 +400,34 @@ for i in range (5):
 		comma = ',' if ti < trans_num - 1 else ''
 		eout.write ('\t\t\t\'%s\' => { %s, %s, %s }%s\n' % ( transname, str(addends [ti]), str(subbers [ti]), str(sentinels [ti]), comma ) )
 	eout.write ('\t};\n')
+	lastcurbits = curbits
 	curbits = erlang_next_placebits (curbits)
 # Final clause: 
 eout.write ('transmap(    0 ) ->\n\t\ttransmap( %d );\n' % needed_placebits)
-eout.write ('transmap(    N ) when N div 64 == 0 ->\n\t\tgen_perpetuum:reflow_transmap( transmap( N-64 )).\n')
+eout.write ('transmap(    N ) when N div 64 == 0 ->\n\t\tgen_perpetuum:reflow_transmap( transmap( %d ),N ).\n' % lastcurbits)
 eout.write ('\n')
 
 # Code to produce the smallest sentinels as literals, with endless
 # expansion in a dynamic last clause.
 #
-eout.write ('%% Return the sentinel value for a Petri Net of given\n')
-eout.write ('%% number of place bits.  Again, mostly literal.\n')
-eout.write ('%%\n')
+eout.write ('% Return the sentinel value for a Petri Net of given\n')
+eout.write ('% number of place bits.  Again, mostly literal.\n')
+eout.write ('%\n')
 curbits = needed_placebits
 for i in range (5):
 	eout.write ('sentinel(%5d ) -> %d;\n' % (curbits,erlang_sentinel (curbits)))
+	lastcurbits = curbits
 	curbits = erlang_next_placebits (curbits)
 eout.write ('sentinel(    0 ) -> sentinel( %d );\n' % needed_placebits)
-eout.write ('sentinel(   _N ) -> error (impl_TODO).\n')
+eout.write ('sentinel(    N ) -> gen_perpetuum:reflow_sentinel( sentinel( %d ),N ).\n' % lastcurbits)
 eout.write ('\n')
 
 # Code to produce the initial marking for only the smallest sentinel,
 # as this is before any growth spur has occurred.
 #
-eout.write ('%% Return the initial marking for this Petri Net,\n')
-eout.write ('%% again parameterised with the number of place bits.\n')
-eout.write ('%%\n')
+eout.write ('% Return the initial marking for this Petri Net,\n')
+eout.write ('% again parameterised with the number of place bits.\n')
+eout.write ('%\n')
 inimark = 0
 for pi in range (place_num):
 	plcmark = net.places [place_list [pi]].marking
@@ -460,7 +462,7 @@ cout.write ('};\n\n')
 # Generate init vectors for places, and optional singleton array
 # For Erlang, the initial marking is a bigint representing a vector
 hout.write ('/* Place initialisation */\n')
-eout.write ('%% Initial marking\n%\n')
+#OLD# eout.write ('% Initial marking\n%\n')
 #OLD# sentinel_imark = -1 << (bigint_bits - 1)
 #OLD# sentinel_shift = 0
 for plc in place_list:
@@ -475,14 +477,14 @@ for plc in place_list:
 	cout.write ('\tPLACE_INIT_' + plc + ',\n')
 cout.write ('};\n')
 cout.write ('#endif\n\n')
-#OLD# eout.write ('%% The initial marking for this Petri net (with sentinel bits)\n%\n')
+#OLD# eout.write ('% The initial marking for this Petri net (with sentinel bits)\n%\n')
 #OLD# eout.write ('initial_marking() -> ' + str (sentinel_imark) + '.\n\n\n')
 
 # Generate init vectors for transitions, and optional singleton array
 #TODO:FROMHERE#
 # For Erlang, generate the dynamic transition-indexed record
 hout.write ('/* Place initialisation; countdown := empty inputs + non-empty inhibitors */\n')
-eout.write ('%% Transition records; describing the initial offsets of in/out transitions\n')
+#OLD# eout.write ('% Transition records; describing the initial offsets of in/out transitions\n')
 for tr in trans_list:
 	# initial "countdown" is zero normal plus non-zero inhibitors trans
 	ini_countdown = ( str (len ( [ src for (src,tgt) in p2t
