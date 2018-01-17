@@ -25,6 +25,32 @@
 	) -> transreply() .
 
 
+% Callback function "initial_marking" should return the
+% initial marking for the smallest possible integer size.
+%
+%TODO% Useless?  This would be internal to the creation
+% of a new Petri Net?
+%
+-callback initial_marking( integer() ) -> integer().
+
+% Callback function "sentinel" should return the sentinel bits
+% for a given number of places, which is useful because it lets
+% us share literals in most use cases, thus off-loading the
+% heaps of instances.
+%
+-callback sentinel( integer() ) -> integer().
+
+% Callback function "transmap" constructs a transition
+% infomap from transition names to the changes it commands.
+% The function is indexed by the number of place bits,
+% because its values grow along with it.  The result of the
+% call is ideally a literal so it can be shared by many
+% processes.  Only the very largest ones need to expand
+% dynamically, to hold very large sizes.
+%
+-callback transmap( integer() ) -> #{}.
+
+
 % Perform a transition and return any findings.  This routine
 % will not schedule timer-related issues, but rather reply
 % accordingly.
@@ -47,8 +73,8 @@
 % current Marking, whereas a failed transition does not return a
 % new state for the caller to store.
 %
-handle_trans( #colour{marking=Marking,transdict=TransDict}=Colour, TransName, _EventData, InternalState ) ->
-		{ Addend,Subber,TransSentinel } = dict:fetch ( TransName,TransDict ),
+handle_trans( #colour{marking=Marking,transmap=TransMap}=Colour, TransName, _EventData, InternalState ) ->
+		{ Addend,Subber,TransSentinel } = maps:get ( TransName,TransMap ),
 		PreMarking = Marking - Subber,
 		RetVal = if
 		( PreMarking band TransSentinel ) /= 0 ->
@@ -94,7 +120,7 @@ handle_trans( #colour{marking=Marking,transdict=TransDict}=Colour, TransName, _E
 % set to hold a Carry from a preceding addition, which
 % would be an overflow that caused the need for the reflow.
 %
-reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transdict=TransDict }=Colour ) ->
+reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transmap=TransMap }=Colour ) ->
 	io:fwrite( "Marking: ~p~n",[Marking] ),
 	io:fwrite( "Sentinel: ~p~n",[Sentinel] ),
 	if
@@ -102,10 +128,9 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transdic
 		Colour;
 	true ->
 		case PetriNet of
-		#petrinet{ numplaces=NumPlaces, placebits=PlaceBits, intlen=IntLen } ->
+		#petrinet{ numplaces=NumPlaces, placebits=PlaceBits } ->
 			io:fwrite( "NumPlaces: ~p~n",[NumPlaces] ),
 			io:fwrite( "PlaceBits: ~p~n",[PlaceBits] ),
-			io:fwrite( "IntLen:    ~p~n",[IntLen   ] ),
 			%
 			% Determine the new integer length and bits per place
 			% assuming that one bit extra per place is enough to
@@ -113,25 +138,18 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transdic
 			%
 			NeedIntLen = 1 + (PlaceBits+2) * NumPlaces,
 			io:fwrite( "NeedIntLen: ~p~n",[NeedIntLen] ),
-			StepupIntLen = fun( YF,CurIntLen ) ->
-				if CurIntLen < 60 ->
-					YF( YF,60 );
-				CurIntLen >= NeedIntLen ->
-					CurIntLen;
-				CurIntLen < 64 ->
-					YF( YF,3*64 );
-				CurIntLen rem 64 == 0 ->
-					YF( YF,CurIntLen+64 )
-				end
+			NewIntLen = if
+				NeedIntLen < 60 -> 60;
+				NeedIntLen < 3*64 -> 3*64;
+				true -> (NeedIntLen + 63) band -64
 			end,
-			NewIntLen = StepupIntLen( StepupIntLen,IntLen ),
 			io:fwrite( "NewIntLen: ~p~n",[NewIntLen] ),
 			NewPlaceBits = (NewIntLen - 1) div NumPlaces - 1,
 			io:fwrite( "NewPlaceBits: ~p~n",[NewPlaceBits] ),
 			ExtraPlaceBits = NewPlaceBits - PlaceBits,
 			io:fwrite( "ExtraPlaceBits: ~p~n",[ExtraPlaceBits] ),
-			%UNDEFINED% assert:assert( NewIntLen    > IntLen    ),
-			%UNDEFINED% assert:assert( NewPlaceBits > PlaceBits ),
+			%UNDEFINED% assert:assert( NewIntLen    >= NeedIntLen ),
+			%UNDEFINED% assert:assert( NewPlaceBits >  PlaceBits  ),
 			%
 			% Update Sentinels and Addend in the petrinet and colour
 			% by inserting the extra NewPlaceBits-PlaceBits everywhere
@@ -181,7 +199,7 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transdic
 				ReguardBitfields_rec( ReguardBitfields_rec,Vec,0,NumPlaces )
 				, io:fwrite( "Reguarded Bitfields ~p to ~p~n", [Vec,RETVAL] ), RETVAL
 			end,
-			ExpandTransDictKV = fun( _TransName,{ Addend,Subber,TransSentinel } ) ->
+			ExpandTransMapKV = fun( _TransName,{ Addend,Subber,TransSentinel } ) ->
 				{
 					ExtendBitfields( Addend ),
 					ExtendBitfields( Subber ),
@@ -192,11 +210,10 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transdic
 				petrinet  = #petrinet {
 					numplaces = NumPlaces,
 					placebits = NewPlaceBits,
-					intlen    = NewIntLen
 				},
 				marking   = ExtendBitfields( Marking ),
 				sentinel  = ReguardBitfields( Sentinel ),
-				transdict = dict:map( ExpandTransDictKV, TransDict )
+				transmap = maps:map( ExpandTransMapKV, TransMap )
 			}
 		end
 	end.

@@ -14,8 +14,7 @@
 %
 -record( petrinet, {
 	numplaces :: integer(),
-	placebits :: integer(),
-	intlen    :: integer()
+	placebits :: integer()
 } ).
 
 % Colour describes the type of a Petri Net of one Colour.
@@ -25,24 +24,27 @@
 % InitialColour is a special value for Colour, representing
 % the initial values for a newly created colour instance:
 % initial petrinet structure, initial marking, initial
-% sentinel, initial dictionary of transitions.
+% sentinel, initial mapping of transitions.
 %
-%TODO% It is most efficient when a cache of TransDict
-% structures for various IntLen exists, so computations
-% from previous models can be shared.  This is possible
-% because TransDict is an immutable structure.
+% Usually, the transmap is a literal so it can be shared.
+% only for very-very-large Petri Nets, where storage space
+% is not likely to be the limiting resource, will a
+% dynamic expansion be made towards (pretty much) boundless
+% sizes.  By then, counters have been incremented very
+% often, and we are not primarily concerned with space.
 %
 -record( colour, {
 	petrinet  :: #petrinet{},
 	marking   :: integer(),
 	sentinel  :: integer(),	%TODO% Never used...?
-	transdict :: dict:dict(
+	transmap :: #{
 		atom(),			% TransName
 		{			% TransInfo
 			integer(),	% MarkingAddend
 			integer(),	% MarkingSubber
 			integer()	% TransSentinel
-		} )
+		}
+	}
 } ).
 
 

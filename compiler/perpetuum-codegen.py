@@ -214,8 +214,8 @@ hout.write ('/* ' + neat_net_name + '''.h
 ''')
 
 # Generate the header for the .erl file
-eout = open (e_fn, 'w')
-eout.write ('% ' + neat_net_name + '''.erl
+eout = open (erl_fn, 'w')
+eout.write ('%% ' + neat_net_name + '''.erl
 %
 % This is a generated file.  Do not edit it, but rather its source and
 % run perpetuum to produce a new version of this file.
@@ -225,8 +225,14 @@ eout.write ('% ' + neat_net_name + '''.erl
 % With compliments from the ARPA2.net / InternetWide.org project!
 %
 
--module( "''' + neat_net_name + '''" ).
-%TODO% -behaviour( gen_perpetuum ).
+-module( ''' + neat_net_name + ''' ).
+-behaviour( gen_perpetuum ).
+
+-export([
+	transmap/1,
+	sentinel/1,
+	initial_marking/1
+]).
 
 
 ''')
@@ -303,8 +309,9 @@ cout.write ('};\n\n')
 #
 # Inhibitor arcs are excluded because they are generated in a different way.
 #
+place2range = {}
 for p in places:
-	place2range [p] = max (1,net.places [plc].marking)
+	place2range [p] = max (1,net.places [p].marking)
 for (p,t,m) in p2tm:
 	if m > place2range [p]:
 		place2range [p] = m
@@ -312,32 +319,120 @@ for (t,p,m) in t2pm:
 	if m > place2range [p]:
 		place2range [p] = m
 vector_bits = 0
+max_placebits = 0
+place2bits = {}
 for p in places:
 	# Store as a pair: (range-bits, left-shift)
 	place2bits [p] = (int (ceil (log (place2range [p], 2))), vector_bits)
 	# One sentinel bit and enough bits to hold this place's range
 	vector_bits += 1 + place2bits [p][0]
+	if place2bits [p][0] > max_placebits:
+		max_placebits = place2bits [p][0]
+
 # Now determine the number of bits used in the Erlang virtual machine
-bigint_bits = vector_bits + 1
-if bigint_bits < 60:
-	bigint_bits = 60
-elif bigint_bits < 3 * 64:
-	bigint_bits = 3 * 64
-else:
-	bigint_bits = (bigint_bits + 63) & 0xfffffc0
-#UNWISE# # Now try to add spare bits to the places, to suppress some claims
-#UNWISE# # Note: This is a time-over-space optimisation
-#UNWISE# # Note: This is a coarse optimisation; network analysis would improve it
-#UNWISE# spare_bits = ((bigint_bits-1) - vector_bits) / place_num
-#UNWISE# if spare_bits > 0:
-#UNWISE# 	vector_bits = 0
-#UNWISE# 	for p in places:
-#UNWISE# 		place2bits [p] = (place2bits [p][0] + spare_bits, vector_bits)
-#UNWISE# 		vector_bits += 1 + place2bits [p][0] + spare_bits
-eout.write ('% Bit field vector is ' + str (bigint_bits) + ' bits long, with\n')
-eout.write ('% ' + str (vector_bits) + ' bits for all of the ' + str (place_num) + ' places,\n')
-eout.write ('% and the sign bit to spare for future use.\n')
-eout.write ('%\n')
+def erlang_next_placebits (cur_placebits, intsz=None):
+	if intsz is None:
+		intsz = (cur_placebits + 2) * place_num + 1
+	if intsz < 60:
+		intsz = 60
+	elif  intsz < 3*64:
+		intsz = 3*64
+	else:
+		intsz = (intsz + 63) & -64
+	next_placebits = (intsz - 1) / place_num - 1
+	assert (next_placebits > cur_placebits)
+	return next_placebits
+needed_placebits = erlang_next_placebits (max_placebits-1)
+eout.write ('%% Initial bitfield vector is 60 or N*64 bits long, N>=3, with\n')
+eout.write ('%% ' + str (vector_bits) + ' bits for all of the ' + str (place_num) + ' places,\n')
+eout.write ('%% and the sign bit to spare for possible future use with timeouts.\n')
+eout.write ('%%\n')
+
+# Given a place number and the number of placebits, set a place's count
+def erlang_place_value (place_idx, placebits, value):
+	assert (0 <= value < (1 << placebits))
+	return value << ((placebits + 1) * place_idx)
+
+# Construct a inhibitor word for a given place given the placebits
+def erlang_inhibit_sentinel (place_idx, placebits):
+	inhibitor_value = (1 << placebits) - 1
+	return erlang_place_value (place_idx, placebits, inhibitor_value)
+
+# Construct the sentinel bits for a given value of placebits
+def erlang_sentinel (placebits):
+	retval = 0
+	onebit = 1 << placebits
+	for i in range (place_num):
+		retval = (retval << (placebits + 1)) | onebit
+	return retval
+
+# Code to produce the smallest transmap outputs as literals,
+# with endless expansion in a dynamic last clause.
+#
+eout.write ('%% Return a transmap beyond N bit integers; initially, N=%d.\n')
+eout.write ('%% The transmap is only read and usually remains literal;\n')
+eout.write ('%% Only very large Petri Nets need to scale up dynamically.\n')
+eout.write ('%%\n')
+curbits = needed_placebits
+for i in range (5):
+	eout.write ('transmap(%5d ) -> #{\n' % (curbits))
+	t_unique = {}
+	t_unique_num = 0
+	addends = [ 0 ] * trans_num
+	subbers = [ 0 ] * trans_num
+	sentinels = [ erlang_sentinel (curbits) ] * trans_num
+	for (p,t,m) in p2tm:
+		pi = places.index (p)
+		ti = transs.index (t)
+		subbers [ti] += erlang_place_value (pi, curbits, m)
+	for (t,p,m) in t2pm:
+		pi = places.index (p)
+		ti = transs.index (t)
+		addends [ti] += erlang_place_value (pi, curbits, m)
+	for (p,t) in p2i:
+		pi = places.index (p)
+		ti = transs.index (t)
+		sentinels [ti] |= erlang_inhibit_sentinel (pi, curbits)
+	for ti in range (trans_num):
+		# Collect the initial values for this transition
+		transname = 't%d' % ti  #TODO# Prefer annotations
+		# Construct the output for this transition (str(i) is without 'L')
+		comma = ',' if ti < trans_num - 1 else ''
+		eout.write ('\t\t\t\'%s\' => { %s, %s, %s }%s\n' % ( transname, str(addends [ti]), str(subbers [ti]), str(sentinels [ti]), comma ) )
+	eout.write ('\t};\n')
+	curbits = erlang_next_placebits (curbits)
+# Final clause: 
+eout.write ('transmap(    0 ) ->\n\t\ttransmap( %d );\n' % needed_placebits)
+eout.write ('transmap(    N ) when N div 64 == 0 ->\n\t\tgen_perpetuum:reflow_transmap( transmap( N-64 )).\n')
+eout.write ('\n')
+
+# Code to produce the smallest sentinels as literals, with endless
+# expansion in a dynamic last clause.
+#
+eout.write ('%% Return the sentinel value for a Petri Net of given\n')
+eout.write ('%% number of place bits.  Again, mostly literal.\n')
+eout.write ('%%\n')
+curbits = needed_placebits
+for i in range (5):
+	eout.write ('sentinel(%5d ) -> %d;\n' % (curbits,erlang_sentinel (curbits)))
+	curbits = erlang_next_placebits (curbits)
+eout.write ('sentinel(    0 ) -> sentinel( %d );\n' % needed_placebits)
+eout.write ('sentinel(   _N ) -> error (impl_TODO).\n')
+eout.write ('\n')
+
+# Code to produce the initial marking for only the smallest sentinel,
+# as this is before any growth spur has occurred.
+#
+eout.write ('%% Return the initial marking for this Petri Net,\n')
+eout.write ('%% again parameterised with the number of place bits.\n')
+eout.write ('%%\n')
+inimark = 0
+for pi in range (place_num):
+	plcmark = net.places [place_list [pi]].marking
+	inimark |= erlang_place_value (pi, needed_placebits, plcmark)
+eout.write ('initial_marking( %d ) -> %s.\n' % (needed_placebits,inimark))
+eout.write ('\n')
+
 #TODO#MAKE_CLEVERER# eout.write ('bits() -> ' + str (bigint_bits) + '.\n')
 #TODO#MAKE_CLEVERER# if bigint_bits < 3 * 64:
 #TODO#MAKE_CLEVERER# 	eout.write ('bits( ' + str (bigint_bits) + ' ) -> ' + str (3 * 64 - 1) + '.\n')
@@ -365,14 +460,14 @@ cout.write ('};\n\n')
 # Generate init vectors for places, and optional singleton array
 # For Erlang, the initial marking is a bigint representing a vector
 hout.write ('/* Place initialisation */\n')
-eout.write ('% Initial marking\n%\n')
-sentinel_imark = -1 << (bigint_bits - 1)
-sentinel_shift = 0
+eout.write ('%% Initial marking\n%\n')
+#OLD# sentinel_imark = -1 << (bigint_bits - 1)
+#OLD# sentinel_shift = 0
 for plc in place_list:
 	ini_mark = net.places [plc].marking
 	hout.write ('#define PLACE_INIT_' + plc + ' { ' + str (ini_mark) + ' }\n')
-	sentinel_imark = sentinel_imark + (int (ini_mark) << place_bits)
-	sentinel_shift = sentinel_shift + (place_bits + 1)
+	#OLD# sentinel_imark = sentinel_imark + (int (ini_mark) << place_bits)
+	#OLD# sentinel_shift = sentinel_shift + (place_bits + 1)
 hout.write ('\n')
 cout.write ('#ifdef PETRINET_SINGLETONS\n')
 cout.write ('static place_t the_' + neat_net_name + '_places [] = {\n')
@@ -380,14 +475,14 @@ for plc in place_list:
 	cout.write ('\tPLACE_INIT_' + plc + ',\n')
 cout.write ('};\n')
 cout.write ('#endif\n\n')
-eout.write ('% The initial marking for this Petri net (with sentinel bits)\n%\n')
-eout.write ('initial_marking() -> ' + str (sentinel_imark) + '.\n\n\n')
+#OLD# eout.write ('%% The initial marking for this Petri net (with sentinel bits)\n%\n')
+#OLD# eout.write ('initial_marking() -> ' + str (sentinel_imark) + '.\n\n\n')
 
 # Generate init vectors for transitions, and optional singleton array
 #TODO:FROMHERE#
 # For Erlang, generate the dynamic transition-indexed record
 hout.write ('/* Place initialisation; countdown := empty inputs + non-empty inhibitors */\n')
-eout.write ('% Transition records; describing the initial offsets of in/out transitions\n')
+eout.write ('%% Transition records; describing the initial offsets of in/out transitions\n')
 for tr in trans_list:
 	# initial "countdown" is zero normal plus non-zero inhibitors trans
 	ini_countdown = ( str (len ( [ src for (src,tgt) in p2t
@@ -474,7 +569,7 @@ const petrinet_topo_t ''' + neat_net_name + ''' = {
 # Print an end remark
 hout.write ('\n\n/* End of generated file ' + neat_net_name + '.h */\n')
 cout.write ('\n\n/* End of generated file ' + neat_net_name + '.c */\n')
-eout.write ('\n\n% End of generated file ' + neat_net_name + '.erl\n')
+eout.write ('\n\n%% End of generated file ' + neat_net_name + '.erl\n')
 
 # Close output files
 hout.close ()
