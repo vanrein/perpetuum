@@ -6,23 +6,45 @@
 
 ## Prerequisites
 
-Fetch our version of `pntools` and install it,
+### Petri-Net Tools
+
+Perfect-world instruction: Fetch our version of `pntools` that adds PNML details needed here:
 
     git clone https://github.com/vanrein/pntools
     cd pntools
-    python setup.py install
+    sudo python setup.py install
     cd ..
+
+Quickfix instruction: Since this didn't always work for us, we incorporated the package
+as part of the source tree, and hope to fall back on the library
+later.
+
+### C Minimal Perfect Hashes
+
+Perfect-world instruction: Fetch a recent version of `cmph` and install it,
+
+    pip install cmph
+
+Quickfix instruction: 
+Note that there appears to be [an issue](https://github.com/URXtech/cmph-cffi/issues/16)
+with cmph, but it can be worked around by running `import cmph` in a Python run as root.
+Since this only seems to work for one session or one terminal (or so?) at a time, we
+have instead incorporated the code as part of the source tree.
+
+### GreatSPN Editor
 
 Download the
 [GreatSPN Editor](http://www.di.unito.it/~amparore/mc4cslta/editor.html)
 for your graphical platform and install it as you are used to.
+
+### Perpetuum
 
 And, of course, download the latest &amp; greatest version of Perpetuum,
 
     git clone https://github.com/vanrein/perpetuum
     cd perpetuum/compiler/demo
 
-We will be working from that directory below.
+We will be working from that directory in the descriptions below.
 
 ## Play with the Traffic Light model
 
