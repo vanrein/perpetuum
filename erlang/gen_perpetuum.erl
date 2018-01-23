@@ -13,8 +13,14 @@
 
 -export([
 	init/3,
-	system_continue/3,
-	system_terminate/4
+	marking/1,
+	canfire/1, canfire/2,
+	event/3,  event/4,
+	signal/3, signal/4,
+	system_continue/3, system_terminate/4,
+	trans_switch/3,
+	trans_noreply/3,
+	trans_error_arg/3, trans_error_trans/3
 ]).
 
 -spec handle_trans(
@@ -23,7 +29,7 @@
 		Prior::colour
 	) -> transreply() .
 
--spec marking( Prior::colour ) -> [ { PlaceName::atom(),TokenCount::integer() } ].
+-spec handle_marking( Prior::colour ) -> [ { PlaceName::atom(),TokenCount::integer() } ].
 
 
 % Callback function "transit" lists the transitions as
@@ -255,12 +261,267 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel }=Colour 
 	end.
 
 
+% Switch the transitions according to a transition map, where the
+% keys are transition names and the values are {M,F,A} values to be
+% re-triggered.
+%
+% To activate, use the following arguments to start_link/3:
+%  1. This module's name, gen_perpetuum
+%  2. This function's name, trans_switch
+%  3. A switch map from transition name to {M,F,A}
+%
+% When it is a literal map, it will occupy no memory per instance.
+%
+-spec trans_switch( #{ TransName::atom() => { Module::atom(),Function::atom(),Args::term() } }, TransName::atom(), EventData::term() ) -> transreply().
+trans_switch( SwitchMap,TransName,EventData ) ->
+	{Mswi,Fswi,Aswi} = maps:get( TransName,SwitchMap ),
+	Mswi:Fswi( Aswi,TransName,EventData ).
+
+% Accept any transition immediately, returning a simple noreply.
+%
+-spec trans_noreply( CBArg::term(),TransName::atom(),EventData::term() ) -> noreply.
+trans_noreply( _CBArg,_TransName,_EventData ) -> noreply.
+
+% Reject the transition with an error.
+%
+-spec trans_error_arg( CBArg::term(),TransName::atom(),EventData::term() ) -> {error,term()}.
+trans_error_arg( CBArg,_TransName,_EventData ) -> { error,CBArg }.
+%
+-spec trans_error_trans( CBArg::term(),TransName::atom(),EventData::term() ) -> {error,term()}.
+trans_error_trans( _CBArg,TransName,_EventData ) -> { error,TransName }.
+
+
+% Ask a Petri Net for its current marking.
+%
+% Since the Petri Net is a process on its own, its state may vary
+% if you are not the only one with access to its Pid.
+%
+% Note that locking a Petri Net would render any proofs of liveness
+% or deadlock freedom useless, so locking is not supported.  You are
+% of course free to add extra places to your Petri Net to do just
+% these things, in the places where you need them, and rerun any
+% validations on those modified processes.
+%
+-spec marking( PetriNet::pid() ) -> [ { Place::atom(),TokenCount::integer() } ].
+marking( PetriNet ) ->
+	Ref = monitor( process,PetriNet ),
+	catch PetriNet ! { marking,Ref,self() },
+	receive
+	{ reply,Ref,Reply } ->
+		demonitor( Ref,[flush] ),
+		Reply;
+	{ 'DOWN',Ref,process,_Name,Reason } ->
+		{ error,Reason }
+	end.
+
+
+% Ask a Petri Net for transitions that may currently fire, or ask it
+% if a named transition may currently fire.
+%
+% Since the Petri Net is a process on its own, its state may vary
+% if you are not the only one with access to its Pid.
+%
+% Note that locking a Petri Net would render any proofs of liveness
+% or deadlock freedom useless, so locking is not supported.  You are
+% of course free to add extra places to your Petri Net to do just
+% these things, in the places where you need them, and rerun any
+% validations on those modified processes.
+%
+-spec canfire( PetriNet::pid() ) -> [ TransName::atom() ] | {error,term()}.
+canfire( PetriNet ) ->
+	Ref = monitor( process,PetriNet ),
+	catch PetriNet ! { canfire,Ref,self() },
+	receive
+	{ reply,Ref,Reply } ->
+		demonitor( Ref,[flush] ),
+		Reply;
+	{ 'DOWN',Ref,process,_Name,Reason } ->
+		{ error,Reason }
+	end.
+%
+-spec canfire( PetriNet::pid(),TransName::atom() ) -> boolean() | {error,term()}.
+canfire( PetriNet,TransName ) ->
+	Ref = monitor( process,PetriNet ),
+	catch PetriNet ! { canfire,TransName,Ref,self() },
+	receive
+	{ reply,Ref,Reply } ->
+		demonitor( Ref,[flush] ),
+		Reply;
+	{ 'DOWN',Ref,process,_Name,Reason } ->
+		{ error,Reason }
+	end.
+
+% Use signal to asynchronously send a transition request to a Petri Net.
+% This is pretty much the same as cast() elsewhere.
+%
+% When a Timeout in milli-seconds is specified, the process may try
+% the transition for that long before it gives up.  Any such situation
+% will be backgrounded, and reappear for another try at a moment
+% indicated by the underlying application logic.
+% 
+% When no Timeout is specified, any attempt to background the request
+% will be ignored and the signal will be lost.
+%
+-spec signal( PetriNet::pid(),TransName::atom(),EventData::term() ) -> ok.
+signal( PetriNet,TransName,EventData ) ->
+	signal( PetriNet,TransName,EventData,0 ).
+%
+-spec signal( PetriNet::pid(),TransName::atom(),EventData::term(),Timeout::integer() ) -> ok.
+signal( PetriNet,TransName,EventData,Timeout ) ->
+	catch PetriNet ! { signal,TransName,EventData,Timeout },
+	ok.
+
+
+% Use event to synchronously send a transition request to a Petri Net and
+% await its response.  This is pretty much the same as send() elsewhere.
+%
+% When a Timeout in milli-seconds is specified, it indicates the total
+% time that application logic may defer handling.  Longer times would
+% not even be tried, but the remaining waiting time is returned.
+%
+% When no Timeout is specified, it behaves just like 0 ms; meaning,
+% any timeouts will be skipped.
+%
+% In both cases, a remaining timeout is reported as an error, namely
+% {error,{timeout,TimeLeft}}.  Note that this is not a real-time logic;
+% the time measured is only the total deferral by application logic,
+% not the time that messages are pending in queues.  Maybe we will
+% change that in the future, these functions will allow us to.
+%
+% This code was taken with modifications from this excellent book:
+%        Designing for Scalability with Erlang/OTP,
+%        Francesco Cesarini & Steve Vinoski,
+%        ISBN/EAN 9781449320737.
+% 
+-spec event( PetriNet::pid(),TransName::atom(),EventData::term() ) -> eventreply().
+event( PetriNet,TransName,EventData ) ->
+	event( PetriNet,TransName,EventData,0 ).
+%
+-spec event( PetriNet::pid(),TransName::atom(),EventData::term(),Timeout::integer() ) -> eventreply().
+event( PetriNet,TransName,EventData,Timeout ) ->
+	Ref = monitor( process,PetriNet ),
+	catch PetriNet ! { event,TransName,EventData,Timeout,Ref,self() },
+	receive
+	{ reply,Reply } ->
+		demonitor( Ref, [flush] ),
+		Reply;
+	{ 'DOWN', Ref, process, _Name, Reason } ->
+		{ error,Reason }
+	end.
+
+
+% Synchronous loop actions desire a response to be sent to the
+% requesting Pid.  Then, the response is returned, though it may
+% be processed while in transit; this might even revert to a
+% prior state when the Pid did not receive the message.  This is
+% probably going to be lardered with panic recovery mode code...
+%
+% The special value noreply is suppressed, as it is used for
+% internal loop recycling, and would have come from a handled
+% delay that will be retried in some time.  This is distinct
+% from the {noreply,PerpetuumState} return, which is considered
+% an indication to send ok.
+%
+% Unlike event() and signal(), this function is for internal use.
+%
+-spec send_response( reference(),pid(),transreply() | noreply ) -> transreply() | noreply.
+send_response( _Ref,_Pid,noreply ) ->
+	noreply;
+send_response( Ref,Pid,Response ) ->
+	case Response of
+	{ reply,Reply,_PS} -> Pid ! { reply,Ref,{ reply,Reply  } };
+	{ error,Reason   } -> Pid ! { reply,Ref,{ error,Reason } };
+	{ retry,Reason   } -> Pid ! { reply,Ref,{ retry,Reason } };
+	{ delay,DelayT   } -> Pid ! { reply,Ref,{ delay,DelayT } };
+	{ noreply,   _PS } -> Pid ! { reply,Ref,  noreply        }
+	end,
+	Response.
+
+
+% The init routine is usually invoked from an instance of this behaviour.
+% It uses proc_lib to register "properly" and then starts the process loop.
+%
+%TODO% Do we need to pass in state?
+%
+init( Parent,InstanceMod,{_CallbackMod,_CallbackFun,_CallbackArgs}=Callback ) ->
+	NumPlaces = length( InstanceMod:places() ),
+	PlaceBits = InstanceMod:initial_placebits(),
+	NewPetriNet = #petrinet{
+		instance  = InstanceMod,
+		callback  = Callback,
+		numplaces = NumPlaces,
+		placebits = PlaceBits,
+		transmap = InstanceMod:transmap(        PlaceBits )
+	},
+	NewColour = #colour{
+		petrinet = NewPetriNet,
+		marking  = InstanceMod:initial_marking( PlaceBits ),
+		sentinel = InstanceMod:sentinel(        PlaceBits )
+	},
+	%TODO% This is not a current practice yet; needs application logic, which cannot be generated from Petri Nets!
+	AppState = InstanceMod:init( NewPetriNet ),
+	proc_lib:init_ack( Parent, {ok,self()} ),
+	loop( Parent,NewColour,AppState ).
+
+
+% A main loop that may be used if Perpetuum is meant as a service
+% to many processes, rather than as a process-internal structuring
+% agent.
+%
+loop( Parent,Colour,AppState )  ->
+	%
+	% Receive a request and process it; setup a Response
+	%
+	case receive
+	{ event,TransName,EventData,Timeout,Ref,Pid } ->
+		send_response (Ref,Pid,
+			handle_delay (Timeout,TransName,EventData,Pid,
+				handle_trans( TransName,EventData,Colour )));
+	{ signal,TransName,EventData,Timeout } ->
+		handle_async_infodrop (
+			handle_delay ( Timeout,TransName,EventData,-1,
+				handle_trans( TransName,EventData,Colour )));
+	{ marking,Ref,Pid } ->
+		send_response( Ref,Pid,handle_marking( Colour )),
+		noreply;
+	{ canfire,Ref,Pid } ->
+		send_response( Ref,Pid,handle_canfire( Colour )),
+		noreply;
+	{ canfire,TransName,Ref,Pid } ->
+		send_response( Ref,Pid,handle_canfire( Colour,TransName )),
+		noreply;
+	%
+	% Go on to receive system / management messages
+	stop ->
+		%TODO% Special terminate() call, invoking InstanceMod:stop()
+		exit (normal);
+	{ system,From,Msg } ->
+		DebugData = [],
+		sys:handle_system_message( Msg,From,Parent,?MODULE,DebugData,{Colour,AppState} );
+	{ 'EXIT', _Pid, Reason } ->
+		exit (Reason)
+	%
+	% Now harvest whatever result we ran into, and loop back.
+	% We accept the extra word noreply from a number of sources
+	% as a way to cycle back without change to data.
+	%
+	end of
+		{ noreply,NewColour,NewAppState } ->
+			loop( Parent,NewColour,NewAppState );
+		{ reply,_,NewColour,NewAppState } ->
+			loop( Parent,NewColour,NewAppState );
+		_ ->
+			% includes the noreply response
+			loop( Parent,Colour,AppState )
+	end.
+
+
 % Deliver the current marking for a given Petri Net colouring.
 % This yields a list of { PlaceName,TokenCount } pairs.
 %
 % This function uses information from the places() callback.
 %
-marking( #colour{ petrinet=#petrinet { instance=InstanceMod, placebits=PlaceBits }, marking=Marking } ) ->
+handle_marking( #colour{ petrinet=#petrinet { instance=InstanceMod, placebits=PlaceBits }, marking=Marking } ) ->
 	PlaceMask = (1 bsl PlaceBits) - 1,
 	ListPlaces = fun( YF,ShiftMarking,Places ) ->
 		case Places of
@@ -278,124 +539,20 @@ marking( #colour{ petrinet=#petrinet { instance=InstanceMod, placebits=PlaceBits
 % the requested one can fire.  In all cases, return a list of transitions
 % that is potentially empty.
 %
--spec canfire( colour,TransName::atom() ) -> [ TransName::atom() ].
-canfire( #colour{ petrinet=#petrinet { transmap=TransMap }, marking=Marking }, TransName ) ->
+-spec handle_canfire( colour,TransName::atom() ) -> { reply,boolean() }.
+handle_canfire( #colour{ petrinet=#petrinet { transmap=TransMap }, marking=Marking }, TransName ) ->
 	{ _Addend,Subber,TransSentinel } = maps:get ( TransName,TransMap ),
-	if (Marking - Subber) band TransSentinel == 0 ->
-		[];
-	true ->
-		[TransName]
-	end.
+	{ reply,check_canfire( Marking,Subber,TransSentinel ) }.
 %
--spec canfire( colour                   ) -> [ TransName::atom() ].
-canfire( #colour{ petrinet=#petrinet { transmap=TransMap }, marking=Marking } ) ->
-	SelFun = fun( _TransName,{_Addend,Subber,TransSentinel} ) ->
-		canfire_helper( Marking,Subber,TransSentinel )
+-spec handle_canfire( colour                   ) -> { reply,[ TransName::atom() ] }.
+handle_canfire( #colour{ petrinet=#petrinet { transmap=TransMap }, marking=Marking } ) ->
+	CheckCanFire = fun( _TransName,{_Addend,Subber,TransSentinel} ) ->
+		check_canfire( Marking,Subber,TransSentinel )
 	end,
-	maps:keys( maps:filter( SelFun,TransMap )).
+	{ reply,maps:keys( maps:filter( CheckCanFire,TransMap )) }.
 %
-canfire_helper( Marking,Subber,TransSentinel ) ->
+check_canfire( Marking,Subber,TransSentinel ) ->
 	(Marking - Subber) band TransSentinel == 0.
-
-
-% The init routine is usually invoked from an instance of this behaviour.
-% It uses proc_lib to register "properly" and then starts the process loop.
-% The parent process will be referred to as the AppLogicPid.
-%
-%TODO% Do we need to pass in state?
-%
-init( AppLogicPid,InstanceMod,{_CallbackMod,_CallbackFun,_CallbackArgs}=Callback ) ->
-	NumPlaces = length( InstanceMod:places() ),
-	PlaceBits = InstanceMod:initial_placebits(),
-	NewPetriNet = #petrinet{
-		instance  = InstanceMod,
-		callback  = Callback,
-		numplaces = NumPlaces,
-		placebits = PlaceBits,
-		transmap = InstanceMod:transmap(        PlaceBits )
-	},
-	NewColour = #colour{
-		petrinet = NewPetriNet,
-		marking  = InstanceMod:initial_marking( PlaceBits ),
-		sentinel = InstanceMod:sentinel(        PlaceBits )
-	},
-	proc_lib:init_ack( AppLogicPid, {ok,self()} ),
-	loop( AppLogicPid,NewColour ).
-
-% A main loop that may be used if Perpetuum is meant as a service
-% to many processes, rather than as a process-internal structuring
-% agent.
-%
-loop( AppLogicPid,Colour )  ->
-	%
-	% Receive a request and process it; setup a Response
-	%
-	case receive
-	{ event,TransName,EventData,Pid } ->
-		send_response (Pid,
-			handle_trans( TransName,EventData,Colour ));
-	{ event,TransName,EventData,Pid,Timeout } ->
-		send_response (Pid,
-			handle_delay (Timeout,TransName,EventData,Pid,
-				handle_trans( TransName,EventData,Colour )));
-	{ signal,TransName,EventData } ->
-		handle_async_infodrop (
-			handle_delay (0,TransName,EventData,-1,
-				handle_trans( TransName,EventData,Colour )));
-	{ signal,TransName,EventData,Timeout } ->
-		handle_async_infodrop (
-			handle_delay ( Timeout,TransName,EventData,-1,
-				handle_trans( TransName,EventData,Colour )));
-	{ marking,Pid } ->
-		send_response( Pid, marking( Colour )),
-		noreply;
-	{ canfire,Pid } ->
-		send_response( Pid, canfire( Colour )),
-		noreply;
-	{ canfire,Pid,TransName } ->
-		send_response( Pid, canfire( Colour,TransName )),
-		noreply;
-	%
-	% Go on to receive system / management messages
-	stop ->
-		exit (normal);
-	{ system,From,Msg } ->
-		DebugData = [],
-		sys:handle_system_message( Msg,From,AppLogicPid,?MODULE,DebugData,Colour );
-	{ 'EXIT', _Pid, Reason } ->
-		exit (Reason)
-	%
-	% Now harvest whatever result we ran into, and loop back.
-	% We accept the extra word noreply from a number of sources
-	% as a way to cycle back without change to data.
-	%
-	end of
-		{ noreply,NewColour } ->
-			loop( AppLogicPid,NewColour );
-		{ reply,_,NewColour } ->
-			loop( AppLogicPid,NewColour );
-		_ ->
-			% includes the noreply response
-			loop( AppLogicPid,Colour )
-	end.
-
-
-% Synchronous loop actions desire a response to be sent to the
-% requesting Pid.  Then, the response is returned, though it may
-% be processed while in transit; this might even revert to a
-% prior state when the Pid did not receive the message.  This is
-% probably going to be lardered with panic recovery mode code...
-%
-% The special value noreply is suppressed, as it is used for
-% internal loop recycling, and would have come from a handled
-% delay that will be retried in some time.
-%
-send_response( _,noreply ) ->
-	noreply;
-send_response( Pid,Response ) ->
-	Pid ! Response,
-	% yeah, I know that ! returns Response, but I'll forget it when updating this function, I'm sure
-	Response.
 
 
 % Handle any timeouts in an intermediate response, by resending the
@@ -413,7 +570,7 @@ handle_delay( MaxDelay,TransName,EventData,PidOpt,PreResponse ) ->
 	case PreResponse of
 	{ delay,DeferMS } ->
 		if DeferMS =< 0 ->
-			erlang:error( 'illegal-defer' );
+			error( 'illegal-defer' );
 		true ->
 			NewTimeout = MaxDelay - DeferMS,
 			if NewTimeout > 0 ->
@@ -426,7 +583,7 @@ handle_delay( MaxDelay,TransName,EventData,PidOpt,PreResponse ) ->
 				timer:send_after( DeferMS, NewMsg  ),
 				noreply;
 			true ->
-				{ error,timeout }
+				{ error,{timeout,NewTimeout} }
 			end
 		end;
 	_ ->
@@ -444,7 +601,7 @@ handle_delay( MaxDelay,TransName,EventData,PidOpt,PreResponse ) ->
 %
 handle_async_infodrop( PreResponse ) ->
 	case PreResponse of
-	{retry,_Reason} ->
+	{ retry,_Reason } ->
 		% We can safely forget about retrying
 		%
 		noreply;
@@ -452,7 +609,7 @@ handle_async_infodrop( PreResponse ) ->
 		% This is unacceptable for async comms,
 		% as we would be discarding state
 		%
-		erlang:error( 'reply-info-discarded' );
+		error( 'reply-info-discarded' );
 	_ ->
 		PreResponse
 	end.
@@ -460,8 +617,9 @@ handle_async_infodrop( PreResponse ) ->
 % System messages for continuation or termination.
 % These can be expanded into much more potent things.
 %
-system_continue( AppLogicPid,_Debug,Colour ) ->
-	loop( AppLogicPid,Colour ).
-system_terminate( Reason,_AppLogicPid,_Debug,_Colour ) ->
+system_continue( Parent,_Debug,{Colour,AppState} ) ->
+	loop( Parent,Colour,AppState ).
+%
+system_terminate( Reason,_Parent,_Debug,_Colour_AppState ) ->
 	exit( Reason ).
 

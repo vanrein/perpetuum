@@ -202,7 +202,8 @@ hout.write ('/* ' + neat_net_name + '''.h
  *
  * Please file issues with https://github.com/vanrein/perpetuum/issues
  *
- * With compliments from the ARPA2.net / InternetWide.org project!
+ * With compliments from the ARPA2.net / InternetWide.org project and
+ * from SURFnet!
  */
 
 
@@ -222,7 +223,8 @@ eout.write ('% ' + neat_net_name + '''.erl
 %
 % Please file issues with https://github.com/vanrein/perpetuum/issues
 %
-% With compliments from the ARPA2.net / InternetWide.org project!
+% With compliments from the ARPA2.net / InternetWide.org project and
+% from SURFnet!
 %
 
 -module( \'''' + neat_net_name + '''\' ).
@@ -230,6 +232,7 @@ eout.write ('% ' + neat_net_name + '''.erl
 
 -export([
 	start_link/3,
+	start/3,
 	stop/1,
 	transit/0,
 	places/0,
@@ -257,7 +260,8 @@ cout.write ('/* ' + neat_net_name + '''.c
  *
  * Please file issues with https://github.com/vanrein/perpetuum/issues
  *
- * With compliments from the ARPA2.net / InternetWide.org project!
+ * With compliments from the ARPA2.net / InternetWide.org project and
+ * from SURFnet!
  */
 
 
@@ -451,7 +455,7 @@ for i in range (5):
 	curbits = erlang_next_placebits (curbits)
 # Final clause: 
 #UNUSED# eout.write ('transmap(    0 ) ->\n\t\ttransmap( %d );\n' % needed_placebits)
-eout.write ('transmap(    N ) when N div 64 == 0 ->\n\t\tgen_perpetuum:reflow_transmap( transmap( %d ),N ).\n' % lastcurbits)
+eout.write ('transmap(    N ) when N div 64 == 0 ->\n\t\tgen_perpetuum:reflow_transmap( transmap( %d ),%d,N ).\n' % (needed_placebits,needed_placebits))
 eout.write ('\n\n')
 
 # Code to produce the smallest sentinels as literals, with endless
@@ -466,7 +470,7 @@ for i in range (5):
 	lastcurbits = curbits
 	curbits = erlang_next_placebits (curbits)
 #UNUSED# eout.write ('sentinel(    0 ) -> sentinel( %d );\n' % needed_placebits)
-eout.write ('sentinel(    N ) -> gen_perpetuum:reflow_sentinel( sentinel( %d ),N ).\n' % lastcurbits)
+eout.write ('sentinel(    N ) -> gen_perpetuum:reflow_sentinel( sentinel( %d ),%d,N ).\n' % (needed_placebits,needed_placebits))
 eout.write ('\n\n')
 
 
@@ -480,6 +484,10 @@ eout.write ('% Provided parameters are the standard {M,F,A} form for callbacks,\
 eout.write ('% used for processing transitions under application logic.\n')
 eout.write ('%\n')
 eout.write ('start_link( CallbackMod,CallbackFun,CallbackArg ) ->\n')
+eout.write ('\tInitArgs = { self(),?MODULE,{ CallbackMod,CallbackFun,CallbackArg } },\n')
+eout.write ('\tproc_lib:start_link( gen_perpetuum,init,InitArgs ).\n')
+eout.write ('%\n')
+eout.write ('start( CallbackMod,CallbackFun,CallbackArg ) ->\n')
 eout.write ('\tInitArgs = { self(),?MODULE,{ CallbackMod,CallbackFun,CallbackArg } },\n')
 eout.write ('\tproc_lib:start( gen_perpetuum,init,InitArgs ).\n')
 eout.write ('\n\n')

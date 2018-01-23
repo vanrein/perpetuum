@@ -60,16 +60,35 @@
 % or considered complete rejections.
 %
 % The forms are:
-%  - { noreply,            PerpetuumState         }
-%  - { reply,   ReplyCode, PerpetuumState         }
-%  - { error,   Reason                            }
-%  - { retry,   RetryReason                       }
-%  - { delay,   FiniteNonNegativeMilliSecondDelay }
+%  - { noreply,            AppState      }
+%  - { reply,   ReplyCode, AppState      }
+%  - { error,   Reason                   }
+%  - { retry,   Reason                   }
+%  - { delay,   PositiveMilliSecondDelay }
 %
--type transreply() :: { noreply,         colour } |
-                      { reply,   term(), colour } |
+-type transreply() :: { noreply,         term() } |
+                      { reply,   term(), term() } |
                       { error,   term()         } |
                       { retry,   term()         } |
                       { delay,   integer()      }.
 
+
+% eventreply() is the type for replies from event().
+% Successes are reported as {noreply,...} and {reply,...}
+% and the rest is some form of failure.  Depending on the
+% function at hand, these failures may be processed further,
+% or considered complete rejections.
+%
+% The forms are:
+%  - { noreply            }
+%  - { reply,   ReplyCode }
+%  - { error,   Reason    }
+%  - { retry,   Reason    }
+% Amount the error conditions worth noting is timeout,
+%  - { error,   { timeout,TimeLeft } }
+%
+-type eventreply() :: { noreply         } |
+                      { reply,   term() } |
+                      { error,   term() } |
+                      { retry,   term() }.
 
