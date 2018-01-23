@@ -12,24 +12,47 @@
 -include( "gen_perpetuum.hrl" ).
 
 -export([
-	handle_trans/4,
-	reflow/1,
-	loop/2
+	init/3
 ]).
 
 -spec handle_trans(
-		Prior::colour,
 		TransName::atom(),
-		_EventData::term(),
-		InternalState::term()
+		EventData::term(),
+		Prior::colour
 	) -> transreply() .
 
+-spec marking( Prior::colour ) -> [ { PlaceName::atom(),TokenCount::integer() } ].
+
+
+% Callback function "transit" lists the transitions as
+% atoms.  The order may at some day be used to replace
+% the map with a list, if this is more efficient.
+%
+% This is generated as a literal, so its storage is
+% shared among any number of instances.
+%
+-callback transit() -> [ atom() ].
+
+% Callback function "places" lists the places as atoms.
+% The order matches the numbering scheme (from 0 onward)
+% used in the bitfield-vector encoding (where 0 is the
+% least valued bitfield, so with multiplier 1).
+%
+% This is generated as a literal, so its storage is
+% shared among any number of instances.
+%
+% The number of places can be derived as the length of
+% this list.  This is simple, and avoids inconsistencies.
+%
+-callback places() -> [ atom() ].
+
+% Callback function "initial_placebits" should return the
+% initial number of bits reserved for a place.
+%
+-callback initial_placebits() -> integer().
 
 % Callback function "initial_marking" should return the
 % initial marking for the smallest possible integer size.
-%
-%TODO% Useless?  This would be internal to the creation
-% of a new Petri Net?
 %
 -callback initial_marking( integer() ) -> integer().
 
@@ -73,15 +96,20 @@
 % current Marking, whereas a failed transition does not return a
 % new state for the caller to store.
 %
-handle_trans( #colour{marking=Marking,transmap=TransMap}=Colour, TransName, _EventData, InternalState ) ->
+handle_trans( TransName, EventData, #colour{
+					petrinet=#petrinet{
+						callback={CallbackMod,CallbackFun,CallbackArgs},
+						transmap=TransMap
+					},
+					marking=Marking
+				}=Colour) ->
 		{ Addend,Subber,TransSentinel } = maps:get ( TransName,TransMap ),
 		PreMarking = Marking - Subber,
 		RetVal = if
 		( PreMarking band TransSentinel ) /= 0 ->
-			{error,badstate};
+			{retry,marking};
 		true ->
-			%TODO% invoke callback_trans/5
-			{noreply,Colour,InternalState}
+			CallbackMod:CallbackFun (CallbackArgs, TransName, EventData)
 		end,
 		case RetVal of
 		{ noreply,_,NewInternalState } ->
@@ -120,7 +148,7 @@ handle_trans( #colour{marking=Marking,transmap=TransMap}=Colour, TransName, _Eve
 % set to hold a Carry from a preceding addition, which
 % would be an overflow that caused the need for the reflow.
 %
-reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transmap=TransMap }=Colour ) ->
+reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel }=Colour ) ->
 	io:fwrite( "Marking: ~p~n",[Marking] ),
 	io:fwrite( "Sentinel: ~p~n",[Sentinel] ),
 	if
@@ -128,7 +156,7 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transmap
 		Colour;
 	true ->
 		case PetriNet of
-		#petrinet{ numplaces=NumPlaces, placebits=PlaceBits } ->
+		#petrinet{ instance=InstanceMod, callback=Callback, numplaces=NumPlaces, placebits=PlaceBits, transmap=TransMap } ->
 			io:fwrite( "NumPlaces: ~p~n",[NumPlaces] ),
 			io:fwrite( "PlaceBits: ~p~n",[PlaceBits] ),
 			%
@@ -174,6 +202,7 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transmap
 				end
 			end,
 			ExtendBitfields = fun( Vec ) ->
+				%TODO% Move this where InstanceMod:transmap() can call it
 				RETVAL =
 				ExtendBitfields_rec( ExtendBitfields_rec,Vec,0,NumPlaces )
 				, io:fwrite( "Extended Bitfields ~p to ~p~n", [Vec,RETVAL] ), RETVAL
@@ -195,11 +224,13 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transmap
 				end
 			end,
 			ReguardBitfields = fun( Vec ) ->
+				%TODO% Move this where InstanceMod:transmap() can call it
 				RETVAL =
 				ReguardBitfields_rec( ReguardBitfields_rec,Vec,0,NumPlaces )
 				, io:fwrite( "Reguarded Bitfields ~p to ~p~n", [Vec,RETVAL] ), RETVAL
 			end,
 			ExpandTransMapKV = fun( _TransName,{ Addend,Subber,TransSentinel } ) ->
+				%TODO% Move this where InstanceMod:transmap() can call it
 				{
 					ExtendBitfields( Addend ),
 					ExtendBitfields( Subber ),
@@ -208,37 +239,180 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel, transmap
 			end,
 			#colour {
 				petrinet  = #petrinet {
+					instance  = InstanceMod,
+					callback  = Callback,
 					numplaces = NumPlaces,
 					placebits = NewPlaceBits,
+					transmap  = InstanceMod:transmap( NewPlaceBits )
+					%TODO:OLD% transmap = maps:map( ExpandTransMapKV, TransMap )
 				},
 				marking   = ExtendBitfields( Marking ),
-				sentinel  = ReguardBitfields( Sentinel ),
-				transmap = maps:map( ExpandTransMapKV, TransMap )
+				sentinel  = ReguardBitfields( Sentinel )
 			}
 		end
 	end.
 
 
+% Deliver the current marking for a given Petri Net colouring.
+% This yields a list of { PlaceName,TokenCount } pairs.
+%
+% This function uses information from the places() callback.
+%
+marking( #colour{ petrinet=#petrinet { instance=InstanceMod, placebits=PlaceBits }, marking=Marking } ) ->
+	PlaceMask = (1 bsl PlaceBits) - 1,
+	ListPlaces = fun( YF,ShiftMarking,Places ) ->
+		case Places of
+		[] ->
+			[];
+		[Plc|NextPlaces] ->
+			NextMarking = ShiftMarking bsr (PlaceBits + 1),
+			[ {Plc,ShiftMarking band PlaceMask} | YF( YF,NextMarking,NextPlaces ) ]
+		end
+	end,
+	ListPlaces( ListPlaces,Marking,InstanceMod:places() ).
+
+
+% The init routine is usually invoked from an instance of this behaviour.
+% It uses proc_lib to register "properly" and then starts the process loop.
+% The parent process will be referred to as the AppLogicPid.
+%
+%TODO% Do we need to pass in state?
+%
+init( AppLogicPid,InstanceMod,{_CallbackMod,_CallbackFun,_CallbackArgs}=Callback ) ->
+	NumPlaces = length( InstanceMod:places() ),
+	PlaceBits = InstanceMod:initial_placebits(),
+	NewPetriNet = #petrinet{
+		instance  = InstanceMod,
+		callback  = Callback,
+		numplaces = NumPlaces,
+		placebits = PlaceBits,
+		transmap = InstanceMod:transmap(        PlaceBits )
+	},
+	NewColour = #colour{
+		petrinet = NewPetriNet,
+		marking  = InstanceMod:initial_marking( PlaceBits ),
+		sentinel = InstanceMod:sentinel(        PlaceBits )
+	},
+	proc_lib:init_ack( AppLogicPid, {ok,self()} ),
+	loop( NewColour ).
+
 % A main loop that may be used if Perpetuum is meant as a service
 % to many processes, rather than as a process-internal structuring
 % agent.
 %
-%TODO% Incorporate Timeout and resend through timer:after/2.
-%
-loop( Colour,State )  ->
-	receive
-	{ trigger,Pid,TransName,EventData,_Timeout } ->
-		Response = handle_trans( Colour,TransName,EventData,State ),
-		Pid ! Response;
-	{ tickle,TransName,EventData,_Timeout } ->
-		Response = handle_trans( Colour,TransName,EventData,State )
-	end,
-	case Response of
-		{noreply,NewColour,NewState} ->
-			loop( NewColour,NewState );
-		{reply,_,NewColour,NewState} ->
-			loop( NewColour,NewState );
+loop( Colour )  ->
+	%
+	% Receive a request and process it; setup a Response
+	%
+	case receive
+	{ event,TransName,EventData,Pid } ->
+		send_response (Pid,
+			handle_trans( TransName,EventData,Colour ));
+	{ event,TransName,EventData,Pid,Timeout } ->
+		send_response (Pid,
+			handle_delay (Timeout,TransName,EventData,Pid,
+				handle_trans( TransName,EventData,Colour )));
+	{ signal,TransName,EventData } ->
+		handle_async_infodrop (
+			handle_delay (0,TransName,EventData,-1,
+				handle_trans( TransName,EventData,Colour )));
+	{ signal,TransName,EventData,Timeout } ->
+		handle_async_infodrop (
+			handle_delay ( Timeout,TransName,EventData,-1,
+				handle_trans( TransName,EventData,Colour )));
+	{ marking,Pid } ->
+		send_response( Pid, marking( Colour )),
+		noreply
+	%
+	% Now harvest whatever result we ran into, and loop back.
+	% We accept the extra word noreply from a number of sources
+	% as a way to cycle back without change to data.
+	%
+	end of
+		{ noreply,NewColour } ->
+			loop( NewColour );
+		{ reply,_,NewColour } ->
+			loop( NewColour );
 		_ ->
-			loop( Colour,State )
+			% includes the noreply response
+			loop( Colour )
+	end.
+
+
+% Synchronous loop actions desire a response to be sent to the
+% requesting Pid.  Then, the response is returned, though it may
+% be processed while in transit; this might even revert to a
+% prior state when the Pid did not receive the message.  This is
+% probably going to be lardered with panic recovery mode code...
+%
+% The special value noreply is suppressed, as it is used for
+% internal loop recycling, and would have come from a handled
+% delay that will be retried in some time.
+%
+send_response( _,noreply ) ->
+	noreply;
+send_response( Pid,Response ) ->
+	Pid ! Response,
+	% yeah, I know that ! returns Response, but I'll forget it when updating this function, I'm sure
+	Response.
+
+
+% Handle any timeouts in an intermediate response, by resending the
+% message type as indicated.  If the timeout exceeds the tolerable
+% limit, change the timeout into an error code to return (but do
+% not raise an exception for it).
+%
+% Timer-resent messages are events when PidOpt fits is_pid/1, or
+% otherwise as signal; you can set PidOpt = -1 to ensure the latter.
+%
+% The function returns noreply to requesting loop to cycle around
+% with the same state.
+%
+handle_delay( MaxDelay,TransName,EventData,PidOpt,PreResponse ) ->
+	case PreResponse of
+	{ delay,DeferMS } ->
+		if DeferMS =< 0 ->
+			erlang:error( 'illegal-defer' );
+		true ->
+			NewTimeout = MaxDelay - DeferMS,
+			if NewTimeout > 0 ->
+				% Try repeated delivery after DeferMS have passed
+				if is_pid (PidOpt) ->
+					NewMsg = {  event,TransName,EventData,PidOpt,NewTimeout };
+				true ->
+					NewMsg = { signal,TransName,EventData,       NewTimeout }
+				end,
+				timer:send_after( DeferMS, NewMsg  ),
+				noreply;
+			true ->
+				{ error,timeout }
+			end
+		end;
+	_ ->
+		PreResponse
+	end.
+
+% Raise an error when dropping information attachments in a response.
+% This constrains transition callbacks to only send information that
+% will get processed.  Descriptive information about the result are
+% exempted, as an asynchronous caller clearly doesn't care; this is
+% the case for {retry,Reason}.
+%
+% The function returns noreply to requesting loop to cycle around
+% with the same state.
+%
+handle_async_infodrop( PreResponse ) ->
+	case PreResponse of
+	{retry,_Reason} ->
+		% We can safely forget about retrying
+		%
+		noreply;
+	{ reply,_Info,_PerpState,_AppState } ->
+		% This is unacceptable for async comms,
+		% as we would be discarding state
+		%
+		erlang:error( 'reply-info-discarded' );
+	_ ->
+		PreResponse
 	end.
 

@@ -12,9 +12,22 @@
 % scaling-up of a definition for a given Colour that has it
 % included.
 %
+% The module holds a reference to the defining module for
+% this Petri Net's concrete aspects.
+%
 -record( petrinet, {
+	instance  :: Module::atom(),
+	callback  :: { Module::atom(),Function::atom(),Args::term() },
 	numplaces :: integer(),
-	placebits :: integer()
+	placebits :: integer(),
+	transmap  :: #{
+		atom() =>		% TransName
+		{			% TransInfo
+			integer(),	% MarkingAddend
+			integer(),	% MarkingSubber
+			integer()	% TransSentinel
+		}
+	}
 } ).
 
 % Colour describes the type of a Petri Net of one Colour.
@@ -36,15 +49,7 @@
 -record( colour, {
 	petrinet  :: #petrinet{},
 	marking   :: integer(),
-	sentinel  :: integer(),	%TODO% Never used...?
-	transmap :: #{
-		atom(),			% TransName
-		{			% TransInfo
-			integer(),	% MarkingAddend
-			integer(),	% MarkingSubber
-			integer()	% TransSentinel
-		}
-	}
+	sentinel  :: integer()	%TODO% Never used...?
 } ).
 
 
@@ -55,18 +60,16 @@
 % or considered complete rejections.
 %
 % The forms are:
-%  - {noreply,PerpetuumState,ApplicationState}
-%  - {reply,ReplyCode,PerpetuumState,ApplicationState}
-%  - {error,Reason}
-%  -  retry
-%  - {retry,ApplicationEventInfo}
-%  - {delay,FiniteNonNegativeMilliSecondDelay}
+%  - { noreply,            PerpetuumState         }
+%  - { reply,   ReplyCode, PerpetuumState         }
+%  - { error,   Reason                            }
+%  - { retry,   RetryReason                       }
+%  - { delay,   FiniteNonNegativeMilliSecondDelay }
 %
--type transreply() :: {noreply,colour,term()} |
-                      {reply,term(),colour,term()} |
-                      {error,term()} |
-                      retry |
-                      {retry,term()} |
-                      {delay,integer()}.
+-type transreply() :: { noreply,         colour } |
+                      { reply,   term(), colour } |
+                      { error,   term()         } |
+                      { retry,   term()         } |
+                      { delay,   integer()      }.
 
 

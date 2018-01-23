@@ -225,13 +225,17 @@ eout.write ('% ' + neat_net_name + '''.erl
 % With compliments from the ARPA2.net / InternetWide.org project!
 %
 
--module( ''' + neat_net_name + ''' ).
+-module( \'''' + neat_net_name + '''\' ).
 -behaviour( gen_perpetuum ).
 
 -export([
+	start_link/3,
+	transit/0,
+	places/0,
+	initial_placebits/0,
+	initial_marking/1,
 	transmap/1,
-	sentinel/1,
-	initial_marking/1
+	sentinel/1
 ]).
 
 
@@ -301,6 +305,25 @@ for p in place_list:
 cout.write ('};\n\n')
 
 
+# For Erlang, generate the transit() and places() listing functions
+eout.write ('% Transitions in their standard order of occurrence\n%\n')
+eout.write ('transit() -> [')
+comma = ' '
+for tr in trans_list:
+	#TODO# Map transition name to erlang atom
+	eout.write (comma + "'" + tr + "'")
+	comma = ', '
+eout.write (' ].\n\n')
+eout.write ('% Places in their standard order of occurrence\n%\n')
+eout.write ('places() -> [')
+comma = ' '
+for plc in place_list:
+	#TODO# Map place name to erlang atom
+	eout.write (comma + "'" + plc + "'")
+	comma = ', '
+eout.write (' ].\n\n\n')
+
+
 # For Erlang, determine the maximum delta to a place.
 #
 # This is important, as it defines the range for detecting under/overflow.
@@ -346,7 +369,7 @@ needed_placebits = erlang_next_placebits (max_placebits-1)
 eout.write ('% Initial bitfield vector is 60 or N*64 bits long, N>=3, with\n')
 eout.write ('% ' + str (vector_bits) + ' bits for all of the ' + str (place_num) + ' places,\n')
 eout.write ('% and the sign bit to spare for possible future use with timeouts.\n')
-eout.write ('%\n')
+eout.write ('\n\n')
 
 # Given a place number and the number of placebits, set a place's count
 def erlang_place_value (place_idx, placebits, value):
@@ -365,6 +388,28 @@ def erlang_sentinel (placebits):
 	for i in range (place_num):
 		retval = (retval << (placebits + 1)) | onebit
 	return retval
+
+# Code to produce the initial number of placebits, used when setting
+# up a new instance of this Petri Net.
+#
+eout.write ('% Return the initial place bits for this Petri Net.\n')
+eout.write ('%\n')
+eout.write ('initial_placebits() -> %d.\n' % needed_placebits)
+eout.write ('\n\n')
+
+# Code to produce the initial marking for only the smallest sentinel,
+# as this is before any growth spur has occurred.
+#
+eout.write ('% Return the initial marking for this Petri Net,\n')
+eout.write ('% again parameterised with the number of place bits.\n')
+eout.write ('%\n')
+inimark = 0
+for pi in range (place_num):
+	plcmark = net.places [place_list [pi]].marking
+	inimark |= erlang_place_value (pi, needed_placebits, plcmark)
+#UNUSED@ eout.write ('initial_marking(  0 ) -> initial_marking( %d );\n' % needed_placebits)
+eout.write ('initial_marking( %d ) -> %s.\n' % (needed_placebits,inimark))
+eout.write ('\n\n')
 
 # Code to produce the smallest transmap outputs as literals,
 # with endless expansion in a dynamic last clause.
@@ -395,7 +440,7 @@ for i in range (5):
 		sentinels [ti] |= erlang_inhibit_sentinel (pi, curbits)
 	for ti in range (trans_num):
 		# Collect the initial values for this transition
-		transname = 't%d' % ti  #TODO# Prefer annotations
+		transname = trans_list [ti]
 		# Construct the output for this transition (str(i) is without 'L')
 		comma = ',' if ti < trans_num - 1 else ''
 		eout.write ('\t\t\t\'%s\' => { %s, %s, %s }%s\n' % ( transname, str(addends [ti]), str(subbers [ti]), str(sentinels [ti]), comma ) )
@@ -403,7 +448,7 @@ for i in range (5):
 	lastcurbits = curbits
 	curbits = erlang_next_placebits (curbits)
 # Final clause: 
-eout.write ('transmap(    0 ) ->\n\t\ttransmap( %d );\n' % needed_placebits)
+#UNUSED# eout.write ('transmap(    0 ) ->\n\t\ttransmap( %d );\n' % needed_placebits)
 eout.write ('transmap(    N ) when N div 64 == 0 ->\n\t\tgen_perpetuum:reflow_transmap( transmap( %d ),N ).\n' % lastcurbits)
 eout.write ('\n')
 
@@ -418,28 +463,24 @@ for i in range (5):
 	eout.write ('sentinel(%5d ) -> %d;\n' % (curbits,erlang_sentinel (curbits)))
 	lastcurbits = curbits
 	curbits = erlang_next_placebits (curbits)
-eout.write ('sentinel(    0 ) -> sentinel( %d );\n' % needed_placebits)
+#UNUSED# eout.write ('sentinel(    0 ) -> sentinel( %d );\n' % needed_placebits)
 eout.write ('sentinel(    N ) -> gen_perpetuum:reflow_sentinel( sentinel( %d ),N ).\n' % lastcurbits)
-eout.write ('\n')
+eout.write ('\n\n')
 
-# Code to produce the initial marking for only the smallest sentinel,
-# as this is before any growth spur has occurred.
+
+# Generate the bootstrapping code for a new process instance
+# that implements this Petri Net in Erlang.
 #
-eout.write ('% Return the initial marking for this Petri Net,\n')
-eout.write ('% again parameterised with the number of place bits.\n')
+eout.write ('% Construct a new process running ' + neat_net_name + ' instances\n')
+eout.write ('% as specialisations of the gen_perpetuum behaviour.\n')
 eout.write ('%\n')
-inimark = 0
-for pi in range (place_num):
-	plcmark = net.places [place_list [pi]].marking
-	inimark |= erlang_place_value (pi, needed_placebits, plcmark)
-eout.write ('initial_marking( %d ) -> %s.\n' % (needed_placebits,inimark))
-eout.write ('\n')
-
-#TODO#MAKE_CLEVERER# eout.write ('bits() -> ' + str (bigint_bits) + '.\n')
-#TODO#MAKE_CLEVERER# if bigint_bits < 3 * 64:
-#TODO#MAKE_CLEVERER# 	eout.write ('bits( ' + str (bigint_bits) + ' ) -> ' + str (3 * 64 - 1) + '.\n')
-#TODO#MAKE_CLEVERER# eout.write ('bits( N ) where N rem 64 == 63 -> N + 64.\n\n\n')
-
+eout.write ('% Provided parameters are the standard {M,F,A} form for callbacks,\n')
+eout.write ('% used for processing transitions under application logic.\n')
+eout.write ('%\n')
+eout.write ('start_link( CallbackMod,CallbackFun,CallbackArg ) ->\n')
+eout.write ('\tInitArgs = { self(),?MODULE,{ CallbackMod,CallbackFun,CallbackArg } },\n')
+eout.write ('\tproc_lib:start( gen_perpetuum,init,InitArgs ).\n')
+eout.write ('\n\n')
 
 
 # Generate function prototypes for all the transitions' actions
