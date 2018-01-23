@@ -23,14 +23,6 @@
 	trans_error_arg/3, trans_error_trans/3
 ]).
 
--spec handle_trans(
-		TransName::atom(),
-		EventData::term(),
-		Prior::colour
-	) -> transreply() .
-
--spec handle_marking( Prior::colour ) -> [ { PlaceName::atom(),TokenCount::integer() } ].
-
 
 % Callback function "transit" lists the transitions as
 % atoms.  The order may at some day be used to replace
@@ -104,32 +96,34 @@
 % current Marking, whereas a failed transition does not return a
 % new state for the caller to store.
 %
-handle_trans( TransName, EventData, #colour{
-					petrinet=#petrinet{
-						callback={CallbackMod,CallbackFun,CallbackArgs},
-						transmap=TransMap
-					},
-					marking=Marking
-				}=Colour) ->
+-spec handle_trans( TransName::atom(),EventData::term(),colour,AppState::term() ) -> internreply().
+handle_trans( TransName,EventData,AppState,
+			#colour{
+				petrinet=#petrinet{
+					callback={CallbackMod,CallbackFun,CallbackArgs},
+					transmap=TransMap
+				},
+				marking=Marking
+			}=Colour) ->
 		{ Addend,Subber,TransSentinel } = maps:get ( TransName,TransMap ),
 		PreMarking = Marking - Subber,
 		RetVal = if
 		( PreMarking band TransSentinel ) /= 0 ->
-			{retry,marking};
+			{ retry,marking };
 		true ->
-			CallbackMod:CallbackFun (CallbackArgs, TransName, EventData)
+			CallbackMod:CallbackFun( CallbackArgs,TransName,EventData,AppState )
 		end,
 		case RetVal of
-		{ noreply,_,NewInternalState } ->
+		{ noreply,NewInternalState } ->
 			NewColour = reflow( Colour#colour{
 				marking=( PreMarking+Addend )
 				} ),
-			{noreply,NewColour,NewInternalState};
-		{ reply,Reply,_,NewInternalState } ->
+			{ noreply,NewColour,NewInternalState };
+		{ reply,Reply,NewInternalState } ->
 			NewColour = reflow( Colour#colour{
 				marking=( PreMarking+Addend )
 				} ),
-			{reply,Reply,NewColour,NewInternalState};
+			{ reply,Reply,NewColour,NewInternalState };
 		_ ->
 			RetVal
 		end.
@@ -424,16 +418,16 @@ event( PetriNet,TransName,EventData,Timeout ) ->
 %
 % Unlike event() and signal(), this function is for internal use.
 %
--spec send_response( reference(),pid(),transreply() | noreply ) -> transreply() | noreply.
+-spec send_response( reference(),pid(),internreply() | noreply ) -> internreply() | noreply.
 send_response( _Ref,_Pid,noreply ) ->
 	noreply;
 send_response( Ref,Pid,Response ) ->
 	case Response of
-	{ reply,Reply,_PS} -> Pid ! { reply,Ref,{ reply,Reply  } };
-	{ error,Reason   } -> Pid ! { reply,Ref,{ error,Reason } };
-	{ retry,Reason   } -> Pid ! { reply,Ref,{ retry,Reason } };
-	{ delay,DelayT   } -> Pid ! { reply,Ref,{ delay,DelayT } };
-	{ noreply,   _PS } -> Pid ! { reply,Ref,  noreply        }
+	{ reply,Reply,_NC,_PS} -> Pid ! { reply,Ref,{ reply,Reply  } };
+	{ error,Reason       } -> Pid ! { reply,Ref,{ error,Reason } };
+	{ retry,Reason       } -> Pid ! { reply,Ref,{ retry,Reason } };
+	{ delay,DelayT       } -> Pid ! { reply,Ref,{ delay,DelayT } };
+	{ noreply,    _NC,_PS} -> Pid ! { reply,Ref,  noreply        }
 	end,
 	Response.
 
@@ -443,7 +437,7 @@ send_response( Ref,Pid,Response ) ->
 %
 %TODO% Do we need to pass in state?
 %
-init( Parent,InstanceMod,{_CallbackMod,_CallbackFun,_CallbackArgs}=Callback ) ->
+init( Parent,InstanceMod,{CallbackMod,CallbackFun,CallbackArgs}=Callback ) ->
 	NumPlaces = length( InstanceMod:places() ),
 	PlaceBits = InstanceMod:initial_placebits(),
 	NewPetriNet = #petrinet{
@@ -458,8 +452,8 @@ init( Parent,InstanceMod,{_CallbackMod,_CallbackFun,_CallbackArgs}=Callback ) ->
 		marking  = InstanceMod:initial_marking( PlaceBits ),
 		sentinel = InstanceMod:sentinel(        PlaceBits )
 	},
-	%TODO% This is not a current practice yet; needs application logic, which cannot be generated from Petri Nets!
-	AppState = InstanceMod:init( NewPetriNet ),
+	%TODO% Future extensions might accept delay, replay and more...
+	{noreply,AppState} = CallbackMod:CallbackFun( CallbackArgs,'$init',NewPetriNet,{} ),
 	proc_lib:init_ack( Parent, {ok,self()} ),
 	loop( Parent,NewColour,AppState ).
 
@@ -469,32 +463,35 @@ init( Parent,InstanceMod,{_CallbackMod,_CallbackFun,_CallbackArgs}=Callback ) ->
 % agent.
 %
 loop( Parent,Colour,AppState )  ->
+	case receive
 	%
 	% Receive a request and process it; setup a Response
 	%
-	case receive
 	{ event,TransName,EventData,Timeout,Ref,Pid } ->
-		send_response (Ref,Pid,
-			handle_delay (Timeout,TransName,EventData,Pid,
-				handle_trans( TransName,EventData,Colour )));
+		send_response(Ref,Pid,
+			handle_delay(Timeout,TransName,EventData,Pid,
+				handle_trans( TransName,EventData,Colour,AppState )));
 	{ signal,TransName,EventData,Timeout } ->
-		handle_async_infodrop (
-			handle_delay ( Timeout,TransName,EventData,-1,
-				handle_trans( TransName,EventData,Colour )));
+		handle_async_infodrop(
+			handle_delay( Timeout,TransName,EventData,-1,
+				handle_trans( TransName,EventData,Colour,AppState )));
+	%
+	% Utility functions to query the Petri Net
+	%
 	{ marking,Ref,Pid } ->
-		send_response( Ref,Pid,handle_marking( Colour )),
+		send_response( Ref,Pid,handle_marking( Colour,AppState           )),
 		noreply;
 	{ canfire,Ref,Pid } ->
-		send_response( Ref,Pid,handle_canfire( Colour )),
+		send_response( Ref,Pid,handle_canfire( Colour,AppState           )),
 		noreply;
 	{ canfire,TransName,Ref,Pid } ->
-		send_response( Ref,Pid,handle_canfire( Colour,TransName )),
+		send_response( Ref,Pid,handle_canfire( Colour,AppState,TransName )),
 		noreply;
 	%
 	% Go on to receive system / management messages
-	stop ->
-		%TODO% Special terminate() call, invoking InstanceMod:stop()
-		exit (normal);
+	%
+	{ stop,Reason } ->
+		handle_stop( Reason,Colour,AppState );
 	{ system,From,Msg } ->
 		DebugData = [],
 		sys:handle_system_message( Msg,From,Parent,?MODULE,DebugData,{Colour,AppState} );
@@ -521,7 +518,8 @@ loop( Parent,Colour,AppState )  ->
 %
 % This function uses information from the places() callback.
 %
-handle_marking( #colour{ petrinet=#petrinet { instance=InstanceMod, placebits=PlaceBits }, marking=Marking } ) ->
+-spec handle_marking( Prior::colour,AppState::term() ) -> { reply,[ { PlaceName::atom(),TokenCount::integer() } ],colour,term() }.
+handle_marking( #colour{ petrinet=#petrinet { instance=InstanceMod, placebits=PlaceBits }, marking=Marking }=Colour,AppState ) ->
 	PlaceMask = (1 bsl PlaceBits) - 1,
 	ListPlaces = fun( YF,ShiftMarking,Places ) ->
 		case Places of
@@ -532,28 +530,50 @@ handle_marking( #colour{ petrinet=#petrinet { instance=InstanceMod, placebits=Pl
 			[ {Plc,ShiftMarking band PlaceMask} | YF( YF,NextMarking,NextPlaces ) ]
 		end
 	end,
-	ListPlaces( ListPlaces,Marking,InstanceMod:places() ).
+	{ reply,ListPlaces( ListPlaces,Marking,InstanceMod:places() ),Colour,AppState }.
 
 
 % Determine transitions that can fire or, when one is given, whether
 % the requested one can fire.  In all cases, return a list of transitions
 % that is potentially empty.
 %
--spec handle_canfire( colour,TransName::atom() ) -> { reply,boolean() }.
-handle_canfire( #colour{ petrinet=#petrinet { transmap=TransMap }, marking=Marking }, TransName ) ->
+-spec handle_canfire( colour,AppState::term(),TransName::atom() ) -> { reply,boolean() }.
+handle_canfire( #colour{ petrinet=#petrinet { transmap=TransMap }, marking=Marking }=Colour,AppState,TransName ) ->
 	{ _Addend,Subber,TransSentinel } = maps:get ( TransName,TransMap ),
-	{ reply,check_canfire( Marking,Subber,TransSentinel ) }.
+	{ reply,check_canfire( Marking,Subber,TransSentinel ),Colour,AppState }.
 %
--spec handle_canfire( colour                   ) -> { reply,[ TransName::atom() ] }.
-handle_canfire( #colour{ petrinet=#petrinet { transmap=TransMap }, marking=Marking } ) ->
+-spec handle_canfire( colour,AppState::term()                   ) -> { reply,[ TransName::atom() ] }.
+handle_canfire( #colour{ petrinet=#petrinet { transmap=TransMap }, marking=Marking }=Colour,AppState ) ->
 	CheckCanFire = fun( _TransName,{_Addend,Subber,TransSentinel} ) ->
 		check_canfire( Marking,Subber,TransSentinel )
 	end,
-	{ reply,maps:keys( maps:filter( CheckCanFire,TransMap )) }.
+	{ reply,maps:keys( maps:filter( CheckCanFire,TransMap )),Colour,AppState }.
 %
 check_canfire( Marking,Subber,TransSentinel ) ->
 	(Marking - Subber) band TransSentinel == 0.
 
+
+% internreply() is the internal form of transition replies.
+% Compared to transreply() it adds Colour to successes as
+% they are reported as {noreply,...} and {reply,...} but
+% the rest remains the same form of failure.  In addition,
+% there is the internal form consisting of just the word
+% noreply, representing an invalid and to-be-ignored reply.
+%
+% The forms are:
+%  - { noreply,            Colour, AppState      }
+%  - { reply,   ReplyCode, Colour, AppState      }
+%  - { error,   Reason                           }
+%  - { retry,   Reason                           }
+%  - { delay,   PositiveMilliSecondDelay         }
+%  -   noreply
+%
+-type internreply() :: { noreply,         colour, term() } |
+                       { reply,   term(), colour, term() } |
+                       { error,   term()                 } |
+                       { retry,   term()                 } |
+                       { delay,   integer()              } |
+                         noreply.
 
 % Handle any timeouts in an intermediate response, by resending the
 % message type as indicated.  If the timeout exceeds the tolerable
@@ -590,6 +610,7 @@ handle_delay( MaxDelay,TransName,EventData,PidOpt,PreResponse ) ->
 		PreResponse
 	end.
 
+
 % Raise an error when dropping information attachments in a response.
 % This constrains transition callbacks to only send information that
 % will get processed.  Descriptive information about the result are
@@ -605,7 +626,7 @@ handle_async_infodrop( PreResponse ) ->
 		% We can safely forget about retrying
 		%
 		noreply;
-	{ reply,_Info,_PerpState,_AppState } ->
+	{ reply,_Info,_Colour,_AppState } ->
 		% This is unacceptable for async comms,
 		% as we would be discarding state
 		%
@@ -614,12 +635,48 @@ handle_async_infodrop( PreResponse ) ->
 		PreResponse
 	end.
 
+
+% Make an attempt to stop the system, in response to a stop request.
+% The response is ignored, but it may be influenced negatively by
+% the underlying transition handler '$stop' of the application's
+% callback module.
+%
+-spec handle_stop( Reason::term(),colour,AppState::term() ) -> internreply().
+handle_stop( Reason,
+			#colour{
+				petrinet=#petrinet{
+					callback={CallbackMod,CallbackFun,CallbackArgs}
+				}
+			}=Colour, AppState) ->
+	{ reply,UserMarking,Colour,AppState } = handle_marking( Colour,AppState ),
+	case CallbackMod:CallbackFun( CallbackArgs,'$stop',{Reason,UserMarking},AppState ) of
+	%
+	% Downright refusal to cooperate with a stop request.
+	% (This could be used to protect the Marking from poor death.)
+	%
+	{ error,_ErrorReason  } -> noreply;
+	{ retry,_RetryReason  } -> noreply;
+	%
+	% Delayed death by setting an alarm for another attempt.
+	% (This can be continued for a long time, and might pile up.)
+	% 
+	{ delay,Timeout       } -> timer:send_after( Timeout,{ stop,Reason } ), noreply;
+	%
+	% Acceptance of the requested termination.
+	% (But do spoil a normal exit if a reply state was lost.)
+	%
+	{ noreply,     _AppSt } -> exit( Reason );
+	{ reply,_Reply,_AppSt } -> exit( 'reply-info-discarded-at-exit' )
+end.
+
 % System messages for continuation or termination.
 % These can be expanded into much more potent things.
 %
 system_continue( Parent,_Debug,{Colour,AppState} ) ->
 	loop( Parent,Colour,AppState ).
 %
-system_terminate( Reason,_Parent,_Debug,_Colour_AppState ) ->
-	exit( Reason ).
+system_terminate( Reason,_Parent,_Debug,{ Colour,AppState } ) ->
+	handle_stop( Reason,Colour,AppState ),
+	% and, it case it would fall through:
+	exit( 'perpetuum-refusal-in-system_terminate' ).
 

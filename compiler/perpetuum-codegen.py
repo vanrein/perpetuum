@@ -231,15 +231,11 @@ eout.write ('% ' + neat_net_name + '''.erl
 -behaviour( gen_perpetuum ).
 
 -export([
-	start_link/3,
-	start/3,
-	stop/1,
-	transit/0,
-	places/0,
-	initial_placebits/0,
-	initial_marking/1,
-	transmap/1,
-	sentinel/1
+	start_link/3, start/3,
+	stop/1, stop/2,
+	transit/0, places/0,
+	initial_placebits/0, initial_marking/1,
+	transmap/1, sentinel/1
 ]).
 
 
@@ -493,7 +489,8 @@ eout.write ('\tproc_lib:start( gen_perpetuum,init,InitArgs ).\n')
 eout.write ('\n\n')
 eout.write ('% Stop a running process with a ' + neat_net_name + ' instance\n')
 eout.write ('%\n')
-eout.write ('stop( Pid ) -> Pid ! stop.\n')
+eout.write ('stop( Pid        ) -> Pid ! { stop,normal }.\n')
+eout.write ('stop( Pid,Reason ) -> Pid ! { stop,Reason }.\n')
 eout.write ('\n\n')
 
 
