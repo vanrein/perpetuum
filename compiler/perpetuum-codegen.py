@@ -230,6 +230,7 @@ eout.write ('% ' + neat_net_name + '''.erl
 
 -export([
 	start_link/3,
+	stop/1,
 	transit/0,
 	places/0,
 	initial_placebits/0,
@@ -401,7 +402,8 @@ eout.write ('\n\n')
 # as this is before any growth spur has occurred.
 #
 eout.write ('% Return the initial marking for this Petri Net,\n')
-eout.write ('% again parameterised with the number of place bits.\n')
+eout.write ('% parameterised with the number of place bits,\n')
+eout.write ('% even though we have no current use for it.\n')
 eout.write ('%\n')
 inimark = 0
 for pi in range (place_num):
@@ -450,7 +452,7 @@ for i in range (5):
 # Final clause: 
 #UNUSED# eout.write ('transmap(    0 ) ->\n\t\ttransmap( %d );\n' % needed_placebits)
 eout.write ('transmap(    N ) when N div 64 == 0 ->\n\t\tgen_perpetuum:reflow_transmap( transmap( %d ),N ).\n' % lastcurbits)
-eout.write ('\n')
+eout.write ('\n\n')
 
 # Code to produce the smallest sentinels as literals, with endless
 # expansion in a dynamic last clause.
@@ -481,6 +483,10 @@ eout.write ('start_link( CallbackMod,CallbackFun,CallbackArg ) ->\n')
 eout.write ('\tInitArgs = { self(),?MODULE,{ CallbackMod,CallbackFun,CallbackArg } },\n')
 eout.write ('\tproc_lib:start( gen_perpetuum,init,InitArgs ).\n')
 eout.write ('\n\n')
+eout.write ('% Stop a running process with a ' + neat_net_name + ' instance\n')
+eout.write ('%\n')
+eout.write ('stop( Pid ) -> Pid ! stop.\n')
+eout.write ('\n\n')
 
 
 # Generate function prototypes for all the transitions' actions
@@ -503,14 +509,9 @@ cout.write ('};\n\n')
 # Generate init vectors for places, and optional singleton array
 # For Erlang, the initial marking is a bigint representing a vector
 hout.write ('/* Place initialisation */\n')
-#OLD# eout.write ('% Initial marking\n%\n')
-#OLD# sentinel_imark = -1 << (bigint_bits - 1)
-#OLD# sentinel_shift = 0
 for plc in place_list:
 	ini_mark = net.places [plc].marking
 	hout.write ('#define PLACE_INIT_' + plc + ' { ' + str (ini_mark) + ' }\n')
-	#OLD# sentinel_imark = sentinel_imark + (int (ini_mark) << place_bits)
-	#OLD# sentinel_shift = sentinel_shift + (place_bits + 1)
 hout.write ('\n')
 cout.write ('#ifdef PETRINET_SINGLETONS\n')
 cout.write ('static place_t the_' + neat_net_name + '_places [] = {\n')
@@ -518,14 +519,11 @@ for plc in place_list:
 	cout.write ('\tPLACE_INIT_' + plc + ',\n')
 cout.write ('};\n')
 cout.write ('#endif\n\n')
-#OLD# eout.write ('% The initial marking for this Petri net (with sentinel bits)\n%\n')
-#OLD# eout.write ('initial_marking() -> ' + str (sentinel_imark) + '.\n\n\n')
 
 # Generate init vectors for transitions, and optional singleton array
 #TODO:FROMHERE#
 # For Erlang, generate the dynamic transition-indexed record
 hout.write ('/* Place initialisation; countdown := empty inputs + non-empty inhibitors */\n')
-#OLD# eout.write ('% Transition records; describing the initial offsets of in/out transitions\n')
 for tr in trans_list:
 	# initial "countdown" is zero normal plus non-zero inhibitors trans
 	ini_countdown = ( str (len ( [ src for (src,tgt) in p2t
@@ -610,9 +608,9 @@ const petrinet_topo_t ''' + neat_net_name + ''' = {
 ''')
 
 # Print an end remark
-hout.write ('\n\n/* End of generated file ' + neat_net_name + '.h */\n')
-cout.write ('\n\n/* End of generated file ' + neat_net_name + '.c */\n')
-eout.write ('\n\n%% End of generated file ' + neat_net_name + '.erl\n')
+hout.write ('/* End of generated file ' + neat_net_name + '.h */\n')
+cout.write ('/* End of generated file ' + neat_net_name + '.c */\n')
+eout.write ('%% End of generated file ' + neat_net_name + '.erl\n')
 
 # Close output files
 hout.close ()

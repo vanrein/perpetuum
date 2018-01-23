@@ -12,7 +12,9 @@
 -include( "gen_perpetuum.hrl" ).
 
 -export([
-	init/3
+	init/3,
+	system_continue/3,
+	system_terminate/4
 ]).
 
 -spec handle_trans(
@@ -272,6 +274,30 @@ marking( #colour{ petrinet=#petrinet { instance=InstanceMod, placebits=PlaceBits
 	ListPlaces( ListPlaces,Marking,InstanceMod:places() ).
 
 
+% Determine transitions that can fire or, when one is given, whether
+% the requested one can fire.  In all cases, return a list of transitions
+% that is potentially empty.
+%
+-spec canfire( colour,TransName::atom() ) -> [ TransName::atom() ].
+canfire( #colour{ petrinet=#petrinet { transmap=TransMap }, marking=Marking }, TransName ) ->
+	{ _Addend,Subber,TransSentinel } = maps:get ( TransName,TransMap ),
+	if (Marking - Subber) band TransSentinel == 0 ->
+		[];
+	true ->
+		[TransName]
+	end.
+%
+-spec canfire( colour                   ) -> [ TransName::atom() ].
+canfire( #colour{ petrinet=#petrinet { transmap=TransMap }, marking=Marking } ) ->
+	SelFun = fun( _TransName,{_Addend,Subber,TransSentinel} ) ->
+		canfire_helper( Marking,Subber,TransSentinel )
+	end,
+	maps:keys( maps:filter( SelFun,TransMap )).
+%
+canfire_helper( Marking,Subber,TransSentinel ) ->
+	(Marking - Subber) band TransSentinel == 0.
+
+
 % The init routine is usually invoked from an instance of this behaviour.
 % It uses proc_lib to register "properly" and then starts the process loop.
 % The parent process will be referred to as the AppLogicPid.
@@ -294,13 +320,13 @@ init( AppLogicPid,InstanceMod,{_CallbackMod,_CallbackFun,_CallbackArgs}=Callback
 		sentinel = InstanceMod:sentinel(        PlaceBits )
 	},
 	proc_lib:init_ack( AppLogicPid, {ok,self()} ),
-	loop( NewColour ).
+	loop( AppLogicPid,NewColour ).
 
 % A main loop that may be used if Perpetuum is meant as a service
 % to many processes, rather than as a process-internal structuring
 % agent.
 %
-loop( Colour )  ->
+loop( AppLogicPid,Colour )  ->
 	%
 	% Receive a request and process it; setup a Response
 	%
@@ -322,7 +348,22 @@ loop( Colour )  ->
 				handle_trans( TransName,EventData,Colour )));
 	{ marking,Pid } ->
 		send_response( Pid, marking( Colour )),
-		noreply
+		noreply;
+	{ canfire,Pid } ->
+		send_response( Pid, canfire( Colour )),
+		noreply;
+	{ canfire,Pid,TransName } ->
+		send_response( Pid, canfire( Colour,TransName )),
+		noreply;
+	%
+	% Go on to receive system / management messages
+	stop ->
+		exit (normal);
+	{ system,From,Msg } ->
+		DebugData = [],
+		sys:handle_system_message( Msg,From,AppLogicPid,?MODULE,DebugData,Colour );
+	{ 'EXIT', _Pid, Reason } ->
+		exit (Reason)
 	%
 	% Now harvest whatever result we ran into, and loop back.
 	% We accept the extra word noreply from a number of sources
@@ -330,12 +371,12 @@ loop( Colour )  ->
 	%
 	end of
 		{ noreply,NewColour } ->
-			loop( NewColour );
+			loop( AppLogicPid,NewColour );
 		{ reply,_,NewColour } ->
-			loop( NewColour );
+			loop( AppLogicPid,NewColour );
 		_ ->
 			% includes the noreply response
-			loop( Colour )
+			loop( AppLogicPid,Colour )
 	end.
 
 
@@ -415,4 +456,12 @@ handle_async_infodrop( PreResponse ) ->
 	_ ->
 		PreResponse
 	end.
+
+% System messages for continuation or termination.
+% These can be expanded into much more potent things.
+%
+system_continue( AppLogicPid,_Debug,Colour ) ->
+	loop( AppLogicPid,Colour ).
+system_terminate( Reason,_AppLogicPid,_Debug,_Colour ) ->
+	exit( Reason ).
 
