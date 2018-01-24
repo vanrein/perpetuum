@@ -39,25 +39,69 @@ check_marking( Instance,Goal ) ->
 	Marking = gen_perpetuum:marking( Instance ),
 	check_marking( Goal,Marking,true ).
 
-check_canfire( Instance,Goal ) ->
+check_canfire_script( Instance,Goal ) ->
 	Firing = gen_perpetuum:canfire( Instance ),
 	%DEBUG% io:format( "Firing power is ~p~n",[Firing] ),
 	TooMuch   = lists:subtract( Firing,Goal ),
 	TooLittle = lists:subtract( Goal,Firing ),
 	case {TooMuch,TooLittle} of
 	{[],[]} ->
-		io:format( "Firing power is just right~n" ),
+		io:format( "check_canfire_script: Firing power is just right~n" ),
 		ok;
 	{_,[]} ->
-		io:format( "Too much to fire: ~p~n",[TooMuch] ),
-		{ error,check_canfire_toomuch };
+		io:format( "check_canfire_script: Too much to fire: ~p~n",[TooMuch] ),
+		{ error,check_canfire_script_toomuch };
 	{[],_} ->
-		io:format( "Too little to fire: ~p~n",[TooLittle] ),
-		{ error,check_canfire_toolittle };
+		io:format( "check_canfire_script: Too little to fire: ~p~n",[TooLittle] ),
+		{ error,check_canfire_script_toolittle };
 	{_,_} ->
-		io:format( "Too much   to fire: ~p~n",[TooMuch  ] ),
-		io:format( "Too little to fire: ~p~n",[TooLittle] ),
-		{ error,{check_canfire_toomuch,check_canfire_toolittle} }
+		io:format( "check_canfire_script: Too much   to fire: ~p~n",[TooMuch  ] ),
+		io:format( "check_canfire_script: Too little to fire: ~p~n",[TooLittle] ),
+		{ error,{check_canfire_script_toomuch,check_canfire_script_toolittle} }
+	end.
+
+check_canfire_others( Module,Instance,Goal ) ->
+	AllAmmo = Module:transit(),
+	TestAmmo = fun( TransName ) ->
+		gen_perpetuum:canfire( Instance,TransName )
+	end,
+	Firing = lists:filter( TestAmmo,AllAmmo ),
+	TooMuch   = lists:subtract( Firing,Goal ),
+	TooLittle = lists:subtract( Goal,Firing ),
+	case {TooMuch,TooLittle} of
+	{[],[]} ->
+		io:format( "check_canfire_others: Firing power is just right~n" ),
+		ok;
+	{_,[]} ->
+		io:format( "check_canfire_others: Too much to fire: ~p~n",[TooMuch] ),
+		{ error,check_canfire_others_toomuch };
+	{[],_} ->
+		io:format( "check_canfire_others: Too little to fire: ~p~n",[TooLittle] ),
+		{ error,check_canfire_others_toolittle };
+	{_,_} ->
+		io:format( "check_canfire_others: Too much   to fire: ~p~n",[TooMuch  ] ),
+		io:format( "check_canfire_others: Too little to fire: ~p~n",[TooLittle] ),
+		{ error,{check_canfire_others_toomuch,check_canfire_others_toolittle} }
+	end.
+
+check_canfire_probed( Module,Instance,Goal ) ->
+	Firing = gen_perpetuum:canfire( Instance ),
+	BadAmmo = lists:subtract( Module:transit(),Firing ),
+	TestAmmo = fun( TransName ) ->
+		case gen_perpetuum:event( Instance,TransName,[] ) of
+		{ retry,marking } ->
+			false;
+		_ ->
+			true
+		end
+	end,
+	TooMuch = lists:filter( TestAmmo,BadAmmo ),
+	if TooMuch == [] ->
+		io:format( "check_canfire_probed: Firing power is just right~n" ),
+		ok;
+	true ->
+		io:format( "check_canfire_others: Too much to fire: ~p~n",[TooMuch] ),
+		{ error,check_canfire_probed_toomuch }
 	end.
 
 test_testrun( _Module,_Instance,[] ) ->
@@ -67,7 +111,9 @@ test_testrun( Module,Instance,[State,Ops|Rest] ) ->
 	% Compare State with Instance:
 	Check_State = check_marking( Instance,State ),
 	% Compare Ops with Instance:
-	Check_Firing = check_canfire( Instance,Ops ),
+	Check_Firing_Script = check_canfire_script(        Instance,Ops ),
+	Check_Firing_Others = check_canfire_others( Module,Instance,Ops ),
+	Check_Firing_Probed = check_canfire_probed( Module,Instance,Ops ),
 	% Send Ops#0 event to Instance:
 	[ TransName|_ ] = Ops,
 	io:format( "Sending event( ~p )~n",[TransName] ),
@@ -86,7 +132,7 @@ test_testrun( Module,Instance,[State,Ops|Rest] ) ->
 	%DEBUG% end,
 	noreply = gen_perpetuum:event( Instance,TransName,[] ),
 	%TODO% io:format( "NoReply is ~p~n",[NoReply] ),
-	case {Check_State,Check_Firing} of
+	case {Check_State,Check_Firing_Script} of
 	{ok,ok} ->
 		test_testrun( Module,Instance,Rest );
 	{{error,A},ok} ->
