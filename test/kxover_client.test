@@ -1,0 +1,131 @@
+% Perpetuum test script: Traffic Light with Night Service
+%
+% This test script interchanges two kinds of element:
+%  - Mapping non-empty place names to token counts
+%  - Listing available actions
+%
+% The first element is the initial marking, the last is a lists of actions.
+% Places with 0 tokens can be silently dropped from the mappings.
+%
+% To test, take the first action off the list, and evolve to the next two.
+%
+% From: Rick van Rein <rick@openfortress.nl>
+
+
+[
+
+	% First round, failing to get SRV record
+
+	#{ },
+	[ krbtgtMissing ],
+
+	#{ processingRequest=>1, want_krbtgt=>1 },
+	[ need_SRV ],
+
+	#{ processingRequest=>1, want_SRV=>1 },
+	[ dnssec_req_SRV ],
+
+	#{ processingRequest=>1, lookup_kdc=>1 },
+	[ failed_SRV, got_SRV ],
+
+	#{ processingRequest=>1, failure=>1 },
+	[ failedStop ],
+
+	#{ failedCached=>1 },
+	[ cache_exp_timer ],
+
+	% Second round, runs into TLSA failure
+
+	#{ },
+	[ krbtgtMissing ],
+
+	#{ processingRequest=>1, want_krbtgt=>1 },
+	[ need_SRV ],
+
+	#{ processingRequest=>1, want_SRV=>1 },
+	[ dnssec_req_SRV ],
+
+	#{ processingRequest=>1, lookup_kdc=>1 },
+	[ got_SRV, failed_SRV ],
+
+	#{ processingRequest=>1, want_cert=>1, want_address=>1 },
+	[ dnssec_req_TLSA, dns_req_A_AAAA ],
+
+	#{ processingRequest=>1, lookup_DANE=>1, want_address=>1 },
+	[ failed_TLSA, got_TLSA, dns_req_A_AAAA ],
+
+	#{ processingRequest=>1, noDANE=>1, want_address=>1 },
+	[ dns_req_A_AAAA ],
+
+	#{ processingRequest=>1, noDANE=>1, lookup_address=>1 },
+	[ failed_A_AAAA, got_A_AAAA ],
+
+	#{ processingRequest=>1, noDANE=>1, noKX=>1 },
+	[ neither ],
+
+	#{ processingRequest=>1, failure=>1 },
+	[ failedStop ],
+
+	#{ failedCached=>1 },
+	[ cache_exp_timer ],
+
+	% Third round; this time all will work out; different parallel order
+
+	#{ },
+	[ krbtgtMissing ],
+
+	#{ processingRequest=>1, want_krbtgt=>1 },
+	[ need_SRV ],
+
+	#{ processingRequest=>1, want_SRV=>1 },
+	[ dnssec_req_SRV ],
+
+	#{ processingRequest=>1, lookup_kdc=>1 },
+	[ got_SRV, failed_SRV ],
+
+	#{ processingRequest=>1, want_cert=>1, want_address=>1 },
+	[ dns_req_A_AAAA, dnssec_req_TLSA ],
+
+	#{ processingRequest=>1, want_cert=>1, lookup_address=>1 },
+	[ dnssec_req_TLSA, got_A_AAAA, failed_A_AAAA ],
+
+	#{ processingRequest=>1, lookup_DANE=>1, lookup_address=>1 },
+	[ got_A_AAAA, failed_A_AAAA, got_TLSA, failed_TLSA ],
+
+	#{ processingRequest=>1, lookup_DANE=>1, want_KX_exchange=>1 },
+	[ send_KX_req, got_TLSA, failed_TLSA ],
+
+	#{ processingRequest=>1, lookup_DANE=>1, await_KX=>1 },
+	[ got_TLSA, failed_TLSA, got_KX_resp, failed_KX ],
+
+	#{ processingRequest=>1, keyed_remote=>1, await_KX=>1 },
+	[ got_KX_resp, failed_KX ],
+
+	#{ processingRequest=>1, keyed_remote=>1, responded_remote=>1 },
+	[ signature_good, signature_error ],
+
+	#{ processingRequest=>1, got_ecdhe=>1 },
+	[ ecdhe2krbtgt ],
+
+	#{ processingRequest=>1, got_krbtgt=>1 },
+	[ store_krbtgt_kdb ],
+
+	#{ processingRequest=>1, fresh_krbtgt=>1, have_krbtgt=>1 },
+	[ send_krbtgt_to_all_requesters, krbtgt_refresh_timer ],
+
+	#{ processingRequest=>1, fresh_krbtgt=>1, success=>1 },
+	[ successfulEnd, krbtgt_refresh_timer ],
+
+	#{ fresh_krbtgt=>1 },
+	[ krbtgt_refresh_timer, krbtgtMissing ],
+
+		% Could insert 2nd/3rd cycles here
+
+	#{ krbtgt_dawn=>1 },
+	[ krbtgt_expired_remove, krbtgtMissing ],
+
+	#{ },
+	[ krbtgtMissing ]
+
+	% This completes this partial, but big test
+].
