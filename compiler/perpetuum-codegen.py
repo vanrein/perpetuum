@@ -310,7 +310,7 @@ cout.write ('};\n\n')
 eout.write ('% Transitions in their standard order of occurrence\n%\n')
 eout.write ('transit() -> [')
 comma = ' '
-for tr in trans_list:
+for tr in transs:
 	#TODO# Map transition name to erlang atom
 	eout.write (comma + "'" + tr + "'")
 	comma = ', '
@@ -318,7 +318,7 @@ eout.write (' ].\n\n')
 eout.write ('% Places in their standard order of occurrence\n%\n')
 eout.write ('places() -> [')
 comma = ' '
-for plc in place_list:
+for plc in places:
 	#TODO# Map place name to erlang atom
 	eout.write (comma + "'" + plc + "'")
 	comma = ', '
@@ -373,14 +373,14 @@ eout.write ('% and the sign bit to spare for possible future use with timeouts.\
 eout.write ('\n\n')
 
 # Given a place number and the number of placebits, set a place's count
-def erlang_place_value (place_idx, placebits, value):
+def erlang_place_value (placeidx, placebits, value):
 	assert (0 <= value < (1 << placebits))
-	return value << ((placebits + 1) * place_idx)
+	return value << ((placebits + 1) * placeidx)
 
 # Construct a inhibitor word for a given place given the placebits
-def erlang_inhibit_sentinel (place_idx, placebits):
+def erlang_inhibit_sentinel (placeidx, placebits):
 	inhibitor_value = (1 << placebits) - 1
-	return erlang_place_value (place_idx, placebits, inhibitor_value)
+	return erlang_place_value (placeidx, placebits, inhibitor_value)
 
 # Construct the sentinel bits for a given value of placebits
 def erlang_sentinel (placebits):
@@ -407,7 +407,7 @@ eout.write ('% even though we have no current use for it.\n')
 eout.write ('%\n')
 inimark = 0
 for pi in range (place_num):
-	plcmark = net.places [place_list [pi]].marking
+	plcmark = net.places [places [pi]].marking
 	inimark |= erlang_place_value (pi, needed_placebits, plcmark)
 #UNUSED@ eout.write ('initial_marking(  0 ) -> initial_marking( %d );\n' % needed_placebits)
 eout.write ('initial_marking( %d ) -> %s.\n' % (needed_placebits,inimark))
@@ -442,7 +442,7 @@ for i in range (5):
 		sentinels [ti] |= erlang_inhibit_sentinel (pi, curbits)
 	for ti in range (trans_num):
 		# Collect the initial values for this transition
-		transname = trans_list [ti]
+		transname = transs [ti]
 		# Construct the output for this transition (str(i) is without 'L')
 		comma = ',' if ti < trans_num - 1 else ''
 		eout.write ('\t\t\t\'%s\' => { %s, %s, %s }%s\n' % ( transname, str(addends [ti]), str(subbers [ti]), str(sentinels [ti]), comma ) )
@@ -480,11 +480,11 @@ eout.write ('% Provided parameters are the standard {M,F,A} form for callbacks,\
 eout.write ('% used for processing transitions under application logic.\n')
 eout.write ('%\n')
 eout.write ('start_link( CallbackMod,CallbackFun,CallbackArg ) ->\n')
-eout.write ('\tInitArgs = { self(),?MODULE,[ CallbackMod,CallbackFun,CallbackArg ] },\n')
+eout.write ('\tInitArgs = [ self(),?MODULE,[ CallbackMod,CallbackFun,CallbackArg ] ],\n')
 eout.write ('\tproc_lib:start_link( gen_perpetuum,init,InitArgs ).\n')
 eout.write ('%\n')
 eout.write ('start( CallbackMod,CallbackFun,CallbackArg ) ->\n')
-eout.write ('\tInitArgs = { self(),?MODULE,[ CallbackMod,CallbackFun,CallbackArg ] },\n')
+eout.write ('\tInitArgs = [ self(),?MODULE,[ CallbackMod,CallbackFun,CallbackArg ] ],\n')
 eout.write ('\tproc_lib:start( gen_perpetuum,init,InitArgs ).\n')
 eout.write ('\n\n')
 eout.write ('% Stop a running process with a ' + neat_net_name + ' instance\n')

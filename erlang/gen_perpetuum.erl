@@ -437,12 +437,13 @@ send_response( Ref,Pid,Response ) ->
 %
 %TODO% Do we need to pass in state?
 %
-init( Parent,InstanceMod,{CallbackMod,CallbackFun,CallbackArgs}=Callback ) ->
+init( Parent,InstanceMod,[CallbackMod,CallbackFun,CallbackArgs] ) ->
+	%DEBUG% io:format( "init() called~n"),
 	NumPlaces = length( InstanceMod:places() ),
 	PlaceBits = InstanceMod:initial_placebits(),
 	NewPetriNet = #petrinet{
 		instance  = InstanceMod,
-		callback  = Callback,
+		callback  = {CallbackMod,CallbackFun,CallbackArgs},
 		numplaces = NumPlaces,
 		placebits = PlaceBits,
 		transmap = InstanceMod:transmap(        PlaceBits )
@@ -463,6 +464,7 @@ init( Parent,InstanceMod,{CallbackMod,CallbackFun,CallbackArgs}=Callback ) ->
 % agent.
 %
 loop( Parent,Colour,AppState )  ->
+	%DEBUG% io:format( "Looping with Colour=~p~n",[Colour] ),
 	case receive
 	%
 	% Receive a request and process it; setup a Response

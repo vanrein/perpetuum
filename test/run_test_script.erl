@@ -14,6 +14,9 @@
 % From: Rick van Rein <rick@openfortress.nl>
 
 
+-define(LambdaLift(Atom), fun(X) -> Atom( X ) end).
+
+
 check_marking( _Expected,[],AccuOK ) ->
 	io:format( "check_marking() -> ~p~n", [AccuOK] ),
 	if AccuOK ->
@@ -67,8 +70,22 @@ test_testrun( Module,Instance,[State,Ops|Rest] ) ->
 	Check_Firing = check_canfire( Instance,Ops ),
 	% Send Ops#0 event to Instance:
 	[ TransName|_ ] = Ops,
-	%DEBUG% io:format( "Sending event( ~p )~n",[TransName] ),
+	io:format( "Sending event( ~p )~n",[TransName] ),
+	%DEBUG% Ref = monitor( process,Instance ),
+	%DEBUG% Instance ! { event,TransName,[],0,Ref,self() },
+	%DEBUG% receive
+	%DEBUG% { reply,Ref,EventReply } ->
+	%DEBUG% 	demonitor( Ref,[flush] ),
+	%DEBUG% 	io:format( "Received ~p~n",[EventReply] );
+	%DEBUG% noreply ->
+	%DEBUG% 	demonitor( Ref,[flush] ),
+	%DEBUG% 	io:format( "No reply!~n" );
+	%DEBUG% { 'DOWN',Ref,process,_,_}=Crash -> io:format( "Crashed ~p~n",[Crash] );
+	%DEBUG% Rubbish ->
+	%DEBUG% 	io:format( "Rubbish! ~p~n",[Rubbish] )
+	%DEBUG% end,
 	noreply = gen_perpetuum:event( Instance,TransName,[] ),
+	%TODO% io:format( "NoReply is ~p~n",[NoReply] ),
 	case {Check_State,Check_Firing} of
 	{ok,ok} ->
 		test_testrun( Module,Instance,Rest );
@@ -91,48 +108,39 @@ run_tests( [],Module,_Test,AccuOK ) ->
 	io:format( "~p~n", [Result] ),
 	AccuOK;
 run_tests( [Option|Rest],Module,Test,AccuOK ) ->
-	io:format( "Running test ~p against ~p... ", [Option,Module] ),
+	io:format( "Running test ~p against ~p...~n", [Option,Module] ),
 	TestOutput = case Option of
 	testrun ->
 		% { ok,Instance } = Module:start_link( gen_perpetuum,trans_noreply,[] ),
+		%DEBUG% io:format( "STARTING ~p~n",[Module] ),
 		{ ok,Instance } = Module:start( gen_perpetuum,trans_noreply,[] ),
-		%DEBG% io:format( "STARTED: ~p~n", [Instance] ),
-		Ref = monitor( process,Instance ),
+		%DEBUG% io:format( "STARTED: ~p~n",[Instance] ),
+		%DEBUG% Ref = monitor( process,Instance ),
 		%DEBUG% Module:stop( Instance ),
-		receive
-		%TODO% Move breakdown handling away from here
-		{ 'DOWN',Ref,process,Name1,normal } ->
-			io:format( "Stopped ~p~n",[Name1] );
-		{ 'DOWN',Ref,process,_Name1,_Reason1 }=Failure1 ->
-			io:format( "CRASH: ~p~n",[Failure1] )
-		after 1000 ->
-			demonitor( Ref,[flush] )
-		end,
-		Retval = test_testrun( Module,Instance,Test ),
-		receive
-		%TODO% Move breakdown handling away from here
-		{ 'DOWN',Ref,process,Name2,normal } ->
-			io:format( "Stopped ~p~n",[Name2] );
-		{ 'DOWN',Ref,process,_Name2,_Reason2 }=Failure2 ->
-			io:format( "CRASH: ~p~n",[Failure2] )
-		after 1000 ->
-			demonitor( Ref,[flush] )
-		end,
-		Retval
+		%DEBUG% receive
+		%DEBUG% %TODO% Move breakdown handling away from here
+		%DEBUG% { 'DOWN',Ref,process,Name1,normal } ->
+		%DEBUG% 	io:format( "Stopped ~p~n",[Name1] );
+		%DEBUG% { 'DOWN',Ref,process,_Name1,_Reason1 }=Failure1 ->
+		%DEBUG% 	io:format( "CRASH: ~p~n",[Failure1] )
+		%DEBUG% after 1000 ->
+		%DEBUG% 	demonitor( Ref,[flush] )
+		%DEBUG% end,
+		test_testrun( Module,Instance,Test )
 	end,
 	case TestOutput of
 	ok ->
-		io:format( "SUCCESS~n" ),
+		io:format( "...SUCCESS~n" ),
 		NextOK = AccuOK;
 	{ error,Reason }  ->
-		io:format( "FAILURE ~p~n", [Reason] ),
+		io:format( "...FAILURE ~p~n", [Reason] ),
 		NextOK = false
 	end,
 	run_tests( Rest,Module,Test,NextOK ).
 %
 run_tests( OptNames,ModName,Test ) ->
 	Module = list_to_atom( ModName ),
-	Options = lists:map( fun(X)->list_to_atom(X)end,OptNames ),
+	Options = lists:map( ?LambdaLift(list_to_atom),OptNames ),
 	run_tests( Options,Module,Test,true ).
 
 load_code( ModName ) ->

@@ -28,6 +28,12 @@
 	#{ red=>1, night_service=>1 },
 	[ sunset, go ],
 
+	#{ red=>1 },
+	[ go, dawn ],
+
+	#{ green=>1 },
+	[ dawn, caution ],
+
 	#{ green=>1, night_service=>1 },
 	[ caution, sunset ],
 
@@ -58,8 +64,11 @@
 	#{ yellow=>1 },
 	[ stop, dawn ],
 
-	#{ red=> 1 },
+	#{ red=>1 },
 	[ go, dawn ],
+
+	#{ green=>1 },
+	[ caution, dawn ],
 
 	#{ yellow=>1 },
 	[ stop, dawn ]
