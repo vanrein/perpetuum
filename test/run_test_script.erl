@@ -168,37 +168,31 @@ run_tests( [],Module,_Test,AccuOK ) ->
 run_tests( [Option|Rest],Module,Test,AccuOK ) ->
 	io:format( "Running test ~p against ~p...~n", [Option,Module] ),
 	TestOutput = case Option of
+	startstop ->
+		io:format( "STARTING ~p~n",[Module] ),
+		{ ok,Instance } = Module:start( gen_perpetuum,trans_noreply,[] ),
+		io:format( "STARTED: ~p~n",[Instance] ),
+		Ref = monitor( process,Instance ),
+		Module:stop( Instance ),
+		io:format( "STOPPED: ~p~n",[Instance] ),
+		receive
+		{ 'DOWN',Ref,process,Name1,normal } ->
+			%DEBUG% io:format( "Stopped ~p~n",[Name1] );
+			ok;
+		{ 'DOWN',Ref,process,_Name1,_Reason1 }=Failure1 ->
+			%DEBUG% io:format( "CRASH: ~p~n",[Failure1] )
+			{ error,{ crashed,Failure1 }}
+		after 5000 ->
+			demonitor( Ref,[flush] ),
+			{ error,timeout }
+		end;
 	syncrun ->
 		%DEBUG% io:format( "STARTING ~p~n",[Module] ),
 		{ ok,Instance } = Module:start_link( gen_perpetuum,trans_noreply,[] ),
-		%DEBUG% io:format( "STARTED: ~p~n",[Instance] ),
-		%DEBUG% Ref = monitor( process,Instance ),
-		%DEBUG% Module:stop( Instance ),
-		%DEBUG% receive
-		%DEBUG% %TODO% Move breakdown handling away from here
-		%DEBUG% { 'DOWN',Ref,process,Name1,normal } ->
-		%DEBUG% 	io:format( "Stopped ~p~n",[Name1] );
-		%DEBUG% { 'DOWN',Ref,process,_Name1,_Reason1 }=Failure1 ->
-		%DEBUG% 	io:format( "CRASH: ~p~n",[Failure1] )
-		%DEBUG% after 1000 ->
-		%DEBUG% 	demonitor( Ref,[flush] )
-		%DEBUG% end,
 		test_testrun( Module,Instance,Test,?LambdaLift3(invoke_sync) );
 	asyncrun ->
 		%DEBUG% io:format( "STARTING ~p~n",[Module] ),
 		{ ok,Instance } = Module:start( gen_perpetuum,trans_noreply,[] ),
-		%DEBUG% io:format( "STARTED: ~p~n",[Instance] ),
-		%DEBUG% Ref = monitor( process,Instance ),
-		%DEBUG% Module:stop( Instance ),
-		%DEBUG% receive
-		%DEBUG% %TODO% Move breakdown handling away from here
-		%DEBUG% { 'DOWN',Ref,process,Name1,normal } ->
-		%DEBUG% 	io:format( "Stopped ~p~n",[Name1] );
-		%DEBUG% { 'DOWN',Ref,process,_Name1,_Reason1 }=Failure1 ->
-		%DEBUG% 	io:format( "CRASH: ~p~n",[Failure1] )
-		%DEBUG% after 1000 ->
-		%DEBUG% 	demonitor( Ref,[flush] )
-		%DEBUG% end,
 		test_testrun( Module,Instance,Test,?LambdaLift3(invoke_async) )
 	end,
 	case TestOutput of
