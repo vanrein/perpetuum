@@ -15,6 +15,7 @@
 	init/3,
 	marking/1,
 	canfire/1, canfire/2,
+	enquire/2,
 	event/3,  event/4,
 	signal/3, signal/4,
 	system_continue/3, system_terminate/4,
@@ -345,6 +346,43 @@ canfire( PetriNet,TransName ) ->
 		{ error,Reason }
 	end.
 
+% Ask a Petri Net to pass an enquiry to the application logic.
+% This is an interface to the data kept in a separate process,
+% inasfar as its API is willing to surrender it.  The function
+% can be used for statistical purposes, or any other need,
+% including application specific data inquiries.  This is a
+% reading function; application state changes are ignored.
+%
+% Since the Petri Net is a process on its own, its state may vary
+% if you are not the only one with access to its Pid.
+%
+% Note that locking a Petri Net would render any proofs of liveness
+% or deadlock freedom useless, so locking is not supported.  You are
+% of course free to add extra places to your Petri Net to do just
+% these things, in the places where you need them, and rerun any
+% validations on those modified processes.
+%
+% This function throws an exception with Reason when the application
+% code returned an {error,Reason} from the '$enquire' transition.
+%
+% Application logic is not required to implement this call; when it
+% is called but not implemented, the PetriNet process will crash.
+%
+-spec enquire( PetriNet::pid(),Query::atom() ) -> Answer::term().
+enquire( PetriNet,Query ) ->
+	Ref = monitor( process,PetriNet ),
+	catch PetriNet ! { enquire,Query,Ref,self() },
+	receive
+	{ reply,Ref,{reply,Reply} } ->
+		demonitor( Ref,[flush] ),
+		Reply;
+	{ reply,Ref,{error,Reason} } ->
+		demonitor( Ref,[flush] ),
+		throw( Reason );
+	{ 'DOWN',Ref,process,_Name,Reason } ->
+		{ error,Reason }
+	end.
+
 % Use signal to asynchronously send a transition request to a Petri Net.
 % This is pretty much the same as cast() elsewhere.
 %
@@ -481,13 +519,20 @@ loop( Parent,Colour,AppState )  ->
 	% Utility functions to query the Petri Net
 	%
 	{ marking,Ref,Pid } ->
-		send_response( Ref,Pid,handle_marking( Colour,AppState           )),
+		send_response( Ref,Pid,
+			handle_marking( Colour,AppState           )),
 		noreply;
 	{ canfire,Ref,Pid } ->
-		send_response( Ref,Pid,handle_canfire( Colour,AppState           )),
+		send_response( Ref,Pid,
+			handle_canfire( Colour,AppState           )),
 		noreply;
 	{ canfire,TransName,Ref,Pid } ->
-		send_response( Ref,Pid,handle_canfire( Colour,AppState,TransName )),
+		send_response( Ref,Pid,
+			handle_canfire( Colour,AppState,TransName )),
+		noreply;
+	{ enquire,Query,Ref,Pid } ->
+		send_response( Ref,Pid,
+			handle_enquire( Colour,AppState,Query     )),
 		noreply;
 	%
 	% Go on to receive system / management messages
@@ -556,6 +601,36 @@ handle_canfire( #colour{ petrinet=#petrinet { transmap=TransMap }, marking=Marki
 %
 check_canfire( Marking,Subber,TransSentinel ) ->
 	(Marking - Subber) band TransSentinel == 0.
+
+% Send a special transition '$enquire' to the application logic.
+% The response should be either a {reply,Answer} or {error,Reason}.
+% Although the AppState is sent along and may be returned in the
+% customary transreply() format, it is ignored; this is only for
+% reading state, not for writing it.  We try to emphasise that by
+% not using the SQL-ish name "query" that in practince implies an
+% ability to update the database.
+%
+% Only two return values are expected from '$enquire':
+%  { reply,Answer,_ } -> holds the Answer for the caller
+%  { error,Reason }   -> will be thrown as an exception to the caller
+%
+% Both Query and Answer are free-form, each is an Erlang term().
+%
+-spec handle_enquire( colour,AppState::term(),Query::term() ) -> Answer::term().
+handle_enquire(#colour{
+			petrinet=#petrinet{
+				callback={CallbackMod,CallbackFun,CallbackArgs}
+			}
+		}=Colour,
+		AppState,Query ) ->
+	case CallbackMod:CallbackFun( CallbackArgs,'$enquire',Query,AppState ) of
+	{ reply,Reply,_AppState } ->
+		{ reply,Reply,Colour,AppState };
+	{ noreply,_AppState } ->
+		{ error,noreply };
+	Other ->
+		Other
+	end.
 
 
 % internreply() is the internal form of transition replies.
