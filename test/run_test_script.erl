@@ -26,6 +26,7 @@ check_marking( _Expected,[],AccuOK ) ->
 	end;
 check_marking( Expected,[{Place,TokenCount}|Marking],AccuOK ) ->
 	% Absent entries in Expected are assumed 0
+	%DEBUG% io:format( "Expecting ~p~n",[Expected] ),
 	TokensExpected = maps:get( Place,Expected,0 ),
 	NewOK = TokenCount == TokensExpected,
 	if not NewOK ->
@@ -132,15 +133,12 @@ test_testrun( Module,Instance,[State,Ops|Rest] ) ->
 	%DEBUG% end,
 	noreply = gen_perpetuum:event( Instance,TransName,[] ),
 	%TODO% io:format( "NoReply is ~p~n",[NoReply] ),
-	case {Check_State,Check_Firing_Script} of
-	{ok,ok} ->
+	Errors = [ E || {error,E} <- [ Check_State,Check_Firing_Script,Check_Firing_Others,Check_Firing_Probed ] ],
+	case Errors of
+	[] ->
 		test_testrun( Module,Instance,Rest );
-	{{error,A},ok} ->
-		{ error,A };
-	{ok,{error,B}} ->
-		{ error,B };
-	{{error,A},{error,B}} ->
-		{ error,{A,B} }
+	_ ->
+		{ error,Errors }
 	end.
 
 run_tests( [],Module,_Test,AccuOK ) ->

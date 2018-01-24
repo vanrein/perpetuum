@@ -14,7 +14,9 @@
 
 [
 
+	%
 	% First round, failing to get SRV record
+	%
 
 	#{ },
 	[ krbtgtMissing ],
@@ -34,7 +36,9 @@
 	#{ failedCached=>1 },
 	[ cache_exp_timer ],
 
+	%
 	% Second round, runs into TLSA failure
+	%
 
 	#{ },
 	[ krbtgtMissing ],
@@ -69,7 +73,9 @@
 	#{ failedCached=>1 },
 	[ cache_exp_timer ],
 
+	%
 	% Third round; this time all will work out; different parallel order
+	%
 
 	#{ },
 	[ krbtgtMissing ],
@@ -116,10 +122,97 @@
 	#{ processingRequest=>1, fresh_krbtgt=>1, success=>1 },
 	[ successfulEnd, krbtgt_refresh_timer ],
 
+	%
+	% We have a fresh cache, which shows up when we ask again
+	%
+
+	#{ fresh_krbtgt=>1 },
+	[ krbtgtMissing, krbtgt_refresh_timer],
+
+	#{ fresh_krbtgt=>1, processingRequest=>1, want_krbtgt=>1 },
+	[ have_fresh_krbtgt, krbtgt_refresh_timer ],
+
+	#{ fresh_krbtgt=>1, processingRequest=>1, have_krbtgt=>1 },
+	[ send_krbtgt_to_all_requesters, krbtgt_refresh_timer ],
+
+	#{ fresh_krbtgt=>1, processingRequest=>1, success=>1 },
+	[ successfulEnd, krbtgt_refresh_timer ],
+
+	%
+	% Back to where we were.  Again, now with a shifty cache
+	%
+
+	#{ fresh_krbtgt=>1 },
+	[ krbtgtMissing, krbtgt_refresh_timer],
+
+	#{ fresh_krbtgt=>1, processingRequest=>1, want_krbtgt=>1 },
+	[ krbtgt_refresh_timer, have_fresh_krbtgt ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>1, want_krbtgt=>1 },
+	[ have_dawn_krbtgt, krbtgt_expired_remove ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>2, want_SRV=>1, have_krbtgt=>1 },
+	[ send_krbtgt_to_all_requesters, krbtgt_expired_remove, dnssec_req_SRV ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>2, want_SRV=>1, success=>1 },
+	[ successfulEnd, krbtgt_expired_remove, dnssec_req_SRV ],
+
+	%
+	% We responded, but also forked a round to liven up our dawning token
+	%
+
+	#{ krbtgt_dawn=>1, processingRequest=>1, want_SRV=>1 },
+	[ dnssec_req_SRV, krbtgt_expired_remove ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>1, lookup_kdc=>1 },
+	[ got_SRV, failed_SRV, krbtgt_expired_remove ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>1, want_cert=>1, want_address=>1 },
+	[ dns_req_A_AAAA, dnssec_req_TLSA, krbtgt_expired_remove ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>1, want_cert=>1, lookup_address=>1 },
+	[ dnssec_req_TLSA, got_A_AAAA, failed_A_AAAA, krbtgt_expired_remove ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>1, lookup_DANE=>1, lookup_address=>1 },
+	[ got_A_AAAA, failed_A_AAAA, got_TLSA, failed_TLSA, krbtgt_expired_remove ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>1, lookup_DANE=>1, want_KX_exchange=>1 },
+	[ send_KX_req, got_TLSA, failed_TLSA, krbtgt_expired_remove ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>1, lookup_DANE=>1, await_KX=>1 },
+	[ got_TLSA, failed_TLSA, got_KX_resp, failed_KX, krbtgt_expired_remove ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>1, keyed_remote=>1, await_KX=>1 },
+	[ got_KX_resp, failed_KX, krbtgt_expired_remove ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>1, keyed_remote=>1, responded_remote=>1 },
+	[ signature_good, signature_error, krbtgt_expired_remove ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>1, got_ecdhe=>1 },
+	[ ecdhe2krbtgt, krbtgt_expired_remove ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>1, got_krbtgt=>1 },
+	[ store_krbtgt_kdb, krbtgt_expired_remove ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>1, fresh_krbtgt=>1, have_krbtgt=>1 },
+	[ send_krbtgt_to_all_requesters, krbtgt_refresh_timer, krbtgt_expired_remove, krbtgt_remove_dawn ],
+
+	#{ krbtgt_dawn=>1, processingRequest=>1, fresh_krbtgt=>1, success=>1 },
+	[ successfulEnd, krbtgt_refresh_timer, krbtgt_expired_remove, krbtgt_remove_dawn ],
+
+	%
+	% We now have a fresh and a dawned krbtgt; we can remove the latter
+	%
+
+	#{ krbtgt_dawn=>1, fresh_krbtgt=>1 },
+	[ krbtgt_remove_dawn, krbtgt_refresh_timer, krbtgt_expired_remove, krbtgtMissing ],
+
+	%
+	% Now expire the token representing a cached krbtgt
+	%
+
 	#{ fresh_krbtgt=>1 },
 	[ krbtgt_refresh_timer, krbtgtMissing ],
-
-		% Could insert 2nd/3rd cycles here
 
 	#{ krbtgt_dawn=>1 },
 	[ krbtgt_expired_remove, krbtgtMissing ],
