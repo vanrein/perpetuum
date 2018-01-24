@@ -15,6 +15,7 @@
 
 
 -define(LambdaLift(Atom), fun(X) -> Atom( X ) end).
+-define(LambdaLift3(Atom), fun(X,Y,Z) -> Atom( X,Y,Z ) end).
 
 
 check_marking( _Expected,[],AccuOK ) ->
@@ -85,7 +86,7 @@ check_canfire_others( Module,Instance,Goal ) ->
 		{ error,{check_canfire_others_toomuch,check_canfire_others_toolittle} }
 	end.
 
-check_canfire_probed( Module,Instance,Goal ) ->
+check_canfire_probed( Module,Instance ) ->
 	Firing = gen_perpetuum:canfire( Instance ),
 	BadAmmo = lists:subtract( Module:transit(),Firing ),
 	TestAmmo = fun( TransName ) ->
@@ -105,40 +106,53 @@ check_canfire_probed( Module,Instance,Goal ) ->
 		{ error,check_canfire_probed_toomuch }
 	end.
 
-test_testrun( _Module,_Instance,[] ) ->
+test_testrun( _Module,_Instance,[],_Invoke ) ->
 	ok;
-test_testrun( Module,Instance,[State,Ops|Rest] ) ->
+test_testrun( Module,Instance,[State,Ops|Rest],Invoke ) ->
 	%DEBUG% io:format( "test_testrun() was called~n"),
 	% Compare State with Instance:
 	Check_State = check_marking( Instance,State ),
 	% Compare Ops with Instance:
 	Check_Firing_Script = check_canfire_script(        Instance,Ops ),
 	Check_Firing_Others = check_canfire_others( Module,Instance,Ops ),
-	Check_Firing_Probed = check_canfire_probed( Module,Instance,Ops ),
+	Check_Firing_Probed = check_canfire_probed( Module,Instance     ),
 	% Send Ops#0 event to Instance:
 	[ TransName|_ ] = Ops,
-	io:format( "Sending event( ~p )~n",[TransName] ),
-	%DEBUG% Ref = monitor( process,Instance ),
-	%DEBUG% Instance ! { event,TransName,[],0,Ref,self() },
-	%DEBUG% receive
-	%DEBUG% { reply,Ref,EventReply } ->
-	%DEBUG% 	demonitor( Ref,[flush] ),
-	%DEBUG% 	io:format( "Received ~p~n",[EventReply] );
-	%DEBUG% noreply ->
-	%DEBUG% 	demonitor( Ref,[flush] ),
-	%DEBUG% 	io:format( "No reply!~n" );
-	%DEBUG% { 'DOWN',Ref,process,_,_}=Crash -> io:format( "Crashed ~p~n",[Crash] );
-	%DEBUG% Rubbish ->
-	%DEBUG% 	io:format( "Rubbish! ~p~n",[Rubbish] )
-	%DEBUG% end,
-	noreply = gen_perpetuum:event( Instance,TransName,[] ),
+
+	Invoke( Instance,TransName,[] ),
 	%TODO% io:format( "NoReply is ~p~n",[NoReply] ),
 	Errors = [ E || {error,E} <- [ Check_State,Check_Firing_Script,Check_Firing_Others,Check_Firing_Probed ] ],
 	case Errors of
 	[] ->
-		test_testrun( Module,Instance,Rest );
+		test_testrun( Module,Instance,Rest,Invoke );
 	_ ->
 		{ error,Errors }
+	end.
+
+% Three helper functions for submitting an attempted transition.
+%
+invoke_sync( Instance,TransName,EventData ) ->
+	io:format( "Sending event( ~p )~n",[TransName] ),
+	noreply = gen_perpetuum:event( Instance,TransName,EventData ).
+%
+invoke_async( Instance,TransName,EventData ) ->
+	io:format( "Sending signal( ~p )~n",[TransName] ),
+	gen_perpetuum:signal( Instance,TransName,EventData ).
+%
+invoke_manual( Instance,TransName,EventData ) ->
+	io:format( "Manually sending event( ~p )~n",[TransName] ),
+	Ref = monitor( process,Instance ),
+	Instance ! { event,TransName,EventData,0,Ref,self() },
+	receive
+	{ reply,Ref,EventReply } ->
+		demonitor( Ref,[flush] ),
+		io:format( "Received ~p~n",[EventReply] );
+	noreply ->
+		demonitor( Ref,[flush] ),
+		io:format( "No reply!~n" );
+	{ 'DOWN',Ref,process,_,_}=Crash -> io:format( "Crashed ~p~n",[Crash] );
+	Rubbish ->
+		io:format( "Rubbish! ~p~n",[Rubbish] )
 	end.
 
 run_tests( [],Module,_Test,AccuOK ) ->
@@ -154,8 +168,23 @@ run_tests( [],Module,_Test,AccuOK ) ->
 run_tests( [Option|Rest],Module,Test,AccuOK ) ->
 	io:format( "Running test ~p against ~p...~n", [Option,Module] ),
 	TestOutput = case Option of
-	testrun ->
-		% { ok,Instance } = Module:start_link( gen_perpetuum,trans_noreply,[] ),
+	syncrun ->
+		%DEBUG% io:format( "STARTING ~p~n",[Module] ),
+		{ ok,Instance } = Module:start_link( gen_perpetuum,trans_noreply,[] ),
+		%DEBUG% io:format( "STARTED: ~p~n",[Instance] ),
+		%DEBUG% Ref = monitor( process,Instance ),
+		%DEBUG% Module:stop( Instance ),
+		%DEBUG% receive
+		%DEBUG% %TODO% Move breakdown handling away from here
+		%DEBUG% { 'DOWN',Ref,process,Name1,normal } ->
+		%DEBUG% 	io:format( "Stopped ~p~n",[Name1] );
+		%DEBUG% { 'DOWN',Ref,process,_Name1,_Reason1 }=Failure1 ->
+		%DEBUG% 	io:format( "CRASH: ~p~n",[Failure1] )
+		%DEBUG% after 1000 ->
+		%DEBUG% 	demonitor( Ref,[flush] )
+		%DEBUG% end,
+		test_testrun( Module,Instance,Test,?LambdaLift3(invoke_sync) );
+	asyncrun ->
 		%DEBUG% io:format( "STARTING ~p~n",[Module] ),
 		{ ok,Instance } = Module:start( gen_perpetuum,trans_noreply,[] ),
 		%DEBUG% io:format( "STARTED: ~p~n",[Instance] ),
@@ -170,7 +199,7 @@ run_tests( [Option|Rest],Module,Test,AccuOK ) ->
 		%DEBUG% after 1000 ->
 		%DEBUG% 	demonitor( Ref,[flush] )
 		%DEBUG% end,
-		test_testrun( Module,Instance,Test )
+		test_testrun( Module,Instance,Test,?LambdaLift3(invoke_async) )
 	end,
 	case TestOutput of
 	ok ->
@@ -206,10 +235,16 @@ main( [ModName|OptStrings] ) ->
 	load_code( ModName ),
 	Test = load_test( ModName ),
 	%DEBUG% io:format( "Test options are ~p~n", [AtomicOpts] );
-	run_tests( OptStrings,ModName,Test );
+	case run_tests( OptStrings,ModName,Test ) of
+	true ->
+		halt( 0 );
+	false ->
+		halt( 1 )
+	end;
 main( _ ) ->
 	io:format( "Usage: run_test_script.erl Module Option...~n"),
 	io:format( "Options are:~n"),
-	io:format( " - testrun:~n"),
+	io:format( " - syncrun:~n"),
+	io:format( " - asyncrun:~n"),
 	halt( 1 ).
 
