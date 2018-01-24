@@ -1,0 +1,67 @@
+% Perpetuum test script: Traffic Light with Night Service
+%
+% This test script interchanges two kinds of element:
+%  - Mapping non-empty place names to token counts
+%  - Listing available actions
+%
+% The first element is the initial marking, the last is a lists of actions.
+% Places with 0 tokens can be silently dropped from the mappings.
+%
+% To test, take the first action off the list, and evolve to the next two.
+%
+% From: Rick van Rein <rick@openfortress.nl>
+
+
+[
+	#{ yellow=>1 },
+	[ dawn, stop ],
+
+	#{ yellow=>1, night_service=>1 },
+	[ sunset ],
+
+	#{ yellow=>1 },
+	[ stop, dawn ],
+
+	#{ red=>1 },
+	[ dawn, go ],
+
+	#{ red=>1, night_service=>1 },
+	[ sunset, go ],
+
+	#{ green=>1, night_service=>1 },
+	[ caution, sunset ],
+
+	#{ yellow=>1, night_service=>1 },
+	[ sunset ],
+
+	#{ yellow=>1 },
+	[ dawn, stop ],
+
+	#{ yellow=>1, night_service=>1 },
+	[ sunset ],
+
+	#{ yellow=>1 },
+	[ stop, dawn ],
+
+	#{ red=>1 },
+	[ go, dawn ],
+
+	#{ green=>1 },
+	[ dawn, caution ],
+
+	#{ green=>1, night_service=>1 },
+	[ caution, sunset ],
+
+	#{ yellow=>1, night_service=>1 },
+	[ sunset ],
+
+	#{ yellow=>1 },
+	[ stop, dawn ],
+
+	#{ red=> 1 },
+	[ go, dawn ],
+
+	#{ yellow=>1 },
+	[ stop, dawn ]
+
+].

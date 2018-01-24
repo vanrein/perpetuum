@@ -18,9 +18,9 @@
 	event/3,  event/4,
 	signal/3, signal/4,
 	system_continue/3, system_terminate/4,
-	trans_switch/3,
-	trans_noreply/3,
-	trans_error_arg/3, trans_error_trans/3
+	trans_switch/4,
+	trans_noreply/4,
+	trans_error_arg/4, trans_error_trans/4
 ]).
 
 
@@ -97,15 +97,15 @@
 % new state for the caller to store.
 %
 -spec handle_trans( TransName::atom(),EventData::term(),colour,AppState::term() ) -> internreply().
-handle_trans( TransName,EventData,AppState,
+handle_trans( TransName,EventData,
 			#colour{
 				petrinet=#petrinet{
 					callback={CallbackMod,CallbackFun,CallbackArgs},
 					transmap=TransMap
 				},
 				marking=Marking
-			}=Colour) ->
-		{ Addend,Subber,TransSentinel } = maps:get ( TransName,TransMap ),
+			}=Colour,AppState) ->
+		{ Addend,Subber,TransSentinel } = maps:get( TransName,TransMap ),
 		PreMarking = Marking - Subber,
 		RetVal = if
 		( PreMarking band TransSentinel ) /= 0 ->
@@ -151,12 +151,12 @@ handle_trans( TransName,EventData,AppState,
 % would be an overflow that caused the need for the reflow.
 %
 reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel }=Colour ) ->
-	io:fwrite( "Marking: ~p~n",[Marking] ),
-	io:fwrite( "Sentinel: ~p~n",[Sentinel] ),
 	if
 	( Marking band Sentinel ) == 0 ->
 		Colour;
 	true ->
+		io:fwrite( "Marking: ~p~n",[Marking] ),
+		io:fwrite( "Sentinel: ~p~n",[Sentinel] ),
 		case PetriNet of
 		#petrinet{ instance=InstanceMod, callback=Callback, numplaces=NumPlaces, placebits=PlaceBits, transmap=TransMap } ->
 			io:fwrite( "NumPlaces: ~p~n",[NumPlaces] ),
@@ -266,23 +266,23 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel }=Colour 
 %
 % When it is a literal map, it will occupy no memory per instance.
 %
--spec trans_switch( #{ TransName::atom() => { Module::atom(),Function::atom(),Args::term() } }, TransName::atom(), EventData::term() ) -> transreply().
-trans_switch( SwitchMap,TransName,EventData ) ->
+-spec trans_switch( #{ TransName::atom() => { Module::atom(),Function::atom(),Args::term() } }, TransName::atom(), EventData::term(), AppData::term() ) -> transreply().
+trans_switch( SwitchMap,TransName,EventData,AppData ) ->
 	{Mswi,Fswi,Aswi} = maps:get( TransName,SwitchMap ),
-	Mswi:Fswi( Aswi,TransName,EventData ).
+	Mswi:Fswi( Aswi,TransName,EventData,AppData ).
 
 % Accept any transition immediately, returning a simple noreply.
 %
--spec trans_noreply( CBArg::term(),TransName::atom(),EventData::term() ) -> noreply.
-trans_noreply( _CBArg,_TransName,_EventData ) -> noreply.
+-spec trans_noreply( CBArg::term(),TransName::atom(),EventData::term(),AppData::term() ) -> noreply.
+trans_noreply( _CBArg,_TransName,_EventData,AppData ) -> { noreply,AppData }.
 
 % Reject the transition with an error.
 %
--spec trans_error_arg( CBArg::term(),TransName::atom(),EventData::term() ) -> {error,term()}.
-trans_error_arg( CBArg,_TransName,_EventData ) -> { error,CBArg }.
+-spec trans_error_arg( CBArg::term(),TransName::atom(),EventData::term(),AppData::term() ) -> {error,term()}.
+trans_error_arg( CBArg,_TransName,_EventData,_AppData ) -> { error,CBArg }.
 %
--spec trans_error_trans( CBArg::term(),TransName::atom(),EventData::term() ) -> {error,term()}.
-trans_error_trans( _CBArg,TransName,_EventData ) -> { error,TransName }.
+-spec trans_error_trans( CBArg::term(),TransName::atom(),EventData::term(),AppData::term() ) -> {error,term()}.
+trans_error_trans( _CBArg,TransName,_EventData,_AppData ) -> { error,TransName }.
 
 
 % Ask a Petri Net for its current marking.
@@ -301,7 +301,7 @@ marking( PetriNet ) ->
 	Ref = monitor( process,PetriNet ),
 	catch PetriNet ! { marking,Ref,self() },
 	receive
-	{ reply,Ref,Reply } ->
+	{ reply,Ref,{reply,Reply} } ->
 		demonitor( Ref,[flush] ),
 		Reply;
 	{ 'DOWN',Ref,process,_Name,Reason } ->
@@ -326,7 +326,7 @@ canfire( PetriNet ) ->
 	Ref = monitor( process,PetriNet ),
 	catch PetriNet ! { canfire,Ref,self() },
 	receive
-	{ reply,Ref,Reply } ->
+	{ reply,Ref,{reply,Reply} } ->
 		demonitor( Ref,[flush] ),
 		Reply;
 	{ 'DOWN',Ref,process,_Name,Reason } ->
@@ -338,7 +338,7 @@ canfire( PetriNet,TransName ) ->
 	Ref = monitor( process,PetriNet ),
 	catch PetriNet ! { canfire,TransName,Ref,self() },
 	receive
-	{ reply,Ref,Reply } ->
+	{ reply,Ref,{reply,Reply} } ->
 		demonitor( Ref,[flush] ),
 		Reply;
 	{ 'DOWN',Ref,process,_Name,Reason } ->
@@ -396,8 +396,8 @@ event( PetriNet,TransName,EventData,Timeout ) ->
 	Ref = monitor( process,PetriNet ),
 	catch PetriNet ! { event,TransName,EventData,Timeout,Ref,self() },
 	receive
-	{ reply,Reply } ->
-		demonitor( Ref, [flush] ),
+	{ reply,Ref,Reply } ->
+		demonitor( Ref,[flush] ),
 		Reply;
 	{ 'DOWN', Ref, process, _Name, Reason } ->
 		{ error,Reason }
@@ -504,11 +504,14 @@ loop( Parent,Colour,AppState )  ->
 	%
 	end of
 		{ noreply,NewColour,NewAppState } ->
+			%DEBUG% io:fwrite( "Sent noreply~n" ),
 			loop( Parent,NewColour,NewAppState );
-		{ reply,_,NewColour,NewAppState } ->
+		{ reply,_Reply,NewColour,NewAppState } ->
+			%DEBUG% io:fwrite( "Sent a reply~n" ),
 			loop( Parent,NewColour,NewAppState );
 		_ ->
 			% includes the noreply response
+			%DEBUG% io:fwrite( "Quietly looping back~n" ),
 			loop( Parent,Colour,AppState )
 	end.
 
