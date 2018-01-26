@@ -407,6 +407,9 @@ signal( PetriNet,TransName,EventData,Timeout ) ->
 % Use event to synchronously send a transition request to a Petri Net and
 % await its response.  This is pretty much the same as send() elsewhere.
 %
+% When an {error,Reason} results, the Reason will be thrown.
+%TODO% Perhaps split up more results?
+%
 % When a Timeout in milli-seconds is specified, it indicates the total
 % time that application logic may defer handling.  Longer times would
 % not even be tried, but the remaining waiting time is returned.
@@ -434,6 +437,10 @@ event( PetriNet,TransName,EventData,Timeout ) ->
 	Ref = monitor( process,PetriNet ),
 	catch PetriNet ! { event,TransName,EventData,Timeout,Ref,self() },
 	receive
+	{ reply,Ref,{error,_Reason} } ->
+		demonitor( Ref,[flush] ),
+		throw( Reason );
+	%TODO% Consider unpacking more responses
 	{ reply,Ref,Reply } ->
 		demonitor( Ref,[flush] ),
 		Reply;
@@ -613,6 +620,7 @@ check_canfire( Marking,Subber,TransSentinel ) ->
 % Only two return values are expected from '$enquire':
 %  { reply,Answer,_ } -> holds the Answer for the caller
 %  { error,Reason }   -> will be thrown as an exception to the caller
+%  { noreply,_ }      -> will be sent back as {error,noreply}
 %
 % Both Query and Answer are free-form, each is an Erlang term().
 %
@@ -628,8 +636,8 @@ handle_enquire(#colour{
 		{ reply,Reply,Colour,AppState };
 	{ noreply,_AppState } ->
 		{ error,noreply };
-	Other ->
-		Other
+	{ error,_ }=Error ->
+		Error
 	end.
 
 

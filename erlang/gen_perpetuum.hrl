@@ -63,7 +63,7 @@
 %  - { noreply,            AppState      }
 %  - { reply,   ReplyCode, AppState      }
 %  - { error,   Reason                   }
-%  - { retry,   Reason                   }
+%  - { retry,   Hints                    }
 %  - { delay,   PositiveMilliSecondDelay }
 %
 -type transreply() :: { noreply,         term() } |
@@ -83,7 +83,7 @@
 %  - { noreply            }
 %  - { reply,   ReplyCode }
 %  - { error,   Reason    }
-%  - { retry,   Reason    }
+%  - { retry,   Hints     }
 % Amount the error conditions worth noting is timeout,
 %  - { error,   { timeout,TimeLeft } }
 %
