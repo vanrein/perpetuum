@@ -284,6 +284,7 @@ def genlist (kind, dict, name, reflist):
 		cout.write (', ' + str (i))
 	cout.write (' };\n')
 p2tm = [ (e.source,e.target,int(e.inscription)) for e in net.edges if net.places.has_key (e.source) and e.type != 'inhibitor' ]
+p2im = [ (e.source,e.target,int(e.inscription)) for e in net.edges if net.places.has_key (e.source) and e.type == 'inhibitor' ]
 t2pm = [ (e.source,e.target,int(e.inscription)) for e in net.edges if net.places.has_key (e.target) ]
 p2t = [ (e.source,e.target) for e in net.edges if net.places.has_key (e.source) and e.type != 'inhibitor' for multi in range (int (e.inscription)) ]
 p2i = [ (e.source,e.target) for e in net.edges if net.places.has_key (e.source) and e.type == 'inhibitor' ]
@@ -296,6 +297,11 @@ for t in trans_list:
 	genlist ('place', place_idx, t + '_place_in',      [ p for (p,t2) in p2t if t==t2 ] )
 	genlist ('place', place_idx, t + '_place_out',     [ p for (t2,p) in t2p if t==t2 ] )
 	cout.write ('\n')
+
+# Disapprove of multiplicity on inhibitors (this is a future expansion)
+for (p,i,m) in p2im:
+	if m != 1:
+		raise Exception ('Inhibitors with multiplicity are not yet supported')
 
 # Generate the place_topo_t[] from the array of each place's inputs and outputs
 cout.write ('static const place_topo_t ' + neat_net_name + '_places [] = {\n')
