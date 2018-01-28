@@ -106,10 +106,19 @@ check_canfire_probed( Module,Instance ) ->
 		{ error,check_canfire_probed_toomuch }
 	end.
 
-test_testrun( _Module,_Instance,[],_Invoke ) ->
+% To compare the data trace to a test, we just need to match patterns.
+% Event data is set to {886,TransName} by the invoke_traced operation used.
+check_datatrace( CBArgs,[{'$init',CBArgs},{'$enquire',CBArgs,[]}],[] ) ->
 	ok;
-test_testrun( Module,Instance,[State,Ops|Rest],Invoke ) ->
-	%DEBUG% io:format( "test_testrun() was called~n"),
+check_datatrace( CBArgs,[Init,{TrNm,CBArgs,{886,TrNm}}|MoreDataTrace],[_State,[TrNm|_Ops]|MoreTest] ) ->
+	check_datatrace( CBArgs,[Init|MoreDataTrace],MoreTest );
+check_datatrace( CBArgs,DataTrace,Test ) ->
+	{error,{check_datatrace,CBArgs,DataTrace,Test}}.
+
+testrun( _Module,_Instance,[],_Invoke ) ->
+	ok;
+testrun( Module,Instance,[State,Ops|Rest],Invoke ) ->
+	%DEBUG% io:format( "testrun() was called~n"),
 	% Compare State with Instance:
 	Check_State = check_marking( Instance,State ),
 	% Compare Ops with Instance:
@@ -118,14 +127,13 @@ test_testrun( Module,Instance,[State,Ops|Rest],Invoke ) ->
 	Check_Firing_Probed = check_canfire_probed( Module,Instance     ),
 	% Send Ops#0 event to Instance:
 	[ TransName|_ ] = Ops,
-
 	NoReply = Invoke( Instance,TransName,[] ),
 	io:format( "NoReply is ~p~n",[NoReply] ),
 	io:format( "Check_xxx results are ~p, ~p, ~p, ~p~n",[Check_State,Check_Firing_Script,Check_Firing_Others,Check_Firing_Probed] ),
 	Errors = [ E || {error,E} <- [ Check_State,Check_Firing_Script,Check_Firing_Others,Check_Firing_Probed ] ],
 	case Errors of
 	[] ->
-		test_testrun( Module,Instance,Rest,Invoke );
+		testrun( Module,Instance,Rest,Invoke );
 	_ ->
 		{ error,Errors }
 	end.
@@ -140,6 +148,10 @@ invoke_async( Instance,TransName,EventData ) ->
 	io:format( "Sending signal( ~p )~n",[TransName] ),
 	gen_perpetuum:signal( Instance,TransName,EventData ).
 %
+invoke_traced( Instance,TransName,_EventData ) ->
+	io:format( "Sending event( ~p )~n",[TransName] ),
+	noreply = gen_perpetuum:event( Instance,TransName,{886,TransName} ).
+%
 invoke_manual( Instance,TransName,EventData ) ->
 	io:format( "Manually sending event( ~p )~n",[TransName] ),
 	Ref = monitor( process,Instance ),
@@ -151,9 +163,12 @@ invoke_manual( Instance,TransName,EventData ) ->
 	noreply ->
 		demonitor( Ref,[flush] ),
 		io:format( "No reply!~n" );
-	{ 'DOWN',Ref,process,_,_}=Crash -> io:format( "Crashed ~p~n",[Crash] );
+	{ 'DOWN',Ref,process,_,_}=Crash ->
+		io:format( "Crashed ~p~n",[Crash] ),
+		throw( Crash );
 	Rubbish ->
-		io:format( "Rubbish! ~p~n",[Rubbish] )
+		io:format( "Rubbish! ~p~n",[Rubbish] ),
+		throw( {rubbish,Rubbish} )
 	end.
 
 run_tests( [],Module,_Test,AccuOK ) ->
@@ -188,13 +203,17 @@ run_tests( [Option|Rest],Module,Test,AccuOK ) ->
 			{ error,timeout }
 		end;
 	syncrun ->
-		%DEBUG% io:format( "STARTING ~p~n",[Module] ),
 		{ ok,Instance } = Module:start_link( gen_perpetuum,trans_noreply,[] ),
-		test_testrun( Module,Instance,Test,?LambdaLift3(invoke_sync) );
+		testrun( Module,Instance,Test,?LambdaLift3(invoke_sync) );
 	asyncrun ->
-		%DEBUG% io:format( "STARTING ~p~n",[Module] ),
 		{ ok,Instance } = Module:start( gen_perpetuum,trans_noreply,[] ),
-		test_testrun( Module,Instance,Test,?LambdaLift3(invoke_async) )
+		testrun( Module,Instance,Test,?LambdaLift3(invoke_async) );
+	applogic ->
+		CBArgs={486,[7,3]},
+		{ ok,Instance } = Module:start( stub_applogic,trans_datatrace,CBArgs ),
+		testrun( Module,Instance,Test,?LambdaLift3(invoke_traced) ),
+		DataTrace  = gen_perpetuum:enquire( Instance,[] ),
+		check_datatrace( CBArgs,DataTrace,Test )
 	end,
 	case TestOutput of
 	ok ->
@@ -242,9 +261,11 @@ main( [ModName|OptStrings] ) ->
 		halt( 1 )
 	end;
 main( _ ) ->
-	io:format( "Usage: run_test_script.erl Module Option...~n"),
+	io:format( "Usage: run_test.erl Module Option...~n"),
 	io:format( "Options are:~n"),
-	io:format( " - syncrun:~n"),
-	io:format( " - asyncrun:~n"),
+	io:format( " - startstop~n"),
+	io:format( " - syncrun~n"),
+	io:format( " - asyncrun~n"),
+	io:format( " - applogic~n"),
 	halt( 1 ).
 

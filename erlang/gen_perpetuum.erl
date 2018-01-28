@@ -225,7 +225,7 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel }=Colour 
 		io:fwrite( "Marking: ~p~n",[Marking] ),
 		io:fwrite( "Sentinel: ~p~n",[Sentinel] ),
 		case PetriNet of
-		#petrinet{ instance=InstanceMod, callback=Callback, numplaces=NumPlaces, placebits=PlaceBits, transmap=TransMap } ->
+		#petrinet{ instance=InstanceMod, callback=Callback, numplaces=NumPlaces, placebits=PlaceBits } ->
 			io:fwrite( "NumPlaces: ~p~n",[NumPlaces] ),
 			io:fwrite( "PlaceBits: ~p~n",[PlaceBits] ),
 			%
@@ -379,15 +379,19 @@ canfire( PetriNet,TransName ) ->
 enquire( PetriNet,Query ) ->
 	Ref = monitor( process,PetriNet ),
 	catch PetriNet ! { enquire,Query,Ref,self() },
+	%DEBUG% io:format( "Sent enquiry ~p~n",[{enquire,Query,Ref,self()}] ),
 	receive
 	{ reply,Ref,{reply,Reply} } ->
 		demonitor( Ref,[flush] ),
+		%DEBUG% io:format( "Required inquiry result ~p~n",[Reply] ),
 		Reply;
 	{ reply,Ref,{error,Reason} } ->
 		demonitor( Ref,[flush] ),
+		%DEBUG% io:format( "Required inquiry error ~p~n",[Reason] ),
 		throw( Reason );
 	{ 'DOWN',Ref,process,_Name,Reason } ->
-		{ error,Reason }
+		%DEBUG% io:format( "Inquiry ran into dead process: ~p~n",[Reason] ),
+		throw( Reason )
 	end.
 
 % Use signal to asynchronously send a transition request to a Petri Net.
@@ -521,11 +525,11 @@ loop( Parent,Colour,AppState )  ->
 	%
 	{ event,TransName,EventData,Timeout,Ref,Pid } ->
 		send_response(Ref,Pid,
-			handle_delay(Timeout,TransName,EventData,Pid,
+			handle_delay(Timeout,TransName,EventData,Ref,Pid,
 				handle_trans( TransName,EventData,Colour,AppState )));
 	{ signal,TransName,EventData,Timeout } ->
 		handle_async_infodrop(
-			handle_delay( Timeout,TransName,EventData,-1,
+			handle_delay( Timeout,TransName,EventData,-1,-1,
 				handle_trans( TransName,EventData,Colour,AppState )));
 	%
 	% Utility functions to query the Petri Net
@@ -637,8 +641,8 @@ handle_enquire(#colour{
 		}=Colour,
 		AppState,Query ) ->
 	case CallbackMod:CallbackFun( CallbackArgs,'$enquire',Query,AppState ) of
-	{ reply,Reply,_AppState } ->
-		{ reply,Reply,Colour,AppState };
+	{ reply,Reply,NewAppState } ->
+		{ reply,Reply,Colour,NewAppState };
 	{ noreply,_AppState } ->
 		{ error,noreply };
 	{ error,_ }=Error ->
@@ -679,7 +683,7 @@ handle_enquire(#colour{
 % The function returns noreply to requesting loop to cycle around
 % with the same state.
 %
-handle_delay( MaxDelay,TransName,EventData,PidOpt,PreResponse ) ->
+handle_delay( MaxDelay,TransName,EventData,RefOpt,PidOpt,PreResponse ) ->
 	case PreResponse of
 	{ delay,DeferMS } ->
 		if DeferMS =< 0 ->
@@ -688,10 +692,10 @@ handle_delay( MaxDelay,TransName,EventData,PidOpt,PreResponse ) ->
 			NewTimeout = MaxDelay - DeferMS,
 			if NewTimeout > 0 ->
 				% Try repeated delivery after DeferMS have passed
-				if is_pid (PidOpt) ->
-					NewMsg = {  event,TransName,EventData,PidOpt,NewTimeout };
+				if is_pid( PidOpt ) ->
+					NewMsg = {  event,TransName,EventData,NewTimeout,RefOpt,PidOpt };
 				true ->
-					NewMsg = { signal,TransName,EventData,       NewTimeout }
+					NewMsg = { signal,TransName,EventData,NewTimeout }
 				end,
 				timer:send_after( DeferMS, NewMsg  ),
 				noreply;
