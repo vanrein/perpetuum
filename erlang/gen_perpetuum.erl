@@ -21,7 +21,8 @@
 	system_continue/3, system_terminate/4,
 	trans_switch/4,
 	trans_noreply/4,
-	trans_error_arg/4, trans_error_trans/4
+	trans_error_arg/4, trans_error_trans/4,
+	reflow_bitfields/4,reflow_sentinel/4, reflow_transmap/4
 ]).
 
 
@@ -130,6 +131,71 @@ handle_trans( TransName,EventData,
 		end.
 
 
+% Update Addend or Subber in the petrinet and colour
+% by inserting the extra NewPlaceBits-OldPlaceBits everywhere
+%
+reflow_bitfields( Vec,OldPlacebits,NewPlacebits,BitPos,PlacesTogo ) ->
+	if PlacesTogo == 0 ->
+		Vec;
+	true ->
+		%
+		% Split Vec into top and bottom parts, and add
+		% ExtraPlaceBits bits valued 0 on top
+		% of place bits _and_ carry bit by shifting
+		% the rest up
+		%
+		TopVec = Vec band ( -1 bsl (BitPos+OldPlacebits+1) ),
+		BotVec = Vec bxor TopVec,
+		UpdVec = BotVec bor ( TopVec bsl (NewPlacebits-OldPlacebits) ),
+		io:fwrite( "Extending with Vec ~p/~p, TopVec ~p, BotVec ~p, UpdVec ~p after bsl ~p~n", [Vec,BitPos,TopVec,BotVec,UpdVec,NewPlacebits-OldPlacebits] ),
+		reflow_bitfields( UpdVec,OldPlacebits,NewPlacebits,BitPos+NewPlacebits+1,PlacesTogo-1 )
+	end.
+reflow_bitfields( Vec,NumPlaces,OldPlacebits,NewPlacebits ) ->
+	RETVAL =
+	reflow_bitfields( Vec,OldPlacebits,NewPlacebits,0,NumPlaces )
+	, io:fwrite( "Extended Bitfields ~p to ~p~n", [Vec,RETVAL] ), RETVAL.
+
+% Update Sentinel in the petrinet by inserting the extra
+% NewPlaceBits-OldPlaceBits everywhere
+%
+reflow_sentinel( Vec,OldPlacebits,NewPlacebits,BitPos,PlacesTogo ) ->
+	if PlacesTogo == 0 ->
+		Vec;
+	true ->
+		TopVec = Vec band ( -1 bsl BitPos ),
+		BotVec = Vec bxor TopVec,
+		ReguardExtraBits = ( -1 bsl (NewPlacebits-OldPlacebits) ) bxor -1,
+		NewVec = if
+			(Vec band (1 bsl BitPos)) /= 0 -> ReguardExtraBits bsl BitPos;
+			true -> 0
+		end,
+		UpdVec = BotVec bor (TopVec bsl (NewPlacebits-OldPlacebits)) bor NewVec,
+		io:fwrite( "Reguarding with Vec ~p/~p, TopVec ~p, BotVec ~p, NewVec ~p, UpdVec ~p~n", [Vec,BitPos,TopVec,BotVec,NewVec,UpdVec] ),
+		reflow_sentinel( UpdVec,OldPlacebits,NewPlacebits,BitPos+NewPlacebits+1,PlacesTogo-1 )
+	end.
+%
+reflow_sentinel( Vec,NumPlaces,OldPlacebits,NewPlacebits ) ->
+	RETVAL =
+	reflow_sentinel( Vec,OldPlacebits,NewPlacebits,0,NumPlaces )
+	, io:fwrite( "Reflowed Sentinel ~p to ~p~n", [Vec,RETVAL] ), RETVAL.
+
+
+% Reflow a TransMap by reflowing the included Adders and Subbers, as well
+% as the TransSentinel..
+%
+reflow_transmap( TransMap,NumPlaces,OldPlacebits,NewPlacebits ) ->
+	ExpandTransMapKV = fun( _TransName,{ Addend,Subber,TransSentinel } ) ->
+		{
+			reflow_bitfields( Addend,NumPlaces,OldPlacebits,NewPlacebits ),
+			reflow_bitfields( Subber,NumPlaces,OldPlacebits,NewPlacebits ),
+			reflow_sentinel( TransSentinel,NumPlaces,OldPlacebits,NewPlacebits )
+		}
+	end,
+	RETVAL =
+	maps:map( ExpandTransMapKV, TransMap )
+	, io:fwrite( "Reflown TransMap ~p to ~p~n", [TransMap,RETVAL] ), RETVAL.
+
+
 % The reflow procedure inserts extra place bits to make an
 % outcome of a transition fit.  It only has impact when
 % there is actually a need for more bits.
@@ -181,65 +247,6 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel }=Colour 
 			io:fwrite( "ExtraPlaceBits: ~p~n",[ExtraPlaceBits] ),
 			%UNDEFINED% assert:assert( NewIntLen    >= NeedIntLen ),
 			%UNDEFINED% assert:assert( NewPlaceBits >  PlaceBits  ),
-			%
-			% Update Sentinels and Addend in the petrinet and colour
-			% by inserting the extra NewPlaceBits-PlaceBits everywhere
-			%
-			%TODO% Would be good to retrieve reflown structures from a cache
-			%
-			ExtendBitfields_rec = fun( YF,Vec,BitPos,PlacesTogo ) ->
-				if PlacesTogo == 0 ->
-					Vec;
-				true ->
-					%
-					% Split Vec into top and bottom parts, and add
-					% ExtraPlaceBits bits valued 0 on top
-					% of place bits _and_ carry bit by shifting
-					% the rest up
-					%
-					TopVec = Vec band ( -1 bsl (BitPos+PlaceBits+1) ),
-					BotVec = Vec bxor TopVec,
-					UpdVec = BotVec bor ( TopVec bsl ExtraPlaceBits ),
-					io:fwrite( "Extending with Vec ~p/~p, TopVec ~p, BotVec ~p, UpdVec ~p~n", [Vec,BitPos,TopVec,BotVec,UpdVec] ),
-					YF( YF,UpdVec,BitPos+NewPlaceBits+1,PlacesTogo-1 )
-				end
-			end,
-			ExtendBitfields = fun( Vec ) ->
-				%TODO% Move this where InstanceMod:transmap() can call it
-				RETVAL =
-				ExtendBitfields_rec( ExtendBitfields_rec,Vec,0,NumPlaces )
-				, io:fwrite( "Extended Bitfields ~p to ~p~n", [Vec,RETVAL] ), RETVAL
-			end,
-			ReguardExtraBits = ( -1 bsl ExtraPlaceBits ) bxor -1,
-			ReguardBitfields_rec = fun( YF,Vec,BitPos,PlacesTogo ) ->
-				if PlacesTogo == 0 ->
-					Vec;
-				true ->
-					TopVec = Vec band ( -1 bsl BitPos ),
-					BotVec = Vec bxor TopVec,
-					NewVec = if
-						(Vec band (1 bsl BitPos)) /= 0 -> ReguardExtraBits bsl BitPos;
-						true -> 0
-					end,
-					UpdVec = BotVec bor (TopVec bsl ExtraPlaceBits) bor NewVec,
-					io:fwrite( "Reguarding with Vec ~p/~p, TopVec ~p, BotVec ~p, NewVec ~p, UpdVec ~p~n", [Vec,BitPos,TopVec,BotVec,NewVec,UpdVec] ),
-					YF( YF,UpdVec,BitPos+NewPlaceBits+1,PlacesTogo-1 )
-				end
-			end,
-			ReguardBitfields = fun( Vec ) ->
-				%TODO% Move this where InstanceMod:transmap() can call it
-				RETVAL =
-				ReguardBitfields_rec( ReguardBitfields_rec,Vec,0,NumPlaces )
-				, io:fwrite( "Reguarded Bitfields ~p to ~p~n", [Vec,RETVAL] ), RETVAL
-			end,
-			ExpandTransMapKV = fun( _TransName,{ Addend,Subber,TransSentinel } ) ->
-				%TODO% Move this where InstanceMod:transmap() can call it
-				{
-					ExtendBitfields( Addend ),
-					ExtendBitfields( Subber ),
-					ReguardBitfields( TransSentinel )
-				}
-			end,
 			#colour {
 				petrinet  = #petrinet {
 					instance  = InstanceMod,
@@ -247,10 +254,10 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel }=Colour 
 					numplaces = NumPlaces,
 					placebits = NewPlaceBits,
 					transmap  = InstanceMod:transmap( NewPlaceBits )
-					%TODO:OLD% transmap = maps:map( ExpandTransMapKV, TransMap )
+					%OLD:CODE:BUT:GOOD:TEST% transmap = reflow_transmap( TransMap,NumPlaces,PlaceBits,NewPlaceBits )
 				},
-				marking   = ExtendBitfields( Marking ),
-				sentinel  = ReguardBitfields( Sentinel )
+				marking  = reflow_bitfields( Marking,NumPlaces,PlaceBits,NewPlaceBits ),
+				sentinel = reflow_sentinel( Sentinel,NumPlaces,PlaceBits,NewPlaceBits )
 			}
 		end
 	end.
@@ -437,7 +444,7 @@ event( PetriNet,TransName,EventData,Timeout ) ->
 	Ref = monitor( process,PetriNet ),
 	catch PetriNet ! { event,TransName,EventData,Timeout,Ref,self() },
 	receive
-	{ reply,Ref,{error,_Reason} } ->
+	{ reply,Ref,{error,Reason} } ->
 		demonitor( Ref,[flush] ),
 		throw( Reason );
 	%TODO% Consider unpacking more responses
@@ -479,8 +486,6 @@ send_response( Ref,Pid,Response ) ->
 
 % The init routine is usually invoked from an instance of this behaviour.
 % It uses proc_lib to register "properly" and then starts the process loop.
-%
-%TODO% Do we need to pass in state?
 %
 init( Parent,InstanceMod,[CallbackMod,CallbackFun,CallbackArgs] ) ->
 	%DEBUG% io:format( "init() called~n"),

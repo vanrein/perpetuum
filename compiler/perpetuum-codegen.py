@@ -451,7 +451,7 @@ for i in range (5):
 	curbits = erlang_next_placebits (curbits)
 # Final clause: 
 #UNUSED# eout.write ('transmap(    0 ) ->\n\t\ttransmap( %d );\n' % needed_placebits)
-eout.write ('transmap(    N ) when N div 64 == 0 ->\n\t\tgen_perpetuum:reflow_transmap( transmap( %d ),%d,N ).\n' % (needed_placebits,needed_placebits))
+eout.write ('transmap(    N ) when N div 64 == 0 ->\n\t\tgen_perpetuum:reflow_transmap( transmap( %d ),%d,%d,N ).\n' % (needed_placebits,place_num,needed_placebits))
 eout.write ('\n\n')
 
 # Code to produce the smallest sentinels as literals, with endless
@@ -466,7 +466,7 @@ for i in range (5):
 	lastcurbits = curbits
 	curbits = erlang_next_placebits (curbits)
 #UNUSED# eout.write ('sentinel(    0 ) -> sentinel( %d );\n' % needed_placebits)
-eout.write ('sentinel(    N ) -> gen_perpetuum:reflow_sentinel( sentinel( %d ),%d,N ).\n' % (needed_placebits,needed_placebits))
+eout.write ('sentinel(    N ) -> gen_perpetuum:reflow_sentinel( sentinel( %d ),%d,%d,N ).\n' % (needed_placebits,place_num,needed_placebits))
 eout.write ('\n\n')
 
 

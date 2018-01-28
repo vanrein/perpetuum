@@ -119,8 +119,9 @@ test_testrun( Module,Instance,[State,Ops|Rest],Invoke ) ->
 	% Send Ops#0 event to Instance:
 	[ TransName|_ ] = Ops,
 
-	Invoke( Instance,TransName,[] ),
-	%TODO% io:format( "NoReply is ~p~n",[NoReply] ),
+	NoReply = Invoke( Instance,TransName,[] ),
+	io:format( "NoReply is ~p~n",[NoReply] ),
+	io:format( "Check_xxx results are ~p, ~p, ~p, ~p~n",[Check_State,Check_Firing_Script,Check_Firing_Others,Check_Firing_Probed] ),
 	Errors = [ E || {error,E} <- [ Check_State,Check_Firing_Script,Check_Firing_Others,Check_Firing_Probed ] ],
 	case Errors of
 	[] ->
@@ -176,7 +177,7 @@ run_tests( [Option|Rest],Module,Test,AccuOK ) ->
 		Module:stop( Instance ),
 		io:format( "STOPPED: ~p~n",[Instance] ),
 		receive
-		{ 'DOWN',Ref,process,Name1,normal } ->
+		{ 'DOWN',Ref,process,_Name1,normal } ->
 			%DEBUG% io:format( "Stopped ~p~n",[Name1] );
 			ok;
 		{ 'DOWN',Ref,process,_Name1,_Reason1 }=Failure1 ->
@@ -206,9 +207,14 @@ run_tests( [Option|Rest],Module,Test,AccuOK ) ->
 	run_tests( Rest,Module,Test,NextOK ).
 %
 run_tests( OptNames,ModName,Test ) ->
-	Module = list_to_atom( ModName ),
-	Options = lists:map( ?LambdaLift(list_to_atom),OptNames ),
-	run_tests( Options,Module,Test,true ).
+	if OptNames == [] ->
+		io:format( "DESTINED TO FAIL: Please specify tests to run!~n" ),
+		false;
+	true ->
+		Module = list_to_atom( ModName ),
+		Options = lists:map( ?LambdaLift(list_to_atom),OptNames ),
+		run_tests( Options,Module,Test,true )
+	end.
 
 load_code( ModName ) ->
 	code:add_patha( "../erlang" ),
