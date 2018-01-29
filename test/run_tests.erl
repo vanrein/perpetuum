@@ -181,6 +181,21 @@ invoke_wildnum( Instance,TransName,EventData ) ->
 	WildNum = erlang:adler32( term_to_binary( EventData )),
 	io:format( "WildNum ~p for EventData ~p~n",[WildNum,EventData] ),
 	invoke_manual( Instance,TransName,WildNum ).
+%
+invoke_delayed_signal( Instance,TransName,_EventData ) ->
+	Now = erlang:monotonic_time( millisecond ),
+	io:format( "Invoking ~p in 5 ms~n",[TransName] ),
+	gen_perpetuum:signal( Instance,TransName,Now+5,25 ),
+	timer:sleep( 10 ),
+	noreply.
+%
+invoke_delayed_event( Instance,TransName,_EventData ) ->
+	Now = erlang:monotonic_time( millisecond ),
+	io:format( "Invoking ~p in 5 ms~n",[TransName] ),
+	gen_perpetuum:event( Instance,TransName,Now+5,25 ),
+	timer:sleep( 10 ),
+	noreply.
+	
 
 % Split a test into lists with its markings and event lists
 %
@@ -252,26 +267,18 @@ run_tests( [Option|Rest],Module,Test,AccuOK ) ->
 		true ->
 			ok
 		end;
-	delayedrun ->
-		% Invoke actions with a delay; then gradually rake in results
-		% Everything happens in distances of setting StepDelay [ms]
-		StepDelay = 10,
+	syncrun_delayed ->
 		{ TestMarkings,TestEvents } = split_test( Test ),
-		TestZip = lists:zip( TestMarkings,TestEvents ),
-		Steps = length( TestZip ),
-		io:format( "Delaying ~p tests over a total of ~p ms~n",
-					[Steps,(3+Steps)*StepDelay] ),
 		StartTime = erlang:monotonic_time(millisecond),
 		CBArgs = { StartTime,[ gen_perpetuum,trans_noreply,[] ]},
-		Delays = lists:seq( StartTime+3*StepDelay,
-		                    StartTime+(2+Steps)*StepDelay,
-		                    StepDelay ),
 		{ ok,Instance } = Module:start( stub_applogic,trans_delayed,CBArgs ),
-		% signals: no match of right hand side value {error,badarg}
-		lists:foreach( fun( { [Event0|_],Delay } ) ->
-					invoke_async( Instance,Event0,Delay )
-		               end,lists:zip( TestEvents,Delays )),
-		{error,need_to_check} %TODO% check_delayedrun( TestMarkings )
+		testrun( Module,Instance,Test,?LambdaLift3(invoke_delayed_event),[] );
+	asyncrun_delayed ->
+		{ TestMarkings,TestEvents } = split_test( Test ),
+		StartTime = erlang:monotonic_time(millisecond),
+		CBArgs = { StartTime,[ gen_perpetuum,trans_noreply,[] ]},
+		{ ok,Instance } = Module:start( stub_applogic,trans_delayed,CBArgs ),
+		testrun( Module,Instance,Test,?LambdaLift3(invoke_delayed_signal),[] )
 	end,
 	case TestOutput of
 	ok ->

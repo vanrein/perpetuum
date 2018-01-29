@@ -96,13 +96,13 @@ trans_delayed( CBArgs,TransName,EventData,AppState ) ->
 	{ StartTime,[ M2,F2,A2 ]} = CBArgs,
 	Now = erlang:monotonic_time(millisecond),
 	DelaySoFar = Now - StartTime,
-	io:format( "Event ~p delay so far is ~p ms~n",[TransName,DelaySoFar] ),
+	io:format( "Event ~p runs ~p ms after start~n",[TransName,DelaySoFar] ),
 	if TransName == '$init' ->
 		io:format ( "Invoking '$init' transition immediately~n" ),
 		M2:F2( A2,TransName,EventData,AppState );
 	EventData > Now ->
 		io:format( "Delaying event ~p for ~p ms~n",[TransName,EventData-Now] ),
-		{delay,EventData-Now};
+		{ delay,EventData-Now };
 	true ->
 		io:format( "Starting delayed event ~p after ~p ms~n",[TransName,DelaySoFar] ),
 		M2:F2( A2,TransName,EventData,AppState )

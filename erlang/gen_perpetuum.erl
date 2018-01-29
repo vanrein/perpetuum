@@ -697,11 +697,14 @@ handle_delay( MaxDelay,TransName,EventData,RefOpt,PidOpt,PreResponse ) ->
 			error( 'illegal-defer' );
 		true ->
 			NewTimeout = MaxDelay - DeferMS,
+			%DEBUG% io:format( "Delaying by ~p ms~n",[NewTimeout] ),
 			if NewTimeout > 0 ->
 				% Try repeated delivery after DeferMS have passed
 				if is_pid( PidOpt ) ->
+					%DEBUG% io:format( "Delaying event by ~p ms~n",[NewTimeout] ),
 					NewMsg = {  event,TransName,EventData,NewTimeout,RefOpt,PidOpt };
 				true ->
+					%DEBUG% io:format( "Delaying signal by ~p ms~n",[NewTimeout] ),
 					NewMsg = { signal,TransName,EventData,NewTimeout }
 				end,
 				timer:send_after( DeferMS, NewMsg  ),
