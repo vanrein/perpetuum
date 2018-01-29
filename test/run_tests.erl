@@ -195,7 +195,11 @@ invoke_delayed_event( Instance,TransName,_EventData ) ->
 	gen_perpetuum:event( Instance,TransName,Now+5,25 ),
 	timer:sleep( 10 ),
 	noreply.
-	
+%
+invoke_and_linger( Instance,TransName,EventData ) ->
+	gen_perpetuum:event( Instance,TransName,EventData ),
+	timer:sleep( 50 ),
+	noreply.
 
 % Split a test into lists with its markings and event lists
 %
@@ -268,17 +272,25 @@ run_tests( [Option|Rest],Module,Test,AccuOK ) ->
 			ok
 		end;
 	syncrun_delayed ->
-		{ TestMarkings,TestEvents } = split_test( Test ),
 		StartTime = erlang:monotonic_time(millisecond),
 		CBArgs = { StartTime,[ gen_perpetuum,trans_noreply,[] ]},
 		{ ok,Instance } = Module:start( stub_applogic,trans_delayed,CBArgs ),
 		testrun( Module,Instance,Test,?LambdaLift3(invoke_delayed_event),[] );
 	asyncrun_delayed ->
-		{ TestMarkings,TestEvents } = split_test( Test ),
 		StartTime = erlang:monotonic_time(millisecond),
 		CBArgs = { StartTime,[ gen_perpetuum,trans_noreply,[] ]},
 		{ ok,Instance } = Module:start( stub_applogic,trans_delayed,CBArgs ),
-		testrun( Module,Instance,Test,?LambdaLift3(invoke_delayed_signal),[] )
+		testrun( Module,Instance,Test,?LambdaLift3(invoke_delayed_signal),[] );
+	backgrounded ->
+		TestButLast = lists:droplast( lists:droplast( Test )),
+		[Marking0,Events0|TestMiddle] = TestButLast,
+		MarkingLast = lists:last( lists:droplast( Test )),
+		EventsLast = lists:last( Test ),
+		CBArgs = { gen_perpetuum,trans_noreply,[] },
+		{ ok,Instance } = Module:start( stub_applogic,trans_backgrounded,CBArgs ),
+		{ _MarkingMiddle,EventsMiddle } = split_test( TestMiddle ),
+		BgTest = [ Marking0,Events0,MarkingLast,EventsLast ],
+		testrun( Module,Instance,BgTest,?LambdaLift3(invoke_and_linger),[EventsMiddle,[]] )
 	end,
 	case TestOutput of
 	ok ->

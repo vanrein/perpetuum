@@ -21,7 +21,8 @@
 	trans_replyforms/4,
 	trans_sum_init/4,trans_sum_stop/4,trans_sum_enquire/4,trans_sum_any/4,
 	trans_sum_switch/1,
-	trans_delayed/4
+	trans_delayed/4,
+	trans_backgrounded/4
 ]).
 
 
@@ -108,7 +109,28 @@ trans_delayed( CBArgs,TransName,EventData,AppState ) ->
 		M2:F2( A2,TransName,EventData,AppState )
 	end.
 
-%TODO% Start background events in a testable manner
-% Idea: pass a sequence in as eventdata, and observe how the marking evolves
 
-
+% Handle an event by sending it to self(), but also handle it through
+% {M2,F2,A2} as provided in CBArgs.
+% The EventData contains a list that must be sent back through a signal
+% before returning, however.  This is a backgrounded signal.  Since we can
+% have a list in EventData, only the first element is sent, and anything
+% remaining will be passed to that signal as EventData.  In the end, when an
+% empty list remains, nothing will be backgrounded anymore.  The test program
+% can just sit back and wait for this sequence to unravel, and pick up the
+% result at a later time.
+%
+trans_backgrounded( CBArgs,TransName,EventData,AppState ) ->
+	{ M2,F2,A2 } = CBArgs,
+	RetVal = M2:F2( A2,TransName,EventData,AppState ),
+	if TransName == '$init' ->
+		ok;
+	EventData == [] ->
+		%DEBUG% io:format( "Nothing more to background~n" ),
+		ok;
+	true ->
+		[[NextEvent|_]|MoreEventData] = EventData,
+		%DEBUG% io:format( "Backgrounding ~p as the next event, with a following of ~p~n",[NextEvent,MoreEventData] ),
+		gen_perpetuum:signal( self(),NextEvent,MoreEventData )
+	end,
+	RetVal.
