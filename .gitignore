@@ -1,0 +1,6 @@
+*.pyc
+*.beam
+compiler/pntools
+compiler/cmph
+compiler/demo
+erl_crash.dump

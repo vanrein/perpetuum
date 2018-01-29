@@ -115,9 +115,9 @@ check_datatrace( CBArgs,[Init,{TrNm,CBArgs,{886,TrNm}}|MoreDataTrace],[_State,[T
 check_datatrace( CBArgs,DataTrace,Test ) ->
 	{error,{check_datatrace,CBArgs,DataTrace,Test}}.
 
-testrun( _Module,_Instance,[],_Invoke ) ->
+testrun( _Module,_Instance,[],_Invoke,[] ) ->
 	ok;
-testrun( Module,Instance,[State,Ops|Rest],Invoke ) ->
+testrun( Module,Instance,[State,Ops|Rest],Invoke,EvDatas ) ->
 	%DEBUG% io:format( "testrun() was called~n"),
 	% Compare State with Instance:
 	Check_State = check_marking( Instance,State ),
@@ -127,13 +127,19 @@ testrun( Module,Instance,[State,Ops|Rest],Invoke ) ->
 	Check_Firing_Probed = check_canfire_probed( Module,Instance     ),
 	% Send Ops#0 event to Instance:
 	[ TransName|_ ] = Ops,
-	NoReply = Invoke( Instance,TransName,[] ),
+	case EvDatas of
+	[EvData|EvMore] ->
+		ok;
+	[]=EvData=EvMore ->
+		ok
+	end,
+	NoReply = Invoke( Instance,TransName,EvData ),
 	io:format( "NoReply is ~p~n",[NoReply] ),
 	io:format( "Check_xxx results are ~p, ~p, ~p, ~p~n",[Check_State,Check_Firing_Script,Check_Firing_Others,Check_Firing_Probed] ),
 	Errors = [ E || {error,E} <- [ Check_State,Check_Firing_Script,Check_Firing_Others,Check_Firing_Probed ] ],
 	case Errors of
 	[] ->
-		testrun( Module,Instance,Rest,Invoke );
+		testrun( Module,Instance,Rest,Invoke,EvMore );
 	_ ->
 		{ error,Errors }
 	end.
@@ -170,7 +176,22 @@ invoke_manual( Instance,TransName,EventData ) ->
 		io:format( "Rubbish! ~p~n",[Rubbish] ),
 		throw( {rubbish,Rubbish} )
 	end.
+%
+invoke_wildnum( Instance,TransName,EventData ) ->
+	WildNum = erlang:adler32( term_to_binary( EventData )),
+	io:format( "WildNum ~p for EventData ~p~n",[WildNum,EventData] ),
+	invoke_manual( Instance,TransName,WildNum ).
 
+% Split a test into lists with its markings and event lists
+%
+split_test( [] ) ->
+	{ [],[] };
+split_test( [Markings,Events|More] ) ->
+	{ MoreMarkings,MoreEvents } = split_test( More ),
+	{ [Markings|MoreMarkings],[Events|MoreEvents] }.
+
+% Iterate over the options to initiate its requested tests
+%
 run_tests( [],Module,_Test,AccuOK ) ->
 	case AccuOK of
 	true ->
@@ -204,16 +225,33 @@ run_tests( [Option|Rest],Module,Test,AccuOK ) ->
 		end;
 	syncrun ->
 		{ ok,Instance } = Module:start_link( gen_perpetuum,trans_noreply,[] ),
-		testrun( Module,Instance,Test,?LambdaLift3(invoke_sync) );
+		testrun( Module,Instance,Test,?LambdaLift3(invoke_sync),[] );
 	asyncrun ->
 		{ ok,Instance } = Module:start( gen_perpetuum,trans_noreply,[] ),
-		testrun( Module,Instance,Test,?LambdaLift3(invoke_async) );
+		testrun( Module,Instance,Test,?LambdaLift3(invoke_async),[] );
 	applogic ->
 		CBArgs={486,[7,3]},
 		{ ok,Instance } = Module:start( stub_applogic,trans_datatrace,CBArgs ),
-		testrun( Module,Instance,Test,?LambdaLift3(invoke_traced) ),
+		testrun( Module,Instance,Test,?LambdaLift3(invoke_traced),[] ),
 		DataTrace  = gen_perpetuum:enquire( Instance,[] ),
-		check_datatrace( CBArgs,DataTrace,Test )
+		check_datatrace( CBArgs,DataTrace,Test );
+	wildsum ->
+		% We are blunt, in only deriving wild numbers from the input
+		{ TestMarkings,TestEvents } = split_test( Test ),
+		TestZip = lists:zip( TestMarkings,TestEvents ),
+		TestNumbers = [ erlang:adler32( term_to_binary( T ))
+				|| T <- TestZip ],
+		io:format( "TestNumbers: ~p~n",[TestNumbers] ),
+		{ ok,Instance } = Module:start( gen_perpetuum,trans_switch,
+					stub_applogic:trans_sum_switch( 0 )),
+		testrun( Module,Instance,Test,?LambdaLift3(invoke_wildnum),TestZip ),
+		Outcome = gen_perpetuum:enquire( Instance,8967 ),
+		Testsum = lists:sum( TestNumbers ),
+		if Outcome /= Testsum ->
+			{error, { wildsum,Outcome,Testsum }};
+		true ->
+			ok
+		end
 	end,
 	case TestOutput of
 	ok ->
@@ -267,5 +305,6 @@ main( _ ) ->
 	io:format( " - syncrun~n"),
 	io:format( " - asyncrun~n"),
 	io:format( " - applogic~n"),
+	io:format( " - wildsum~n"),
 	halt( 1 ).
 

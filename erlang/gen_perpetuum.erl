@@ -272,11 +272,18 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel }=Colour 
 %  2. This function's name, trans_switch
 %  3. A switch map from transition name to {M,F,A}
 %
+% The map can hold a special key '$default' as a default {M,F,A}.
+%
 % When it is a literal map, it will occupy no memory per instance.
 %
 -spec trans_switch( #{ TransName::atom() => { Module::atom(),Function::atom(),Args::term() } }, TransName::atom(), EventData::term(), AppData::term() ) -> transreply().
 trans_switch( SwitchMap,TransName,EventData,AppData ) ->
-	{Mswi,Fswi,Aswi} = maps:get( TransName,SwitchMap ),
+	case maps:get( TransName,SwitchMap,0 ) of
+	0 ->
+		{Mswi,Fswi,Aswi} = maps:get( '$default',SwitchMap );
+	Found ->
+		{Mswi,Fswi,Aswi} = Found
+	end,
 	Mswi:Fswi( Aswi,TransName,EventData,AppData ).
 
 % Accept any transition immediately, returning a simple noreply.

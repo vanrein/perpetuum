@@ -19,7 +19,8 @@
 -export([
 	trans_datatrace/4,
 	trans_replyforms/4,
-	trans_sum/4
+	trans_sum_init/4,trans_sum_stop/4,trans_sum_enquire/4,trans_sum_any/4,
+	trans_sum_switch/1
 ]).
 
 
@@ -58,22 +59,37 @@ trans_replyforms( _CBArgs,_TransName,EventData,_AppState ) ->
 % by summing up integer values passed in.  All of CBArgs, EventData and
 % AppState are assumed to be integer() typed values.
 %
-trans_sum( CBArgs,TransName,EventData,AppState ) ->
-	case TransName of
-	'$init' ->
-		{ noreply,CBArgs };
-	'$finish' ->
-		{ reply,AppState,[] };
-	'$enquire' ->
-		{ reply,AppState,AppState+EventData };
-	_ ->
-		{ noreply,AppState+EventData }
-	end.
+trans_sum_init( CBArgs,_TransName,_EventData,_AppState ) ->
+	%DEBUG% io:format( "trans_sum_init~n" ),
+	{ noreply,CBArgs }.
+%
+trans_sum_stop( _CBArgs,_TransName,_EventData,AppState ) ->
+	%DEBUG% io:format( "trans_sum_stop~n" ),
+	{ reply,AppState,[] }.
+%
+trans_sum_enquire( _CBArgs,_TransName,EventData,AppState ) ->
+	%DEBUG% io:format( "trans_sum_enquire( ~p,~p )~n",[EventData,AppState] ),
+	{ reply,AppState,AppState+EventData }.
+%
+trans_sum_any( _CBArgs,_TransName,EventData,AppState ) ->
+	%DEBUG% io:format( "trans_sum_any( ~p,~p )~n",[EventData,AppState] ),
+	{ noreply,AppState+EventData }.
+%
+trans_sum_switch(CBArgs) -> #{
+	'$init'    => { ?MODULE,trans_sum_init,   CBArgs },
+	'$stop'    => { ?MODULE,trans_sum_stop,   CBArgs },
+	'$enquire' => { ?MODULE,trans_sum_enquire,CBArgs },
+	'$default' => { ?MODULE,trans_sum_any,    CBArgs } }.
 
 
 %TODO% Return {delay,...} in a testable manner
+% Idea: return delays with 10ms increases
+% Initially a test app fires them async, then checks how markings evolve
+% Start accepting after a given starting time (say, 50 ms or so)
+% Check must understand sequences of same markings, or skipping ahead
 
 
 %TODO% Start background events in a testable manner
+% Idea: pass a sequence in as eventdata, and observe how the marking evolves
 
 
