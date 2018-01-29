@@ -20,7 +20,8 @@
 	trans_datatrace/4,
 	trans_replyforms/4,
 	trans_sum_init/4,trans_sum_stop/4,trans_sum_enquire/4,trans_sum_any/4,
-	trans_sum_switch/1
+	trans_sum_switch/1,
+	trans_delayed/4
 ]).
 
 
@@ -82,12 +83,30 @@ trans_sum_switch(CBArgs) -> #{
 	'$default' => { ?MODULE,trans_sum_any,    CBArgs } }.
 
 
-%TODO% Return {delay,...} in a testable manner
-% Idea: return delays with 10ms increases
-% Initially a test app fires them async, then checks how markings evolve
-% Start accepting after a given starting time (say, 50 ms or so)
-% Check must understand sequences of same markings, or skipping ahead
-
+% Start a transaction by deferring it.  The suggested timestamp for running
+% is in the EventData.  Beyond this time, it will be run, but before it, it
+% will be delayed for the desired number of milliseconds.
+%
+% When the event is finally run, it ivokes {M,F,A} from the CBArgs, where
+% it is setup together with the absolute timestamp() at the start:
+%
+%   CBArgs :: { monotonic_time(),[ module(),function(),[ term() ] ]}
+%
+trans_delayed( CBArgs,TransName,EventData,AppState ) ->
+	{ StartTime,[ M2,F2,A2 ]} = CBArgs,
+	Now = erlang:monotonic_time(millisecond),
+	DelaySoFar = Now - StartTime,
+	io:format( "Event ~p delay so far is ~p ms~n",[TransName,DelaySoFar] ),
+	if TransName == '$init' ->
+		io:format ( "Invoking '$init' transition immediately~n" ),
+		M2:F2( A2,TransName,EventData,AppState );
+	EventData > Now ->
+		io:format( "Delaying event ~p for ~p ms~n",[TransName,EventData-Now] ),
+		{delay,EventData-Now};
+	true ->
+		io:format( "Starting delayed event ~p after ~p ms~n",[TransName,DelaySoFar] ),
+		M2:F2( A2,TransName,EventData,AppState )
+	end.
 
 %TODO% Start background events in a testable manner
 % Idea: pass a sequence in as eventdata, and observe how the marking evolves

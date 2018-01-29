@@ -251,7 +251,27 @@ run_tests( [Option|Rest],Module,Test,AccuOK ) ->
 			{error, { wildsum,Outcome,Testsum }};
 		true ->
 			ok
-		end
+		end;
+	delayedrun ->
+		% Invoke actions with a delay; then gradually rake in results
+		% Everything happens in distances of setting StepDelay [ms]
+		StepDelay = 10,
+		{ TestMarkings,TestEvents } = split_test( Test ),
+		TestZip = lists:zip( TestMarkings,TestEvents ),
+		Steps = length( TestZip ),
+		io:format( "Delaying ~p tests over a total of ~p ms~n",
+					[Steps,(3+Steps)*StepDelay] ),
+		StartTime = erlang:monotonic_time(millisecond),
+		CBArgs = { StartTime,[ gen_perpetuum,trans_noreply,[] ]},
+		Delays = lists:seq( StartTime+3*StepDelay,
+		                    StartTime+(2+Steps)*StepDelay,
+		                    StepDelay ),
+		{ ok,Instance } = Module:start( stub_applogic,trans_delayed,CBArgs ),
+		% signals: no match of right hand side value {error,badarg}
+		lists:foreach( fun( { [Event0|_],Delay } ) ->
+					invoke_async( Instance,Event0,Delay )
+		               end,lists:zip( TestEvents,Delays )),
+		{error,need_to_check} %TODO% check_delayedrun( TestMarkings )
 	end,
 	case TestOutput of
 	ok ->
