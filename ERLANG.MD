@@ -5,7 +5,7 @@
 > handling process logic and responding to events.
 > Let's bring them together!*
 
-The aim of this document is to describe how Erlang code can capture Petri nets efficiently and true to its nature.
+The aim of this document is to describe how Erlang code can capture Petri nets efficiently and true to its nature.  *For a more concise description, please see BITFIELDVEC.MD.
 
 ## Three Layers of Code
 
