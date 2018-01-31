@@ -147,13 +147,14 @@ reflow_bitfields( Vec,OldPlacebits,NewPlacebits,BitPos,PlacesTogo ) ->
 		TopVec = Vec band ( -1 bsl (BitPos+OldPlacebits+1) ),
 		BotVec = Vec bxor TopVec,
 		UpdVec = BotVec bor ( TopVec bsl (NewPlacebits-OldPlacebits) ),
-		io:fwrite( "Extending with Vec ~p/~p, TopVec ~p, BotVec ~p, UpdVec ~p after bsl ~p~n", [Vec,BitPos,TopVec,BotVec,UpdVec,NewPlacebits-OldPlacebits] ),
+		%DEBUG% io:fwrite( "Extending with Vec ~p/~p, TopVec ~p, BotVec ~p, UpdVec ~p after bsl ~p~n", [Vec,BitPos,TopVec,BotVec,UpdVec,NewPlacebits-OldPlacebits] ),
 		reflow_bitfields( UpdVec,OldPlacebits,NewPlacebits,BitPos+NewPlacebits+1,PlacesTogo-1 )
 	end.
 reflow_bitfields( Vec,NumPlaces,OldPlacebits,NewPlacebits ) ->
-	RETVAL =
+	%DEBUG% RETVAL =
 	reflow_bitfields( Vec,OldPlacebits,NewPlacebits,0,NumPlaces )
-	, io:fwrite( "Extended Bitfields ~p to ~p~n", [Vec,RETVAL] ), RETVAL.
+	%DEBUG% , io:fwrite( "Extended Bitfields ~p to ~p~n", [Vec,RETVAL] ), RETVAL
+	.
 
 % Update Sentinel in the petrinet by inserting the extra
 % NewPlaceBits-OldPlaceBits everywhere
@@ -170,14 +171,15 @@ reflow_sentinel( Vec,OldPlacebits,NewPlacebits,BitPos,PlacesTogo ) ->
 			true -> 0
 		end,
 		UpdVec = BotVec bor (TopVec bsl (NewPlacebits-OldPlacebits)) bor NewVec,
-		io:fwrite( "Reguarding with Vec ~p/~p, TopVec ~p, BotVec ~p, NewVec ~p, UpdVec ~p~n", [Vec,BitPos,TopVec,BotVec,NewVec,UpdVec] ),
+		%DEBUG% io:fwrite( "Reguarding with Vec ~p/~p, TopVec ~p, BotVec ~p, NewVec ~p, UpdVec ~p~n", [Vec,BitPos,TopVec,BotVec,NewVec,UpdVec] ),
 		reflow_sentinel( UpdVec,OldPlacebits,NewPlacebits,BitPos+NewPlacebits+1,PlacesTogo-1 )
 	end.
 %
 reflow_sentinel( Vec,NumPlaces,OldPlacebits,NewPlacebits ) ->
-	RETVAL =
+	%DEBUG% RETVAL =
 	reflow_sentinel( Vec,OldPlacebits,NewPlacebits,0,NumPlaces )
-	, io:fwrite( "Reflowed Sentinel ~p to ~p~n", [Vec,RETVAL] ), RETVAL.
+	%DEBUG% , io:fwrite( "Reflowed Sentinel ~p to ~p~n", [Vec,RETVAL] ), RETVAL
+	.
 
 
 % Reflow a TransMap by reflowing the included Adders and Subbers, as well
@@ -191,9 +193,10 @@ reflow_transmap( TransMap,NumPlaces,OldPlacebits,NewPlacebits ) ->
 			reflow_sentinel( TransSentinel,NumPlaces,OldPlacebits,NewPlacebits )
 		}
 	end,
-	RETVAL =
+	%DEBUG% RETVAL =
 	maps:map( ExpandTransMapKV, TransMap )
-	, io:fwrite( "Reflown TransMap ~p to ~p~n", [TransMap,RETVAL] ), RETVAL.
+	%DEBUG% , io:fwrite( "Reflown TransMap ~p to ~p~n", [TransMap,RETVAL] ), RETVAL
+	.
 
 
 % The reflow procedure inserts extra place bits to make an
@@ -222,29 +225,28 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel }=Colour 
 	( Marking band Sentinel ) == 0 ->
 		Colour;
 	true ->
-		io:fwrite( "Marking: ~p~n",[Marking] ),
-		io:fwrite( "Sentinel: ~p~n",[Sentinel] ),
+		%DEBUG% io:fwrite( "Marking: ~p~n",[Marking] ),
+		%DEBUG% io:fwrite( "Sentinel: ~p~n",[Sentinel] ),
 		case PetriNet of
 		#petrinet{ instance=InstanceMod, callback=Callback, numplaces=NumPlaces, placebits=PlaceBits } ->
-			io:fwrite( "NumPlaces: ~p~n",[NumPlaces] ),
-			io:fwrite( "PlaceBits: ~p~n",[PlaceBits] ),
+			%DEBUG% io:fwrite( "NumPlaces: ~p~n",[NumPlaces] ),
+			%DEBUG% io:fwrite( "PlaceBits: ~p~n",[PlaceBits] ),
 			%
 			% Determine the new integer length and bits per place
 			% assuming that one bit extra per place is enough to
 			% handle overflow
 			%
 			NeedIntLen = 1 + (PlaceBits+2) * NumPlaces,
-			io:fwrite( "NeedIntLen: ~p~n",[NeedIntLen] ),
+			%DEBUG% io:fwrite( "NeedIntLen: ~p~n",[NeedIntLen] ),
 			NewIntLen = if
 				NeedIntLen < 60 -> 60;
 				NeedIntLen < 3*64 -> 3*64;
 				true -> (NeedIntLen + 63) band -64
 			end,
-			io:fwrite( "NewIntLen: ~p~n",[NewIntLen] ),
+			%DEBUG% io:fwrite( "NewIntLen: ~p~n",[NewIntLen] ),
 			NewPlaceBits = (NewIntLen - 1) div NumPlaces - 1,
-			io:fwrite( "NewPlaceBits: ~p~n",[NewPlaceBits] ),
-			ExtraPlaceBits = NewPlaceBits - PlaceBits,
-			io:fwrite( "ExtraPlaceBits: ~p~n",[ExtraPlaceBits] ),
+			%DEBUG% io:fwrite( "NewPlaceBits: ~p~n",[NewPlaceBits] ),
+			%DEBUG% io:fwrite( "ExtraPlaceBits: ~p~n",[NewPlaceBits - PlaceBits] ),
 			%UNDEFINED% assert:assert( NewIntLen    >= NeedIntLen ),
 			%UNDEFINED% assert:assert( NewPlaceBits >  PlaceBits  ),
 			#colour {
