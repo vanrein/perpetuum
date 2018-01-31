@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- This project file has been saved by the New GreatSPN Editor, v.100 --><project name="New project" version="121">
+  <gspn name="traffic_light_nightly" show-color-cmd="false" show-fluid-cmd="false" show-timed-cmd="false" view-rates="false">
+    <nodes>
+      <place label-y="2.0" name="green" x="7.0" y="7.0"/>
+      <place label-y="2.0" marking="1" name="yellow" x="15.0" y="7.0"/>
+      <place label-y="2.0" name="red" x="23.0" y="7.0"/>
+      <transition name="caution" nservers-x="0.5" type="EXP" x="11.55" y="7.0"/>
+      <transition name="stop" nservers-x="0.5" type="EXP" x="19.55" y="7.0"/>
+      <transition label-x="0.5" name="go" nservers-x="0.5" type="EXP" x="27.55" y="7.0"/>
+      <place label-y="2.0" name="night_service" x="19.0" y="12.0"/>
+      <transition label-y="2.5" name="dawn" nservers-x="0.5" type="EXP" x="12.55" y="12.0"/>
+      <transition label-y="2.0" name="sunset" nservers-x="0.5" type="EXP" x="26.55" y="12.0"/>
+    </nodes>
+    <edges>
+      <arc head="caution" kind="INPUT" tail="green"/>
+      <arc head="yellow" kind="OUTPUT" tail="caution"/>
+      <arc head="stop" kind="INPUT" tail="yellow"/>
+      <arc head="red" kind="OUTPUT" tail="stop"/>
+      <arc head="go" kind="INPUT" tail="red"/>
+      <arc head="green" kind="OUTPUT" tail="go">
+        <point x="28.0" y="3.5"/>
+        <point x="8.0" y="3.5"/>
+      </arc>
+      <arc head="stop" kind="INHIBITOR" mult="2" tail="night_service"/>
+      <arc head="night_service" kind="OUTPUT" tail="dawn"/>
+      <arc head="sunset" kind="INPUT" tail="night_service"/>
+      <arc head="dawn" kind="INHIBITOR" tail="night_service"/>
+    </edges>
+  </gspn>
+</project>
