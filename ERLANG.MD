@@ -1,5 +1,7 @@
 # Perpetuum for Erlang
 
+<img alt="Perpetuum Mobile" src="pix/240px-PerpetuumMobile.gif" style="float: right;"/>
+
 > *Perpetuum generates Petri net code, and triggers
 > transitions when it is their time.  Erlang is good at
 > handling process logic and responding to events.

@@ -1,5 +1,7 @@
 # Non-Event Backcalls; or Pseudo-Transitions
 
+<img alt="Perpetuum Mobile" src="pix/240px-PerpetuumMobile.gif" style="float: right;"/>
+
 > *Not all backcalls to application logic are made in response to events;
 > some backcalls are needed for management purposes.  Here is where we
 > describe those.*

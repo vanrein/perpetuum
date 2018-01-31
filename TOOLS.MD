@@ -1,6 +1,6 @@
 # Tools to use with Perpetuum
 
-<img alt="Perpetuum Mobile" src="image/240px-PerpetuumMobile.gif" style="float: right;"/>
+<img alt="Perpetuum Mobile" src="pix/240px-PerpetuumMobile.gif" style="float: right;"/>
 
 > *A plethora of Petri-net tools is available, at least in theory.  In
 > practice, not all work well.  Usually, the subset of features implemented

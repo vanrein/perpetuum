@@ -1,5 +1,7 @@
 # Bitfield Vectors as an Implementation of Petri Nets
 
+<img alt="Perpetuum Mobile" src="pix/240px-PerpetuumMobile.gif" style="float: right;"/>
+
 > *Bitfield Vectors store all state of a Petri Net in one integer
 > (of arbitrary size), and then performs straightforward operations
 > on it to determine in O(1) time whether a transition may fire.*
@@ -14,7 +16,7 @@ library.
 
 ## Markings in Bitfield Vectors
 
-We coined the term Bitfielf Vector for the habit of encoding a
+We coined the term Bitfield Vector for the habit of encoding a
 vector of small integers, often just a few bits each, in an
 integer.  We do this to encode the number of tokens that are
 present in a place at any point in time, the so-called *marking*
@@ -22,7 +24,7 @@ of a Petri-Net.
 
 We currently use the same number of bits for each place; the
 images shown below suggest 4 bits for a range of 0 to 15 tokens.
-On to pof each of these bitfields, we add a guard bit valued
+On top of each of these bitfields, we add a guard bit valued
 zero; though this is slightly wasteful of space, we put this
 space to good use in the upcoming calculations.
 

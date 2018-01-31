@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# perpetuum-codegen.py -- Given a Petri net, generate driver code for it.
+# perpetuum -- Given a Petri net, generate driver code for it.
 #
 # This is a code generator from a set of Petri nets with suitable labels.
 # The output consists of:

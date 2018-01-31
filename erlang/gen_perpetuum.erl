@@ -642,7 +642,7 @@ check_canfire( Marking,Subber,TransSentinel ) ->
 %
 % Both Query and Answer are free-form, each is an Erlang term().
 %
--spec handle_enquire( colour,AppState::term(),Query::term() ) -> Answer::term().
+-spec handle_enquire( colour,AppState::term(),Query::term() ) -> transreply().
 handle_enquire(#colour{
 			petrinet=#petrinet{
 				callback={CallbackMod,CallbackFun,CallbackArgs}
@@ -650,9 +650,9 @@ handle_enquire(#colour{
 		}=Colour,
 		AppState,Query ) ->
 	case CallbackMod:CallbackFun( CallbackArgs,'$enquire',Query,AppState ) of
-	{ reply,Reply,NewAppState } ->
-		{ reply,Reply,Colour,NewAppState };
-	{ noreply,_AppState } ->
+	{ reply,Answer,_NewAppState } ->
+		{ reply,Answer,Colour,AppState };
+	{ noreply,_NewAppState } ->
 		{ error,noreply };
 	{ error,_ }=Error ->
 		Error

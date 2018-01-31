@@ -1,6 +1,6 @@
 # Scheduling Dynamic Processes with Petri Nets
 
-<img alt="Perpetuum Mobile" src="image/240px-PerpetuumMobile.gif" style="float: right;"/>
+<img alt="Perpetuum Mobile" src="pix/240px-PerpetuumMobile.gif" style="float: right;"/>
 
 >   *Perpetuum is a Petri-net scheduler generator.  This model can be useful
 >   when dealing with asynchronous or event-based activity.  Especially in

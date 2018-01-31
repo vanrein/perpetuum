@@ -1,6 +1,6 @@
 # Using Perpetuum in your Application
 
-<img alt="Perpetuum Mobile" src="image/240px-PerpetuumMobile.gif" style="float: right;"/>
+<img alt="Perpetuum Mobile" src="pix/240px-PerpetuumMobile.gif" style="float: right;"/>
 
 > *Perpetuum is a code generator and data model for Petri nets used to
 > describe the event loops of asynchronous systems.  Here is how to use

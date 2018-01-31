@@ -1,7 +1,7 @@
 Driving Workers from Petri nets
 ===============================
 
-<img alt="Perpetuum Mobile" src="image/240px-PerpetuumMobile.gif" style="float: right;"/>
+<img alt="Perpetuum Mobile" src="pix/240px-PerpetuumMobile.gif" style="float: right;"/>
 
 >   *When we define a Petri-net, we describe synchronisation. When we describe
 >   events, actions and activities, we describe work to be synchronised. What
@@ -77,7 +77,7 @@ transition; and it is not difficult to create transitions that always accept a
 given event (thought that leads to an unbounded number of tokens in the
 subsequent place).
 
-![An event that is conditionally, and another that is always accepted](image/event-cc-always.png)
+![An event that is conditionally, and another that is always accepted](pix/event-cc-always.png)
 
 **Match-all.** When multiple transitions can fire in response to an event, then
 they all fire, though not in a known order. Note how the order may in fact stop
@@ -168,7 +168,7 @@ mentions a result value, it will be preferred over the others; multiple arcs may
 mention the same result value. Arcs without result value annotation function as
 catch-alls and are only used for non-mentioned result values.
 
-![Activities with varying result codes](image/activity-result-codes.png)
+![Activities with varying result codes](pix/activity-result-codes.png)
 
 ### Activities with Multiple Outputs
 
@@ -189,7 +189,7 @@ We model this approach as follows:
 
  
 
-![An LDAP query can be an activity with multiple outputs](image/ldap-multiple-results.png)
+![An LDAP query can be an activity with multiple outputs](pix/ldap-multiple-results.png)
 
 What is important in this diagram is that the non-exit result codes point back
 to the central place for the activity. This place is not the activity itself,
@@ -207,7 +207,7 @@ colours may end up sharing information. Thirdly, loose tokens may have to be
 consumed in the end, perhaps in conjunction with a lock on the progress of other
 network branches.
 
-![Avoiding tokens abound after multiple outputs from LDAP](image/ldap-multiple-results-tied-down.png)
+![Avoiding tokens abound after multiple outputs from LDAP](pix/ldap-multiple-results-tied-down.png)
 
 Superposition of Places and of Transitions
 ------------------------------------------
@@ -236,7 +236,7 @@ Care should be taken to avoid unintended "spilling" of tokens between Petri
 nets. This can usually be achieved by holding a token next to the shared net,
 provided this is consistently done.
 
-![Even while sharing a token, we may still hold on to it](image/shared-place-guarded.png)
+![Even while sharing a token, we may still hold on to it](pix/shared-place-guarded.png)
 
 ### Superposition of Transitions
 
@@ -285,7 +285,7 @@ When read under a write lock, the values are stable, which is useful for
 stability towards future writes. TODO: Variables are not set together? Make
 colour-writes atomic?
 
-![Generated variable locking in VAR:x places](image/generated-variable-locking.png)
+![Generated variable locking in VAR:x places](pix/generated-variable-locking.png)
 
 
 ## Low-level Library API

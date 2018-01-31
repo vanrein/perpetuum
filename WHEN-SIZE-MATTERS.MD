@@ -1,6 +1,6 @@
 # Minimal Code from Petri Nets
 
-<img alt="Perpetuum Mobile" src="image/240px-PerpetuumMobile.gif" style="float: right;"/>
+<img alt="Perpetuum Mobile" src="pix/240px-PerpetuumMobile.gif" style="float: right;"/>
 
 > *In embedded environments, every byte counts.  Though Perpetuum can easily
 > build a capable and scalable environment that can handle tens of thousands

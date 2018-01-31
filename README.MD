@@ -1,6 +1,6 @@
 # Perpetuum: Event loop Code Generation from Petri-nets
 
-<img alt="Perpetuum Mobile" src="image/240px-PerpetuumMobile.gif" style="float: right;"/>
+<img alt="Perpetuum Mobile" src="pix/240px-PerpetuumMobile.gif" style="float: right;"/>
 
 > *Perpatuum is a code generator for event loops that uses Petri-nets as
 > their input.  In a Petri-net, transitions fire in zero time or, more
