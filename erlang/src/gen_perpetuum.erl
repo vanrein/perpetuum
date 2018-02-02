@@ -280,11 +280,11 @@ reflow( #colour{ petrinet=PetriNet, marking=Marking, sentinel=Sentinel }=Colour 
 %
 -spec trans_switch( #{ TransName::atom() => { Module::atom(),Function::atom(),Args::term() } }, TransName::atom(), EventData::term(), AppData::term() ) -> transreply().
 trans_switch( SwitchMap,TransName,EventData,AppData ) ->
-	case maps:get( TransName,SwitchMap,0 ) of
+	{Mswi,Fswi,Aswi} = case maps:get( TransName,SwitchMap,0 ) of
 	0 ->
-		{Mswi,Fswi,Aswi} = maps:get( '$default',SwitchMap );
+		maps:get( '$default',SwitchMap );
 	Found ->
-		{Mswi,Fswi,Aswi} = Found
+		Found
 	end,
 	Mswi:Fswi( Aswi,TransName,EventData,AppData ).
 
@@ -702,12 +702,12 @@ handle_delay( MaxDelay,TransName,EventData,RefOpt,PidOpt,PreResponse ) ->
 			%DEBUG% io:format( "Delaying by ~p ms~n",[NewTimeout] ),
 			if NewTimeout > 0 ->
 				% Try repeated delivery after DeferMS have passed
-				if is_pid( PidOpt ) ->
+				NewMsg = if is_pid( PidOpt ) ->
 					%DEBUG% io:format( "Delaying event by ~p ms~n",[NewTimeout] ),
-					NewMsg = {  event,TransName,EventData,NewTimeout,RefOpt,PidOpt };
+					{  event,TransName,EventData,NewTimeout,RefOpt,PidOpt };
 				true ->
 					%DEBUG% io:format( "Delaying signal by ~p ms~n",[NewTimeout] ),
-					NewMsg = { signal,TransName,EventData,NewTimeout }
+					{ signal,TransName,EventData,NewTimeout }
 				end,
 				timer:send_after( DeferMS, NewMsg  ),
 				noreply;

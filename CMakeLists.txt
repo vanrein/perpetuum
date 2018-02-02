@@ -62,10 +62,10 @@ endif()
 find_package (PkgConfig)
 
 #TODO# find_package (cmph REQUIRED)
-pkg_search_module (
-        cmph REQUIRED
-        cmph libcmph Cmph CMPH
-)
+#TODO# pkg_search_module (
+#TODO#         cmph REQUIRED
+#TODO#         cmph libcmph Cmph CMPH
+#TODO# )
 
 
 
@@ -103,6 +103,8 @@ endif ()
 
 include_directories (include)
 
+add_subdirectory (erlang)
+
 #TODO# configure_file (
 #TODO# 	contrib/pkgconfig/perpetuum.pc.in
 #TODO# 	${PROJECT_BINARY_DIR}/perpetuum.pc
@@ -111,10 +113,10 @@ include_directories (include)
 
 add_custom_target (perpetuum-codegen ALL
 		COMMAND ${CMAKE_COMMAND} -E copy
-			${CMAKE_SOURCE_DIR}/compiler/perpetuum-codegen.py
+			${CMAKE_SOURCE_DIR}/compiler/perpetuum
 			${CMAKE_BINARY_DIR}/perpetuum-codegen)
 
-create_config_files (Perpetuum)
+#TODO# create_config_files (Perpetuum)
 
 
 #
@@ -123,6 +125,9 @@ create_config_files (Perpetuum)
 
 
 enable_testing ()
+
+add_subdirectory (test)
+
 
 
 #

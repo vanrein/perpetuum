@@ -313,17 +313,20 @@ run_tests( OptNames,ModName,Test ) ->
 	end.
 
 load_code( ModName ) ->
-	code:add_patha( "../erlang" ),
-	code:add_pathz( "../compiler/demo" ),
+	code:add_patha( "../erlang/perpetuum/ebin" ),
+	%DEBUG% io:format( "Loading gen_perpetuum from ~p~n",[code:get_path()] ),
+	io:format( "Loading gen_perpetuum~n" ),
 	{ module,GEN } = code:load_file( gen_perpetuum ),
+	io:format( "Loading ~p~n",[ModName] ),
 	{ module,MUT } = code:load_file( list_to_atom( ModName )),
 	io:format( "Loaded \"gen_perpetuum\" into module ~p~n\n", [GEN] ),
 	io:format( "Loaded ~p into module ~p~n\n", [ModName,MUT] ).
 
 load_test( ModName ) ->
 	TestFile = unicode:characters_to_list( [ "./",ModName,".test" ]),
-	%DEBUG% io:format( "Loading from ~p~n", [TestFile] ),
-	{ ok,TestExpr } = file:script( TestFile ),
+	Path = code:get_path(),
+	io:format( "Loading from ~p~n", [TestFile] ),
+	{ ok,TestExpr,_FileName } = file:path_script( Path,TestFile ),
 	%DEBUG% io:format( "Loaded test expression ~p~n", [TestExpr] ),
 	TestExpr.
 
