@@ -2,10 +2,20 @@
 # CMakeLists.txt for Perpetuum
 #
 
-cmake_minimum_required (VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required (VERSION 3.2 FATAL_ERROR)
 project ("Perpetuum")
 
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+
+include (FeatureSummary)
+
+find_package (ARPA2CM 0.3 NO_MODULE)
+set_package_properties (ARPA2CM PROPERTIES
+        DESCRIPTION "CMake modules for ARPA2 projects"
+        TYPE REQUIRED
+        URL "https://github.com/arpa2/arpa2cm/"
+        PURPOSE "Required for the CMake build system of Quick DER"
+)
 
 include (MacroEnsureOutOfSourceBuild)
 include (MacroAddUninstallTarget)
@@ -76,6 +86,16 @@ find_program (GNUMAKE
 #
 
 get_version_from_git (Perpetuum 0.0.0)
+message (STATUS "Found program version ${Perpetuum_VERSION}")
+
+message (STATUS "Git is ${GIT_EXECUTABLE}")
+exec_program (
+	${GIT_EXECUTABLE}
+	${CMAKE_CURRENT_SOURCE_DIR}
+	ARGS describe --tags --match 'version-*.*-*'
+	OUTPUT_VARIABLE GITTEST
+)
+message (STATUS "Git was tested: ${GITTEST}")
 
 
 #
