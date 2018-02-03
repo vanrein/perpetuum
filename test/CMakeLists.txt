@@ -6,21 +6,21 @@ set (RUNTYPES_TESTED syncrun asyncrun applogic wildsum syncrun_delayed asyncrun_
 
 set (PERPETUUM_LIBDIR ${CMAKE_BINARY_DIR}/erlang/perpetuum-${Perpetuum_VERSION})
 
-#TODO# The following is incompatible; we are missing a portable ERL_LIBS setting for CTest though :'-(
-file (WRITE ${CMAKE_CURRENT_BINARY_DIR}/run_tests.sh
-	"#!/bin/sh\nexport ERL_LIBS=${PERPETUUM_LIBDIR}\n${CMAKE_CURRENT_SOURCE_DIR}/run_tests.erl \"$1\" \"$2\"\nexit $?\n")
-
 add_custom_target (stub_applogic.beam ALL
 	COMMAND erlc ${CMAKE_CURRENT_SOURCE_DIR}/stub_applogic.erl)
+
+add_custom_command (OUTPUT ${PERPETUUM_LIBDIR}/test
+	COMMAND cmake -E make_directory ${PERPETUUM_LIBDIR}/test)
 
 add_custom_target (run_tests.erl ALL
 	COMMAND cmake -E copy
 		${CMAKE_CURRENT_SOURCE_DIR}/run_tests.erl
 		${CMAKE_CURRENT_BINARY_DIR}
-	DEPENDS stub_applogic.beam)
-
-add_custom_command (OUTPUT ${PERPETUUM_LIBDIR}/test
-	COMMAND cmake -E make_directory ${PERPETUUM_LIBDIR}/test)
+	COMMAND cmake -E copy
+		${CMAKE_CURRENT_SOURCE_DIR}/run_tests.erl
+		${PERPETUUM_LIBDIR}/test
+	DEPENDS stub_applogic.beam
+		${PERPETUUM_LIBDIR}/test)
 
 foreach (PETRINET ${PETRINETS_TESTED})
 
@@ -51,8 +51,11 @@ foreach (PETRINET ${PETRINETS_TESTED})
 	foreach (TESTRUN ${RUNTYPES_TESTED})
 
 		add_test (NAME erlang-test-${PETRINET}-${TESTRUN}
-			COMMAND sh run_tests.sh ${PETRINET} ${TESTRUN}
+			COMMAND run_tests.erl ${PETRINET} ${TESTRUN}
 			WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+		set_property (TEST erlang-test-${PETRINET}-${TESTRUN}
+			PROPERTY ENVIRONMENT "ERL_LIBS=${PERPETUUM_LIBDIR}")
 
 	endforeach()
 

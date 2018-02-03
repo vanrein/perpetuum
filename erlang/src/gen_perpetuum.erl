@@ -98,7 +98,7 @@
 % current Marking, whereas a failed transition does not return a
 % new state for the caller to store.
 %
--spec handle_trans( TransName::atom(),EventData::term(),colour,AppState::term() ) -> internreply().
+-spec handle_trans( TransName::atom(),EventData::term(),#colour{},AppState::term() ) -> internreply().
 handle_trans( TransName,EventData,
 			#colour{
 				petrinet=#petrinet{
@@ -290,7 +290,7 @@ trans_switch( SwitchMap,TransName,EventData,AppData ) ->
 
 % Accept any transition immediately, returning a simple noreply.
 %
--spec trans_noreply( CBArg::term(),TransName::atom(),EventData::term(),AppData::term() ) -> noreply.
+-spec trans_noreply( CBArg::term(),TransName::atom(),EventData::term(),AppData::term() ) -> {noreply,term()}.
 trans_noreply( _CBArg,_TransName,_EventData,AppData ) -> { noreply,AppData }.
 
 % Reject the transition with an error.
@@ -487,11 +487,11 @@ event( PetriNet,TransName,EventData,Timeout ) ->
 send_response( _Ref,_Pid,noreply ) ->
 	noreply;
 send_response( Ref,Pid,Response ) ->
-	case Response of
+	_ = case Response of
 	{ reply,Reply,_NC,_PS} -> Pid ! { reply,Ref,{ reply,Reply  } };
 	{ error,Reason       } -> Pid ! { reply,Ref,{ error,Reason } };
 	{ retry,Reason       } -> Pid ! { reply,Ref,{ retry,Reason } };
-	{ delay,DelayT       } -> Pid ! { reply,Ref,{ delay,DelayT } };
+	%NOSHOW% { delay,DelayT       } -> Pid ! { reply,Ref,{ delay,DelayT } };
 	{ noreply,    _NC,_PS} -> Pid ! { reply,Ref,  noreply        }
 	end,
 	Response.
@@ -544,19 +544,19 @@ loop( Parent,Colour,AppState )  ->
 	% Utility functions to query the Petri Net
 	%
 	{ marking,Ref,Pid } ->
-		send_response( Ref,Pid,
+		_ = send_response( Ref,Pid,
 			handle_marking( Colour,AppState           )),
 		noreply;
 	{ canfire,Ref,Pid } ->
-		send_response( Ref,Pid,
+		_ = send_response( Ref,Pid,
 			handle_canfire( Colour,AppState           )),
 		noreply;
 	{ canfire,TransName,Ref,Pid } ->
-		send_response( Ref,Pid,
+		_ = send_response( Ref,Pid,
 			handle_canfire( Colour,AppState,TransName )),
 		noreply;
 	{ enquire,Query,Ref,Pid } ->
-		send_response( Ref,Pid,
+		_ = send_response( Ref,Pid,
 			handle_enquire( Colour,AppState,Query     )),
 		noreply;
 	%
@@ -566,7 +566,7 @@ loop( Parent,Colour,AppState )  ->
 		handle_stop( Reason,Colour,AppState );
 	{ system,From,Msg } ->
 		DebugData = [],
-		sys:handle_system_message( Msg,From,Parent,?MODULE,DebugData,{Colour,AppState} );
+		sys:handle_system_msg( Msg,From,Parent,?MODULE,DebugData,{Colour,AppState} );
 	{ 'EXIT', _Pid, Reason } ->
 		exit (Reason)
 	%
@@ -593,7 +593,7 @@ loop( Parent,Colour,AppState )  ->
 %
 % This function uses information from the places() callback.
 %
--spec handle_marking( Prior::colour,AppState::term() ) -> { reply,[ { PlaceName::atom(),TokenCount::integer() } ],colour,term() }.
+-spec handle_marking( Prior::#colour{},AppState::term() ) -> { reply,[ { PlaceName::atom(),TokenCount::integer() } ],#colour{},term() }.
 handle_marking( #colour{ petrinet=#petrinet { instance=InstanceMod, placebits=PlaceBits }, marking=Marking }=Colour,AppState ) ->
 	PlaceMask = (1 bsl PlaceBits) - 1,
 	ListPlaces = fun( YF,ShiftMarking,Places ) ->
@@ -612,12 +612,12 @@ handle_marking( #colour{ petrinet=#petrinet { instance=InstanceMod, placebits=Pl
 % the requested one can fire.  In all cases, return a list of transitions
 % that is potentially empty.
 %
--spec handle_canfire( colour,AppState::term(),TransName::atom() ) -> { reply,boolean() }.
+-spec handle_canfire( #colour{},AppState::term(),TransName::atom() ) -> { reply,boolean(),#colour{},NewAppState::term() }.
 handle_canfire( #colour{ petrinet=#petrinet { transmap=TransMap }, marking=Marking }=Colour,AppState,TransName ) ->
 	{ _Addend,Subber,TransSentinel } = maps:get ( TransName,TransMap ),
 	{ reply,check_canfire( Marking,Subber,TransSentinel ),Colour,AppState }.
 %
--spec handle_canfire( colour,AppState::term()                   ) -> { reply,[ TransName::atom() ] }.
+-spec handle_canfire( #colour{},AppState::term()                   ) -> { reply,[ TransName::atom() ],#colour{},NewAppState::term() }.
 handle_canfire( #colour{ petrinet=#petrinet { transmap=TransMap }, marking=Marking }=Colour,AppState ) ->
 	CheckCanFire = fun( _TransName,{_Addend,Subber,TransSentinel} ) ->
 		check_canfire( Marking,Subber,TransSentinel )
@@ -642,7 +642,7 @@ check_canfire( Marking,Subber,TransSentinel ) ->
 %
 % Both Query and Answer are free-form, each is an Erlang term().
 %
--spec handle_enquire( colour,AppState::term(),Query::term() ) -> transreply().
+-spec handle_enquire( #colour{},AppState::term(),Query::term() ) -> transreply().
 handle_enquire(#colour{
 			petrinet=#petrinet{
 				callback={CallbackMod,CallbackFun,CallbackArgs}
@@ -674,11 +674,11 @@ handle_enquire(#colour{
 %  - { delay,   PositiveMilliSecondDelay         }
 %  -   noreply
 %
--type internreply() :: { noreply,         colour, term() } |
-                       { reply,   term(), colour, term() } |
-                       { error,   term()                 } |
-                       { retry,   term()                 } |
-                       { delay,   integer()              } |
+-type internreply() :: { noreply,         #colour{}, term() } |
+                       { reply,   term(), #colour{}, term() } |
+                       { error,   term()                    } |
+                       { retry,   term()                    } |
+                       { delay,   integer()                 } |
                          noreply.
 
 % Handle any timeouts in an intermediate response, by resending the
@@ -709,7 +709,7 @@ handle_delay( MaxDelay,TransName,EventData,RefOpt,PidOpt,PreResponse ) ->
 					%DEBUG% io:format( "Delaying signal by ~p ms~n",[NewTimeout] ),
 					{ signal,TransName,EventData,NewTimeout }
 				end,
-				timer:send_after( DeferMS, NewMsg  ),
+				_TODO_IGNORED = timer:send_after( DeferMS, NewMsg  ),
 				noreply;
 			true ->
 				{ error,{timeout,NewTimeout} }
@@ -750,7 +750,7 @@ handle_async_infodrop( PreResponse ) ->
 % the underlying transition handler '$stop' of the application's
 % callback module.
 %
--spec handle_stop( Reason::term(),colour,AppState::term() ) -> internreply().
+-spec handle_stop( Reason::term(),#colour{},AppState::term() ) -> internreply().
 handle_stop( Reason,
 			#colour{
 				petrinet=#petrinet{
@@ -769,7 +769,7 @@ handle_stop( Reason,
 	% Delayed death by setting an alarm for another attempt.
 	% (This can be continued for a long time, and might pile up.)
 	% 
-	{ delay,Timeout       } -> timer:send_after( Timeout,{ stop,Reason } ), noreply;
+	{ delay,Timeout       } -> _TODO_IGNORED = timer:send_after( Timeout,{ stop,Reason } ), noreply;
 	%
 	% Acceptance of the requested termination.
 	% (But do spoil a normal exit if a reply state was lost.)
@@ -784,6 +784,7 @@ end.
 system_continue( Parent,_Debug,{Colour,AppState} ) ->
 	loop( Parent,Colour,AppState ).
 %
+-spec( system_terminate( term(),term(),term(),term() ) -> no_return() ).
 system_terminate( Reason,_Parent,_Debug,{ Colour,AppState } ) ->
 	handle_stop( Reason,Colour,AppState ),
 	% and, it case it would fall through:
