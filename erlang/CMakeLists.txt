@@ -13,21 +13,30 @@ cmake_minimum_required (VERSION 3.8)
 
 include (ExternalProject)
 
-# add_custom_target (erlang/perpetuum
-	# COMMAND cmake 
+add_custom_command (OUTPUT perpetuum
+	COMMAND cmake -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/perpetuum
+	COMMAND cmake -E copy_directory
+		${CMAKE_CURRENT_SOURCE_DIR}/src
+		${CMAKE_CURRENT_BINARY_DIR}/perpetuum/src
+	COMMAND cmake -E copy_directory
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+		${CMAKE_CURRENT_BINARY_DIR}/perpetuum/include
+	COMMAND cmake -E copy_directory
+		${CMAKE_CURRENT_SOURCE_DIR}/ebin
+		${CMAKE_CURRENT_BINARY_DIR}/perpetuum/ebin
+	COMMAND cmake -E copy_directory
+		${CMAKE_CURRENT_SOURCE_DIR}/docs
+		${CMAKE_CURRENT_BINARY_DIR}/perpetuum/docs
+	COMMAND cmake -E copy
+		${CMAKE_CURRENT_SOURCE_DIR}/erlang.mk
+		${CMAKE_CURRENT_SOURCE_DIR}/Makefile
+			${CMAKE_CURRENT_BINARY_DIR}/perpetuum)
 
-file (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/perpetuum)
-
-file (COPY 
-	${CMAKE_CURRENT_SOURCE_DIR}/src
-	${CMAKE_CURRENT_SOURCE_DIR}/include
-	${CMAKE_CURRENT_SOURCE_DIR}/ebin
-	${CMAKE_CURRENT_SOURCE_DIR}/docs
-	${CMAKE_CURRENT_SOURCE_DIR}/erlang.mk
-	${CMAKE_CURRENT_SOURCE_DIR}/Makefile
-	DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/perpetuum)
+add_custom_target (erlang-perpetuum-bootstrap
+	DEPENDS perpetuum)
 
 ExternalProject_Add (erlang_build
+	DEPENDS erlang-perpetuum-bootstrap
 	SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
 	# erlang_build_prepare
 	# SOURCE_DIR .
@@ -35,12 +44,12 @@ ExternalProject_Add (erlang_build
 	STAMP_DIR stamp
 	TMP_DIR tmp
 	# BUILD_IN_SOURCE 1
-	BUILD_COMMAND gmake -C ${CMAKE_CURRENT_BINARY_DIR}/perpetuum all
-	INSTALL_COMMAND gmake -C ${CMAKE_CURRENT_BINARY_DIR}/perpetuum app)
+	BUILD_COMMAND ${GNUMAKE} -C ${CMAKE_CURRENT_BINARY_DIR}/perpetuum all
+	INSTALL_COMMAND ${GNUMAKE} -C ${CMAKE_CURRENT_BINARY_DIR}/perpetuum app)
 
 add_test (NAME erlang_common_tests
-	COMMAND gmake -C ${CMAKE_CURRENT_BINARY_DIR}/perpetuum ct)
+	COMMAND ${GNUMAKE} -C ${CMAKE_CURRENT_BINARY_DIR}/perpetuum ct)
 
 add_test (NAME erlang_dialyze
-	COMMAND gmake -C ${CMAKE_CURRENT_BINARY_DIR}/perpetuum plt dialyze)
+	COMMAND ${GNUMAKE} -C ${CMAKE_CURRENT_BINARY_DIR}/perpetuum plt dialyze)
 

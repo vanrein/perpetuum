@@ -67,6 +67,8 @@ find_package (PkgConfig)
 #TODO#         cmph libcmph Cmph CMPH
 #TODO# )
 
+find_program (GNUMAKE
+	NAMES gmake make)
 
 
 #
