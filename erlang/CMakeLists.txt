@@ -13,7 +13,7 @@ cmake_minimum_required (VERSION 3.8)
 
 include (ExternalProject)
 
-add_custom_command (OUTPUT perpetuum
+add_custom_command (OUTPUT erlang-perpetuum-bootstrap-setup
 	COMMAND cmake -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/perpetuum
 	COMMAND cmake -E copy_directory
 		${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -29,11 +29,14 @@ add_custom_command (OUTPUT perpetuum
 		${CMAKE_CURRENT_BINARY_DIR}/perpetuum/docs
 	COMMAND cmake -E copy
 		${CMAKE_CURRENT_SOURCE_DIR}/erlang.mk
-		${CMAKE_CURRENT_SOURCE_DIR}/Makefile
-			${CMAKE_CURRENT_BINARY_DIR}/perpetuum)
+		${CMAKE_CURRENT_BINARY_DIR}/perpetuum)
+
+configure_file (${CMAKE_CURRENT_SOURCE_DIR}/Makefile.in
+		${CMAKE_CURRENT_BINARY_DIR}/perpetuum/Makefile
+		@ONLY)
 
 add_custom_target (erlang-perpetuum-bootstrap
-	DEPENDS perpetuum)
+	DEPENDS erlang-perpetuum-bootstrap-setup)
 
 ExternalProject_Add (erlang_build
 	DEPENDS erlang-perpetuum-bootstrap
