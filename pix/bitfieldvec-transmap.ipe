@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE ipe SYSTEM "ipe.dtd">
 <ipe version="70206" creator="Ipe 7.2.7">
-<info created="D:20180130224438" modified="D:20180131000125"/>
+<info created="D:20180130224438" modified="D:20180204004452"/>
 <ipestyle name="basic">
 <symbol name="arrow/arc(spx)">
 <path stroke="sym-stroke" fill="sym-stroke" pen="sym-pen">
@@ -454,8 +454,8 @@ h
 <text matrix="1 0 0 1 244 -136" pos="84 528" stroke="black" type="label" width="4.981" height="6.42" depth="0" halign="center" valign="center" style="math">0</text>
 <text matrix="1 0 0 1 164 -136" pos="84 528" stroke="black" type="label" width="4.981" height="6.42" depth="0" halign="center" valign="center" style="math">0</text>
 <text matrix="1 0 0 1 84 -136" pos="84 528" stroke="black" type="label" width="4.981" height="6.42" depth="0" halign="center" valign="center" style="math">0</text>
-<text matrix="1 0 0 1 52 -128" pos="156 520" stroke="black" type="label" width="42.701" height="6.926" depth="1.93" halign="center" valign="center">\#arcs:t2p</text>
-<text matrix="1 0 0 1 212 -128" pos="156 520" stroke="black" type="label" width="42.701" height="6.926" depth="1.93" halign="center" valign="center">\#arcs:t2p</text>
+<text matrix="1 0 0 1 52 -128" pos="156 520" stroke="black" type="label" width="42.701" height="6.926" depth="1.93" halign="center" valign="center">\#arcs:p2t</text>
+<text matrix="1 0 0 1 212 -128" pos="156 520" stroke="black" type="label" width="42.701" height="6.926" depth="1.93" halign="center" valign="center">\#arcs:p2t</text>
 <text matrix="1 0 0 1 64 -124" pos="364 516" stroke="black" type="label" width="54.13" height="8.365" depth="3.59" valign="center">\strut trans:subber</text>
 <text matrix="1 0 0 1 240 -120" pos="176 512" stroke="black" type="label" width="13.284" height="1.052" depth="0" halign="center" valign="center">\ldots</text>
 <path matrix="1 0 0 1 48 -496" stroke="black" fill="1 0.493 0.474" pen="fat">
@@ -658,7 +658,7 @@ h
 <text matrix="1 0 0 1 64 -212" pos="104 540" stroke="black" type="label" width="4.981" height="6.42" depth="0" halign="center" valign="center">1</text>
 <text matrix="1 0 0 1 144 -212" pos="104 540" stroke="black" type="label" width="4.981" height="6.42" depth="0" halign="center" valign="center">1</text>
 <text matrix="1 0 0 1 224 -212" pos="104 540" stroke="black" type="label" width="4.981" height="6.42" depth="0" halign="center" valign="center">1</text>
-<text matrix="1 0 0 1 80 -172" pos="352 500" stroke="black" type="label" width="52.719" height="8.365" depth="3.59" valign="center">\strut trans:setinel</text>
+<text matrix="1 0 0 1 80 -172" pos="352 500" stroke="black" type="label" width="57.977" height="8.365" depth="3.59" valign="center">\strut trans:sentinel</text>
 <text matrix="1 0 0 1 240 -184" pos="176 512" stroke="black" type="label" width="13.284" height="1.052" depth="0" halign="center" valign="center">\ldots</text>
 <text matrix="1 0 0 1 100 -200" pos="84 528" stroke="black" type="label" width="4.981" height="6.42" depth="0" halign="center" valign="center" style="math">0</text>
 <text matrix="1 0 0 1 116 -200" pos="84 528" stroke="black" type="label" width="4.981" height="6.42" depth="0" halign="center" valign="center" style="math">0</text>
@@ -876,11 +876,11 @@ h
 <text matrix="1 0 0 1 244 -264" pos="84 528" stroke="black" type="label" width="4.981" height="6.42" depth="0" halign="center" valign="center" style="math">0</text>
 <text matrix="1 0 0 1 164 -264" pos="84 528" stroke="black" type="label" width="4.981" height="6.42" depth="0" halign="center" valign="center" style="math">0</text>
 <text matrix="1 0 0 1 84 -264" pos="84 528" stroke="black" type="label" width="4.981" height="6.42" depth="0" halign="center" valign="center" style="math">0</text>
-<text matrix="1 0 0 1 52 -256" pos="156 520" stroke="black" type="label" width="42.701" height="6.926" depth="1.93" halign="center" valign="center">\#arcs:p2t</text>
-<text matrix="1 0 0 1 212 -256" pos="156 520" stroke="black" type="label" width="42.701" height="6.926" depth="1.93" halign="center" valign="center">\#arcs:p2t</text>
+<text matrix="1 0 0 1 52 -256" pos="156 520" stroke="black" type="label" width="42.701" height="6.926" depth="1.93" halign="center" valign="center">\#arcs:t2p</text>
+<text matrix="1 0 0 1 212 -256" pos="156 520" stroke="black" type="label" width="42.701" height="6.926" depth="1.93" halign="center" valign="center">\#arcs:t2p</text>
 <text matrix="1 0 0 1 64 -252" pos="364 516" stroke="black" type="label" width="49.371" height="8.365" depth="3.59" valign="center">\strut trans:adder</text>
 <text matrix="1 0 0 1 240 -248" pos="176 512" stroke="black" type="label" width="13.284" height="1.052" depth="0" halign="center" valign="center">\ldots</text>
-<text matrix="1 0 0 1 132 -256" pos="156 520" stroke="black" type="label" width="42.701" height="6.926" depth="1.93" halign="center" valign="center">\#arcs:p2t</text>
+<text matrix="1 0 0 1 132 -256" pos="156 520" stroke="black" type="label" width="42.701" height="6.926" depth="1.93" halign="center" valign="center">\#arcs:t2p</text>
 <group matrix="1 0 0 1 192 4">
 <path stroke="black">
 64 376 m

@@ -7,6 +7,9 @@ Driving Workers from Petri nets
 >   events, actions and activities, we describe work to be synchronised. What
 >   remains to be done is to link the two.*
 
+**WARNING:** *This article was an early investigation document.  It may not be entirely
+up to date, but was kept as a reference to the background of this project.*
+
 First, a few words about the semantics / meaning of Petri nets. Then, we'll move
 into more practical territory, and deal with the attachment of actions,
 activities and events to our Petri nets. We will end with a few remarks about
@@ -37,8 +40,8 @@ specifically that there is no need for randomness in the implementation of
 transition firing, at least not from a Petri-net correctness viewpoint; other
 reasons such as fairness may still apply of course.
 
-Transitions may link to Events and (Trans)Actions
--------------------------------------------------
+Transitions link to Events and (Trans)Actions
+---------------------------------------------
 
 The syntax of a transition annotation is
 

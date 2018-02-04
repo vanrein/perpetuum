@@ -8,12 +8,12 @@
 
 ### Petri-Net Tools
 
-Perfect-world instruction: Fetch our version of `pntools` that adds PNML details needed here:
-
-    git clone https://github.com/vanrein/pntools
-    cd pntools
-    sudo python setup.py install
-    cd ..
+> Perfect-world instruction: Fetch our version of `pntools` that adds PNML details needed here:
+> 
+>     git clone https://github.com/vanrein/pntools
+>     cd pntools
+>     sudo python setup.py install
+>     cd ..
 
 Quickfix instruction: Since this didn't always work for us, we incorporated the package
 as part of the source tree, and hope to fall back on the library
@@ -21,9 +21,9 @@ later.
 
 ### C Minimal Perfect Hashes
 
-Perfect-world instruction: Fetch a recent version of `cmph` and install it,
-
-    pip install cmph
+> Perfect-world instruction: Fetch a recent version of `cmph` and install it,
+> 
+>     pip install cmph
 
 Quickfix instruction: 
 Note that there appears to be [an issue](https://github.com/URXtech/cmph-cffi/issues/16)
@@ -132,12 +132,17 @@ There are a few other files you may be concerned with:
     collects the C sources generated and fixed into a demo program.
 
 **Intermezzo for Erlang:**
-The below does not build for Erlang is not included; that could be done with
+The below example focusses on C, not Erlang.  You could however still
+compile the generated Erlang program if you have an Erlang/OTP release
+on your system.  You would add the build directory's subdirectory
+`erlang/perpetuum-VERSION` to the path in the `$ERL_LIBS` variable,
+and invoke
 
-    pushd ../erlang
-    erlc gen_perpetuum.erl
-    popd
-    erlc -pa ../erlang/gen_perpetuum.beam
+    erlc traffic_light_nightly.erl
+
+The [test code](test/TESTING.MD) has been built around a few examples,
+including this one, so you have plenty of things to try on this
+module.  Apart from straight coding against it yourself of course.
 
 **Back to C:**
 So we build and test

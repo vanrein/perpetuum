@@ -1,4 +1,4 @@
-# Perpetuum: Event loop Code Generation from Petri-nets
+# Perpetuum: Generating Fast Code from Petri-nets
 
 <img alt="Perpetuum Mobile" src="pix/240px-PerpetuumMobile.gif" style="float: right;"/>
 
@@ -36,11 +36,11 @@ driven by technical advances or operations in different contexts.
 
 ## Programming Model
 
-The Petri net engine is principally invoked with events to process.  Its
-current design is not re-entrant; instead, it is considered part of the
+The Petri Net engine is principally invoked with events to process.  It
+is designed to handle these events one by one; the Petri Net is part of the
 work-distributing part of an event loop.  Actions that are started from
-the Petri net are therefore assumed to be snappy actions that can quickly
-return.
+the Petri Net are therefore assumed to be snappy actions that will return
+with virtually no delay.
 
 Snappy actions are not so surprising for an event-driven system.  There
 should be no waiting for other threads or processes, but instead an
@@ -66,11 +66,42 @@ been rolled back.  [TODO: INTRODUCE IDEMPOTENCE]
 While developing snappy chunks, you need not worry about the Petri net
 in which your code is running.  You should of course be aware that some
 pairing between starting and ending a background task is useful, but even
-the connection between your code and the Petri net are done by the same
+the connection between your code and the Petri Net are done by the same
 person who designs the Petri net.
 
+### Language Support: C and Erlang (for now)
 
-## Petri net Design
+The current implementation has support for C and Erlang.  It has
+the potential of covering much more, but the compiler probably needs
+to learn about structure, which was hardly available during our first
+iteration.  The compiler is reliable, but also quite linearly maps
+out the work to be done in one long list of actions.
+
+The model for C is kept very general; the terminology above refers
+to event loops but does not limit you to one particular brand.
+The representation in memory is straightforward, albeit quite
+compact and built with the memory constrainsts of the smallest
+embedded system in mind.
+
+The model for Erlang is based on its variable-sized integer type,
+which can hold the state of a complete Petri Net in just one of
+these integers.  In addition, it needs guiding structures which
+are static for any but the wildest-sized applications.  These
+static structures are shared between all processes, allowing for
+a very high number of Petri Net instances running in parallel.
+This is not exceptional; in fact, Erlang developers generally aim
+for such structures.  Read more about this design in the document
+on [Bitfield Vectors](BITFIELDVEC.MD).
+
+It is possible to use a variable-sized integer type in C as well.
+Most crypto-libraries offer such facilities.  There can also be
+more elaborate choices about process and communication models,
+but given the wide-ranging choices offered by C, certainly when
+compared to Erlang, we've left such specialisation for C coding
+style as an exercise to the Perpetuum user.  We'll focus on the
+process algebraic aspects.
+
+## Petri Net Design
 
 To design a Petri net, you need not be concerned with the implementation
 of the actions that are started from your net, or how events enter the
@@ -93,10 +124,54 @@ assure you that it will not run into problems when you deploy them.
 
 ### Formal Testing Opportunities
 
-TODO: List tests that could be useful -- xlate math lingo into deployment speak.
+Please read the [tools document](TOOLS.MD) for details on tools
+for editing, simulating and analysing Petri Nets.  A lot of
+research is inconclusive, but it would be a shame to conclude
+that none of it can be used until it is complete; some problems
+in mathematics are simply very hard to solve, if they can be
+solved at all.  It is probably good to use tools even when they
+constrain patterns more than your gut feeling tells you is
+possible; the most important thing is that your gut feeling
+is replaced with thinking about the (hopefully few) cases
+where it is useful to double-check.  You may find that you
+only need to add a few explicit pathways to your Petri Net
+to silence a process validation tool.
+
+Think of process algebraic tests as an analogue to type
+checking.  Where type checking can do upfront validation
+of the data that is allowed in certain variables, it is
+the task if process validation to check that things happen
+in the right order.  Compare this to using locks everywhere
+in your code, delved in so deeply that it is difficult to
+figure out why you had a deadlock.  And it may even be
+difficult to reproduce because, unlike a process validator,
+your test runs only cover a single trace of time.  One day,
+the cat in the box dies; another day, it does not.  Tools
+can just look at all the days that might occur.
+
+Process logic has its own notation for order.  Commonly
+mentioned languages are LTL and CTL, but there are also
+diagramming languages similar to state charts.  The power
+of these languages can be, just like with type annotations,
+that a requirement that underpins the logic of a system can
+be spelled out and automatically checked after updates to
+the code, long after the original thinking and possibly by
+a different person.  Once violated, a constraint will ask
+for attention leading to a rethink of either code or the
+constraint.  This is usefully spent time, in terms of
+writing reliable code.  Again, you want to handle both
+dead and alive cats in your boxes.
+
+Please read the [testing document](test/TESTING.MD) for details
+on this package's tools for testing the software produced.
+Although only applied to a few standard examples, you should
+find it relatively easy to test the correctness of your
+Petri Net mapping into code, as made by Perpetuum.
 
 
 ### NOTES after discussion with Adriaan de Groot
+
+Both Adriaan and Rick have a background in process algebra.  We've had great fun thinking about the practical implications that a system like this could have.
 
   * Time-consuming processes can justly be run in a place
   * The non-determinism of Petri-nets helps to challenge/cripple formal tools (meaning, avoid that they jump to illegit conclusions) but implementations invariably add choices that may be more concrete (without breaking any formal properties)
@@ -111,4 +186,4 @@ With longer-running processes, colour can be endangered; writes may replace valu
 
   - Use locks, either in the activities or in the surrounding generated code
   - Analyse such that colour aspects (parts of user type space) never overlaps (using k-bound analysis and a few extra places and arcs between conflicting parts?)
-  - Use analysis of such extra colour aspects to add the extra places and arcs in the Petri net that enforce 1-boundedness of the collection of places that access the same piece of information
+  - Use analysis of such extra colour aspects to add the extra places and arcs in the Petri Net that enforce 1-boundedness of the collection of places that access the same piece of information

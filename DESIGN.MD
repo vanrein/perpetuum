@@ -8,6 +8,9 @@
 >   develop over time, it is very useful to be able to manage the process from
 >   a well-known process formalism, guided by graphical tools.*
 
+**WARNING:** *This article was an early investigation document.  It may not be entirely
+up to date, but was kept as a reference to the background of this project.*
+
 Perpetuum was designed to accommodate the
 [Key Manager](http://internetwide.org/blog/2016/12/20/idhub-2-middleware.html)
 in the ARPA2.net component

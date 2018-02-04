@@ -111,7 +111,7 @@ The following terms are of interest to the domain of model checking:
       - [Well-formedness](https://en.wikipedia.org/wiki/Well-formed_Petri_net)
         helps to describe a Petri net in terms of symbolic notation, which
         bypasses the state explosion and replaces it with a mathematical
-        derivation technique.  TODO:Study.
+        derivation technique.
       - [Reachability](https://en.wikipedia.org/wiki/Petri_net#Reachability)
         is a very general property, namely being able to reach a certain
         computational state from a given initial state (or "marking" as it

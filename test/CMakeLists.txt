@@ -1,7 +1,7 @@
 # Tests, most extensively against Erlang code.
 
 set (PETRINETS_TESTED traffic_light_nightly kxover_client) #TODO# Might add: kxover_server.test
-set (RUNTYPES_TESTED syncrun asyncrun applogic wildsum syncrun_delayed asyncrun_delayed backgrounded reflow_sentinel reflow_transmap)
+set (RUNTYPES_TESTED startstop syncrun asyncrun applogic wildsum syncrun_delayed asyncrun_delayed backgrounded reflow_sentinel reflow_transmap)
 
 set (PERPETUUM_LIBDIR ${CMAKE_BINARY_DIR}/erlang/perpetuum-${Perpetuum_VERSION})
 
