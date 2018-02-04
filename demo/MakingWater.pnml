@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+	<!-- Written by GreatSPN Editor. -->
+	<net id="MakingWater" type="http://www.pnml.org/version-2009/grammar/ptnet">
+		<name>
+			<text>Making Water</text>
+		</name>
+		<page id="page0">
+			<name>
+				<text>DefaultPage</text>
+			</name>
+			<!-- List of places -->
+			<place id="Hydrogen">
+				<name>
+					<graphics>
+						<offset x="0" y="20"/>
+					</graphics>
+					<text>Hydrogen</text>
+				</name>
+				<graphics>
+					<position x="120" y="40"/>
+				</graphics>
+			</place>
+			<place id="Oxygen">
+				<name>
+					<graphics>
+						<offset x="0" y="20"/>
+					</graphics>
+					<text>Oxygen</text>
+				</name>
+				<graphics>
+					<position x="120" y="110"/>
+				</graphics>
+			</place>
+			<place id="Water">
+				<name>
+					<graphics>
+						<offset x="0" y="20"/>
+					</graphics>
+					<text>Water</text>
+				</name>
+				<graphics>
+					<position x="270" y="80"/>
+				</graphics>
+			</place>
+			<!-- List of transitions -->
+			<transition id="add_H">
+				<name>
+					<graphics>
+						<offset x="0" y="-20"/>
+					</graphics>
+					<text>add_H</text>
+				</name>
+				<graphics>
+					<position x="55" y="40"/>
+				</graphics>
+			</transition>
+			<transition id="add_O">
+				<name>
+					<graphics>
+						<offset x="0" y="-20"/>
+					</graphics>
+					<text>add_O</text>
+				</name>
+				<graphics>
+					<position x="55" y="110"/>
+				</graphics>
+			</transition>
+			<transition id="boom">
+				<name>
+					<graphics>
+						<offset x="0" y="-20"/>
+					</graphics>
+					<text>boom</text>
+				</name>
+				<graphics>
+					<position x="195" y="80"/>
+				</graphics>
+			</transition>
+			<!-- List of arcs -->
+			<arc id="id1" source="add_H" target="Hydrogen">
+			</arc>
+			<arc id="id2" source="add_O" target="Oxygen">
+			</arc>
+			<arc id="id3" source="Hydrogen" target="boom">
+				<inscription>
+					<text>2</text>
+				</inscription>
+			</arc>
+			<arc id="id4" source="Oxygen" target="boom">
+			</arc>
+			<arc id="id5" source="boom" target="Water">
+			</arc>
+		</page>
+	</net>
+</pnml>

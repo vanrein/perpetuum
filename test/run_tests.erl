@@ -224,6 +224,7 @@ run_tests( [],Module,_Test,AccuOK ) ->
 run_tests( [Option|Rest],Module,Test,AccuOK ) ->
 	io:format( "Running test ~p against ~p...~n", [Option,Module] ),
 	TestOutput = case Option of
+
 	startstop ->
 		io:format( "STARTING ~p~n",[Module] ),
 		{ ok,Instance } = Module:start( gen_perpetuum,trans_noreply,[] ),
@@ -242,18 +243,22 @@ run_tests( [Option|Rest],Module,Test,AccuOK ) ->
 			demonitor( Ref,[flush] ),
 			{ error,timeout }
 		end;
+
 	syncrun ->
 		{ ok,Instance } = Module:start_link( gen_perpetuum,trans_noreply,[] ),
 		testrun( Module,Instance,Test,?LambdaLift3(invoke_sync),[] );
+
 	asyncrun ->
 		{ ok,Instance } = Module:start( gen_perpetuum,trans_noreply,[] ),
 		testrun( Module,Instance,Test,?LambdaLift3(invoke_async),[] );
+
 	applogic ->
 		CBArgs={486,[7,3]},
 		{ ok,Instance } = Module:start( stub_applogic,trans_datatrace,CBArgs ),
 		testrun( Module,Instance,Test,?LambdaLift3(invoke_traced),[] ),
 		DataTrace  = gen_perpetuum:enquire( Instance,[] ),
 		check_datatrace( CBArgs,DataTrace,Test );
+
 	wildsum ->
 		% We are blunt, in only deriving wild numbers from the input
 		{ TestMarkings,TestEvents } = split_test( Test ),
@@ -271,16 +276,19 @@ run_tests( [Option|Rest],Module,Test,AccuOK ) ->
 		true ->
 			ok
 		end;
+
 	syncrun_delayed ->
 		StartTime = erlang:monotonic_time(millisecond),
 		CBArgs = { StartTime,[ gen_perpetuum,trans_noreply,[] ]},
 		{ ok,Instance } = Module:start( stub_applogic,trans_delayed,CBArgs ),
 		testrun( Module,Instance,Test,?LambdaLift3(invoke_delayed_event),[] );
+
 	asyncrun_delayed ->
 		StartTime = erlang:monotonic_time(millisecond),
 		CBArgs = { StartTime,[ gen_perpetuum,trans_noreply,[] ]},
 		{ ok,Instance } = Module:start( stub_applogic,trans_delayed,CBArgs ),
 		testrun( Module,Instance,Test,?LambdaLift3(invoke_delayed_signal),[] );
+
 	backgrounded ->
 		TestButLast = lists:droplast( lists:droplast( Test )),
 		[Marking0,Events0|TestMiddle] = TestButLast,
@@ -290,7 +298,146 @@ run_tests( [Option|Rest],Module,Test,AccuOK ) ->
 		{ ok,Instance } = Module:start( stub_applogic,trans_backgrounded,CBArgs ),
 		{ _MarkingMiddle,EventsMiddle } = split_test( TestMiddle ),
 		BgTest = [ Marking0,Events0,MarkingLast,EventsLast ],
-		testrun( Module,Instance,BgTest,?LambdaLift3(invoke_and_linger),[EventsMiddle,[]] )
+		testrun( Module,Instance,BgTest,?LambdaLift3(invoke_and_linger),[EventsMiddle,[]] );
+
+	reflow_sentinel ->
+		% Blunt once more; we simply ignore the .test file in this test
+		Places = Module:places (),
+		NumPlaces = length( Places ),
+		InitialPlaceBits = Module:initial_placebits (),
+		InitialSentinel = Module:sentinel( InitialPlaceBits ),
+		%
+		% Hope to produce the same Sentinel sequence as the compiler,
+		% but use a different computation and produce more entries.
+		%
+		TenIntSizes = lists:seq( 3*64,12*64,64 ),
+		TenPlaceBits = [ ((IntSz-1) div NumPlaces)-1 || IntSz <- TenIntSizes ],
+		TestedPlaceBits = lists:filter( fun( Canidate ) -> Canidate>InitialPlaceBits end, TenPlaceBits ),
+		io:format( "Reflowing Sentinels from ~p PlaceBits to ~p~n",[InitialPlaceBits,TestedPlaceBits] ),
+		%
+		% Produce the TransMap by asking the module.  The result starts absolute,
+		% but proceeds by deriving from the smallest TransMap.
+		%
+		ReflowByModule = fun( PlaceBits ) ->
+			Module:sentinel( PlaceBits )
+		end,
+		ModuleSequence = [ InitialSentinel | lists:map( ReflowByModule,TestedPlaceBits ) ],
+		io:format( "Module produces ~p~n",[ModuleSequence] ),
+		%
+		% Produce the Sentinel by gradual enlargement of the previous one.
+		% This is always done with gen_perpetuum:reflow_transmap/4, except
+		% determining the initial Sentinel, which must come from the module.
+		% Note: reflow_sentinel( Sentinel,NumPlaces,OldPlacebits,NewPlacebits ).
+		%
+		ReflowGenInc = fun( NewPlaceBits,OldSentinels ) ->
+			OldPlaceBits = lists:nth( length( OldSentinels ),[ InitialPlaceBits | TestedPlaceBits ] ),
+			io:format( "Incremental reflow_sentinel from ~p to ~p~n",[OldPlaceBits,NewPlaceBits] ),
+			OldSentinel = lists:last( OldSentinels ),
+			NewSentinel = gen_perpetuum:reflow_sentinel(
+				OldSentinel,NumPlaces,OldPlaceBits,NewPlaceBits ),
+			OldSentinels ++ [NewSentinel]
+		end,
+		io:format( "Folding with Function ~p, Accu ~p, list ~p~n",[ReflowGenInc,[InitialSentinel],TestedPlaceBits] ),
+		GenIncSequence = lists:foldl(
+					ReflowGenInc,
+					[ InitialSentinel ],
+					TestedPlaceBits ),
+		io:format( "Generic produces result ~p~n",[GenIncSequence] ),
+		%
+		% Now compare ModuleSequence to GenIncSequence
+		%
+		if length( ModuleSequence ) /= length( GenIncSequence ) ->
+			ErrorLengths = [ 'different-sentinel-sequences' ],
+			io:format( "ModuleSequence and GenIncSequence are of different lengths: ~p and ~p~n",[ length( ModuleSequence ),length( GenIncSequence ) ] ),
+			ZipTwo = { [],[] };
+		true ->
+			ErrorLengths = [],
+			ZipTwo = lists:zip( ModuleSequence,GenIncSequence )
+		end,
+		ErrorVectors = [ {'vectors-differ',S1,S2} || { S1,S2 } <- ZipTwo, S1 /= S2 ],
+		%
+		% Harvest results and report on them
+		%
+		case ErrorLengths ++ ErrorVectors of
+		[] ->
+			ok;
+		AllErrors ->
+			{error,{'reflow_sentinel',AllErrors}}
+		end;
+
+	reflow_transmap ->
+		% Blunt once more; we simply ignore the .test file in this test
+		Places = Module:places (),
+		NumPlaces = length( Places ),
+		InitialPlaceBits = Module:initial_placebits (),
+		InitialTransMap = Module:transmap( InitialPlaceBits ),
+		%
+		% Hope to produce the same PlaceBits sequence as the compiler,
+		% but use a different computation and produce more entries.
+		%
+		TenIntSizes = lists:seq( 3*64,12*64,64 ),
+		TenPlaceBits = [ ((IntSz-1) div NumPlaces)-1 || IntSz <- TenIntSizes ],
+		TestedPlaceBits = lists:filter( fun( Canidate ) -> Canidate>InitialPlaceBits end, TenPlaceBits ),
+		io:format( "Reflowing Transition Maps from ~p PlaceBits to ~p~n",[InitialPlaceBits,TestedPlaceBits] ),
+		%
+		% Produce the TransMap by asking the module.  The result starts absolute,
+		% but proceeds by deriving from the smallest TransMap.
+		%
+		ReflowByModule = fun( PlaceBits ) ->
+			Module:transmap( PlaceBits )
+		end,
+		ModuleSequence = [ InitialTransMap | lists:map( ReflowByModule,TestedPlaceBits ) ],
+		io:format( "Module produces ~p~n",[ModuleSequence] ),
+		%
+		% Produce the TransMap by gradual enlargement of the previous one.
+		% This is always done with gen_perpetuum:reflow_transmap/4, except
+		% determining the initial TransMap, which must come from the module.
+		% Note: reflow_transmap( TransMap,NumPlaces,OldPlacebits,NewPlacebits ).
+		%
+		ReflowGenInc = fun( NewPlaceBits,OldTransMaps ) ->
+			OldPlaceBits = lists:nth( length( OldTransMaps ),[ InitialPlaceBits | TestedPlaceBits ] ),
+			io:format( "Incremental reflow_transmap from ~p to ~p~n",[OldPlaceBits,NewPlaceBits] ),
+			OldTransMap = lists:last( OldTransMaps ),
+			NewTransMap = gen_perpetuum:reflow_transmap(
+				OldTransMap,NumPlaces,OldPlaceBits,NewPlaceBits ),
+			OldTransMaps ++ [NewTransMap]
+		end,
+		io:format( "Folding with Function ~p, Accu ~p, list ~p~n",[ReflowGenInc,[InitialTransMap],TestedPlaceBits] ),
+		GenIncSequence = lists:foldl(
+					ReflowGenInc,
+					[ InitialTransMap ],
+					TestedPlaceBits ),
+		io:format( "Generic produces result ~p~n",[GenIncSequence] ),
+		%
+		% Now compare ModuleSequence to GenIncSequence
+		%
+		if length( ModuleSequence ) /= length( GenIncSequence ) ->
+			ErrorLengths = [ 'different-transmap-sequences' ],
+			io:format( "ModuleSequence and GenIncSequence are of different lengths: ~p and ~p~n",[ length( ModuleSequence ),length( GenIncSequence ) ] ),
+			ZipTwo = { [],[] };
+		true ->
+			ErrorLengths = [],
+			ZipTwo = lists:zip( ModuleSequence,GenIncSequence )
+		end,
+		ErrorKeys = [ {'keysets-differ',K1,K2} ||
+				{ M1,M2 } <- ZipTwo,
+				K1 <- [ maps:keys( M1 ) ],
+				K2 <- [ maps:keys( M2 ) ],
+				(length( K1 -- K2 ) /= 0) or (length( K2 -- K1 ) /= 0) ],
+		ErrorMapping = [ {'mappings-differ',K,maps:get( K,M1 ),maps:get( K,M2 )} ||
+				{ M1,M2} <- ZipTwo,
+				K <- maps:keys( M1 ),
+				maps:get( K,M1 ) /= maps:get( K,M2 ) ],
+		%
+		% Harvest results and report on them
+		%
+		case ErrorLengths ++ ErrorKeys ++ ErrorMapping of
+		[] ->
+			ok;
+		AllErrors ->
+			{error,{'reflow_transmap',AllErrors}}
+		end
+
 	end,
 	case TestOutput of
 	ok ->
@@ -348,5 +495,10 @@ main( _ ) ->
 	io:format( " - asyncrun~n"),
 	io:format( " - applogic~n"),
 	io:format( " - wildsum~n"),
+	io:format( " - syncrun_delayed~n"),
+	io:format( " - asyncrun_delayed~n"),
+	io:format( " - backgrounded~n"),
+	io:format( " - reflow_sentinel~n"),
+	io:format( " - reflow_transmap~n"),
 	halt( 1 ).
 

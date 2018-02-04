@@ -1,0 +1,147 @@
+<?xml version="1.0"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+	<!-- Written by GreatSPN Editor. -->
+	<net id="TrafficLight" type="http://www.pnml.org/version-2009/grammar/ptnet">
+		<name>
+			<text>Traffic Light</text>
+		</name>
+		<page id="page0">
+			<name>
+				<text>DefaultPage</text>
+			</name>
+			<!-- List of places -->
+			<place id="RED">
+				<name>
+					<graphics>
+						<offset x="-40" y="0"/>
+					</graphics>
+					<text>RED</text>
+				</name>
+				<graphics>
+					<position x="120" y="20"/>
+				</graphics>
+			</place>
+			<place id="YELLOW">
+				<name>
+					<graphics>
+						<offset x="-40" y="0"/>
+					</graphics>
+					<text>YELLOW</text>
+				</name>
+				<graphics>
+					<position x="120" y="100"/>
+				</graphics>
+				<initialMarking>
+					<text>1</text>
+				</initialMarking>
+			</place>
+			<place id="GREEN">
+				<name>
+					<graphics>
+						<offset x="-40" y="0"/>
+					</graphics>
+					<text>GREEN</text>
+				</name>
+				<graphics>
+					<position x="120" y="180"/>
+				</graphics>
+			</place>
+			<place id="NIGHT">
+				<name>
+					<graphics>
+						<offset x="40" y="0"/>
+					</graphics>
+					<text>NIGHT</text>
+				</name>
+				<graphics>
+					<position x="220" y="60"/>
+				</graphics>
+			</place>
+			<!-- List of transitions -->
+			<transition id="stop">
+				<name>
+					<graphics>
+						<offset x="-25" y="0"/>
+					</graphics>
+					<text>stop</text>
+				</name>
+				<graphics>
+					<position x="125" y="60"/>
+				</graphics>
+			</transition>
+			<transition id="caution">
+				<name>
+					<graphics>
+						<offset x="-35" y="0"/>
+					</graphics>
+					<text>caution</text>
+				</name>
+				<graphics>
+					<position x="125" y="140"/>
+				</graphics>
+			</transition>
+			<transition id="go">
+				<name>
+					<graphics>
+						<offset x="-25" y="0"/>
+					</graphics>
+					<text>go</text>
+				</name>
+				<graphics>
+					<position x="125" y="220"/>
+				</graphics>
+			</transition>
+			<transition id="sunset">
+				<name>
+					<graphics>
+						<offset x="0" y="-15"/>
+					</graphics>
+					<text>sunset</text>
+				</name>
+				<graphics>
+					<position x="225" y="20"/>
+				</graphics>
+			</transition>
+			<transition id="dawn">
+				<name>
+					<graphics>
+						<offset x="0" y="15"/>
+					</graphics>
+					<text>dawn</text>
+				</name>
+				<graphics>
+					<position x="225" y="100"/>
+				</graphics>
+			</transition>
+			<!-- List of arcs -->
+			<arc id="id1" source="go" target="GREEN">
+			</arc>
+			<arc id="id2" source="GREEN" target="caution">
+			</arc>
+			<arc id="id3" source="caution" target="YELLOW">
+			</arc>
+			<arc id="id4" source="YELLOW" target="stop">
+			</arc>
+			<arc id="id5" source="stop" target="RED">
+			</arc>
+			<arc id="id6" source="RED" target="go">
+				<graphics>
+					<position x="130" y="5"/>
+					<position x="50" y="5"/>
+					<position x="50" y="255"/>
+					<position x="130" y="255"/>
+				</graphics>
+			</arc>
+			<arc id="id7" source="sunset" target="NIGHT">
+			</arc>
+			<arc id="id8" source="NIGHT" target="dawn">
+			</arc>
+			<arc id="id9" source="NIGHT" target="stop">
+				<type value="inhibitor"/>
+			</arc>
+			<arc id="id10" source="NIGHT" target="sunset">
+				<type value="inhibitor"/>
+			</arc>
+		</page>
+	</net>
+</pnml>

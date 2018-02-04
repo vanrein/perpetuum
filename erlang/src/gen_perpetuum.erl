@@ -165,20 +165,27 @@ reflow_sentinel( Vec,OldPlacebits,NewPlacebits,BitPos,PlacesTogo ) ->
 	true ->
 		TopVec = Vec band ( -1 bsl BitPos ),
 		BotVec = Vec bxor TopVec,
-		ReguardExtraBits = ( -1 bsl (NewPlacebits-OldPlacebits) ) bxor -1,
 		NewVec = if
-			(Vec band (1 bsl BitPos)) /= 0 -> ReguardExtraBits bsl BitPos;
-			true -> 0
+		(Vec band (1 bsl BitPos)) /= 0 ->
+			%
+			% Warning: Subject to erts bug ERL-450 described on
+			%          https://bugs.erlang.org/browse/ERL-450
+			%          Fix Versions: 20.1, 21.0
+			%
+			ReguardExtraBits = ( -1 bsl (NewPlacebits-OldPlacebits) ) bxor -1,
+			ReguardExtraBits bsl BitPos;
+		true ->
+			0
 		end,
 		UpdVec = BotVec bor (TopVec bsl (NewPlacebits-OldPlacebits)) bor NewVec,
-		%DEBUG% io:fwrite( "Reguarding with Vec ~p/~p, TopVec ~p, BotVec ~p, NewVec ~p, UpdVec ~p~n", [Vec,BitPos,TopVec,BotVec,NewVec,UpdVec] ),
+		io:fwrite( "Reguarding with Vec ~p/~p, TopVec ~p, BotVec ~p, NewVec ~p, UpdVec ~p~n", [Vec,BitPos,TopVec,BotVec,NewVec,UpdVec] ),
 		reflow_sentinel( UpdVec,OldPlacebits,NewPlacebits,BitPos+NewPlacebits+1,PlacesTogo-1 )
 	end.
 %
 reflow_sentinel( Vec,NumPlaces,OldPlacebits,NewPlacebits ) ->
-	%DEBUG% RETVAL =
+	RETVAL =
 	reflow_sentinel( Vec,OldPlacebits,NewPlacebits,0,NumPlaces )
-	%DEBUG% , io:fwrite( "Reflowed Sentinel ~p to ~p~n", [Vec,RETVAL] ), RETVAL
+	, io:fwrite( "Reflowed Sentinel ~p to ~p~n", [Vec,RETVAL] ), RETVAL
 	.
 
 

@@ -49,6 +49,8 @@ if (${PETRINET_SINGLETONS})
 	endif ()
 endif ()
 
+enable_testing ()
+
 
 
 #
@@ -125,8 +127,6 @@ add_custom_target (perpetuum-codegen ALL
 # TESTS
 #
 
-
-enable_testing ()
 
 add_subdirectory (test)
 

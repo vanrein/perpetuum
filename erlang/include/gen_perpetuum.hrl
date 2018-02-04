@@ -49,7 +49,7 @@
 -record( colour, {
 	petrinet  :: #petrinet{},
 	marking   :: integer(),
-	sentinel  :: integer()	%TODO% Never used...?
+	sentinel  :: integer()
 } ).
 
 

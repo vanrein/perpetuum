@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- This project file has been saved by the New GreatSPN Editor, v.100 --><project name="Perpetuum Demo" version="121">
+  <gspn name="Making Water" show-color-cmd="false" show-fluid-cmd="false" show-timed-cmd="false" view-rates="false">
+    <nodes>
+      <transition label-y="-2.0" name="add_H" nservers-x="0.5" type="EXP" x="5.55" y="4.0"/>
+      <transition label-y="-2.0" name="add_O" nservers-x="0.5" type="EXP" x="5.55" y="11.0"/>
+      <place label-y="2.0" name="Hydrogen" x="12.0" y="4.0"/>
+      <place label-y="2.0" name="Oxygen" x="12.0" y="11.0"/>
+      <transition label-y="-2.0" name="boom" nservers-x="0.5" type="EXP" x="19.55" y="8.0"/>
+      <place label-y="2.0" name="Water" x="27.0" y="8.0"/>
+    </nodes>
+    <edges>
+      <arc head="Hydrogen" kind="OUTPUT" tail="add_H"/>
+      <arc head="Oxygen" kind="OUTPUT" tail="add_O"/>
+      <arc head="boom" kind="INPUT" mult="2" mult-x="0.5" mult-y="-1.5" tail="Hydrogen"/>
+      <arc head="boom" kind="INPUT" tail="Oxygen"/>
+      <arc head="Water" kind="OUTPUT" tail="boom"/>
+    </edges>
+  </gspn>
+  <gspn name="Traffic Light" show-color-cmd="false" show-fluid-cmd="false" show-timed-cmd="false" view-rates="false">
+    <nodes>
+      <place label-x="-4.0" label-y="0.0" name="RED" x="12.0" y="2.0"/>
+      <place label-x="-4.0" label-y="0.0" marking="1" name="YELLOW" x="12.0" y="10.0"/>
+      <place label-x="-4.0" label-y="0.0" name="GREEN" x="12.0" y="18.0"/>
+      <transition label-x="-2.5" label-y="0.0" name="stop" nservers-x="0.5" rotation="1.5707963267948966" type="EXP" x="12.55" y="6.0"/>
+      <transition label-x="-3.5" label-y="0.0" name="caution" nservers-x="0.5" rotation="1.5707963267948966" type="EXP" x="12.55" y="14.0"/>
+      <transition label-x="-2.5" label-y="0.0" name="go" nservers-x="0.5" rotation="1.5707963267948966" type="EXP" x="12.55" y="22.0"/>
+      <place label-x="4.0" label-y="0.0" name="NIGHT" x="22.0" y="6.0"/>
+      <transition name="sunset" nservers-x="0.5" rotation="1.5707963267948966" type="EXP" x="22.55" y="2.0"/>
+      <transition label-y="1.5" name="dawn" nservers-x="0.5" rotation="1.5707963267948966" type="EXP" x="22.55" y="10.0"/>
+    </nodes>
+    <edges>
+      <arc head="GREEN" kind="OUTPUT" tail="go"/>
+      <arc head="caution" kind="INPUT" tail="GREEN"/>
+      <arc head="YELLOW" kind="OUTPUT" tail="caution"/>
+      <arc head="stop" kind="INPUT" tail="YELLOW"/>
+      <arc head="RED" kind="OUTPUT" tail="stop"/>
+      <arc head="go" kind="INPUT" tail="RED">
+        <point x="13.0" y="0.5"/>
+        <point x="5.0" y="0.5"/>
+        <point x="5.0" y="25.5"/>
+        <point x="13.0" y="25.5"/>
+      </arc>
+      <arc head="NIGHT" kind="OUTPUT" tail="sunset"/>
+      <arc head="dawn" kind="INPUT" tail="NIGHT"/>
+      <arc head="stop" kind="INHIBITOR" tail="NIGHT"/>
+      <arc head="sunset" kind="INHIBITOR" tail="NIGHT"/>
+    </edges>
+  </gspn>
+</project>

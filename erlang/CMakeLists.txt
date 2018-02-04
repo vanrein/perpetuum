@@ -6,8 +6,6 @@
 #
 # CMake invokes Erlang.mk as an ExternalProject
 #
-#TODO# Set the version number from CMake's deliberations with GIT.
-#
 
 cmake_minimum_required (VERSION 3.8)
 
@@ -51,7 +49,7 @@ ExternalProject_Add (erlang_build
 	TMP_DIR tmp
 	# BUILD_IN_SOURCE 1
 	BUILD_COMMAND ${GNUMAKE} -C ${PERPETUUM_LIBDIR} all
-	INSTALL_COMMAND ${GNUMAKE} -C ${PERPETUUM_LIBDIR} app
-	TEST_COMMAND ${GNUMAKE} -C ${PERPETUUM_LIBDIR} ct
-	TEST_COMMAND COMMAND ${GNUMAKE} -C ${PERPETUUM_LIBDIR} plt dialyze)
+	INSTALL_COMMAND ${GNUMAKE} -C ${PERPETUUM_LIBDIR} app)
 
+add_test (erlang-common-tests ${GNUMAKE} -C ${PERPETUUM_LIBDIR} ct)
+add_test (erlang-plt-dialyze  ${GNUMAKE} -C ${PERPETUUM_LIBDIR} plt dialyze)
