@@ -1,5 +1,7 @@
 # Perpetuum Test Scripting
 
+<img alt="Perpetuum Mobile" src="../pix/240px-PerpetuumMobile.gif" style="float: right;"/>
+
 > *The test infrastructure, currently geared exclusively at Erlang,
 > for the Perpetuum system.  C is bound to follow sometime later.*
 

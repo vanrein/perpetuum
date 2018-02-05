@@ -1,5 +1,7 @@
 # How to install Perpetuum
 
+<img alt="Perpetuum Mobile" src="pix/240px-PerpetuumMobile.gif" style="float: right;"/>
+
 > *Perpetuum should be easy to get started with.*
 
 ## Building Requirements
