@@ -12,6 +12,7 @@ Perpetuum uses:
   * Your favourite Make
   * GNU Make version 4.0 or higher (for Erlang.mk)
   * Erlang/OTP, *ideally* 20.1 or 21 or later
+  * Our CMake helper library ARPA2CM
 
 ## Runtime Requirements
 
@@ -20,12 +21,32 @@ Perpetuum uses:
 
 ## Building Steps
 
+First install ARPA2CM:
+
+ 1. Clone [the repository](https://github.com/arpa2/ARPA2CM) and CD into it
+ 2. Create a build subdirectory, like `build`, and CD into it
+ 3. Prepare for building with CMake
+ 4. Run Make to Build
+ 5. Run Make to Install
+
+In commandline details:
+
+```
+git clone https://github.com/arpa2/ARPA2CM
+cd ARPA2CM
+mkdir build
+cd build
+cmake ..
+make
+make install
+```
+
 To setup Perpetuum, act as follows:
 
  1. Clone [the repository](https://github.com/vanrein/perpetuum) and CD into it
  2. Create a build subdirectory, like `build`, and CD into it
  3. Prepare for building with CMake
- 4. Run Make
+ 4. Run Make to Build
  5. Optionally run CTest
 
 In commandline details:
