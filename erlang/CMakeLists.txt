@@ -7,8 +7,6 @@
 # CMake invokes Erlang.mk as an ExternalProject
 #
 
-cmake_minimum_required (VERSION 3.8)
-
 include (ExternalProject)
 
 set (PERPETUUM_LIBDIR ${CMAKE_BINARY_DIR}/erlang/perpetuum-${Perpetuum_VERSION})

@@ -5,7 +5,8 @@
 cmake_minimum_required (VERSION 3.1 FATAL_ERROR)
 project ("Perpetuum")
 
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+find_package (ARPA2CM 0.3 NO_MODULE)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ARPA2CM_MODULE_PATH})
 
 include (MacroEnsureOutOfSourceBuild)
 include (MacroAddUninstallTarget)

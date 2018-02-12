@@ -6,6 +6,8 @@
 %
 % From: Rick van Rein <rick@openfortress.nl>
 
+-ifndef(PERPETUUM_GEN_PERPETUUM_HRL).
+-define(PERPETUUM_GEN_PERPETUUM_HRL, true).
 
 % PetriNet describes the structural aspects of a Petri Net.
 % These structures may be reflowed if needed, to reflect a
@@ -92,3 +94,4 @@
                       { error,   term() } |
                       { retry,   term() }.
 
+-endif.
